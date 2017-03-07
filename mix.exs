@@ -9,6 +9,8 @@ defmodule Nerves.Runtime.Mixfile do
      start_permanent: Mix.env == :prod,
      make_clean: ["clean"],
      compilers: [:elixir_make | Mix.compilers],
+     description: description(),
+     package: package(),
      deps: deps()]
   end
 
@@ -34,5 +36,18 @@ defmodule Nerves.Runtime.Mixfile do
     [{:elixir_make, "~> 0.3", runtime: false},
      {:gen_stage, "~> 0.4"},
      {:nerves_uart, "~> 0.1.0", optional: true}]
+  end
+
+  defp description do
+    """
+    Nerves - Create firmware for embedded devices like Raspberry Pi, BeagleBone Black, and more
+    """
+  end
+
+  defp package do
+    [maintainers: ["Frank Hunleth", "Garth Hitchens", "Justin Schneck", "Greg Mefford"],
+     files: ["lib", "LICENSE", "mix.exs", "README.md", "src", "Makefile"],
+     licenses: ["Apache 2.0"],
+     links: %{"Github" => "https://github.com/nerves-project/nerves"}]
   end
 end
