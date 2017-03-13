@@ -15,9 +15,9 @@ defmodule Nerves.Runtime.Shell do
       2* {'Elixir.Nerves.Runtime.Shell',start,[]}
       --> c
       Nerves Interactive Host Shell
-      host[1]> find . -name "shell.ex"
+      sh[1]> find . -name "shell.ex"
       ./lib/nerves_runtime/shell.ex
-      host[2]> [Ctrl+G]
+      sh[2]> [Ctrl+G]
       User switch command
       --> c 1
 

@@ -19,9 +19,9 @@ defmodule Nerves.Runtime.Shell.Server do
   end
 
   defp run(opts) when is_list(opts) do
-    IO.puts "Nerves Interactive Host Shell"
+    IO.puts "Nerves Interactive Command Shell"
     evaluator = start_evaluator(opts)
-    state = %{counter: 1, prefix: "host"}
+    state = %{counter: 1, prefix: "sh"}
     loop(state, evaluator, Process.monitor(evaluator))
   end
 
