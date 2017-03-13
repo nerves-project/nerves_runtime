@@ -29,7 +29,7 @@ defmodule Nerves.Runtime.Shell do
 
   @doc """
   This is the callback invoked by Erlang's shell when someone presses Ctrl+G
-  and adds 's Elixir.Nerves.Host'.
+  and types `s Elixir.Nerves.Runtime.Shell`.
   """
   def start(opts \\ [], mfa \\ {Nerves.Runtime.Shell, :dont_display_result, []}) do
     spawn(fn ->
