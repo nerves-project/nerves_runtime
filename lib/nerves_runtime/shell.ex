@@ -1,6 +1,28 @@
 defmodule Nerves.Runtime.Shell do
   @moduledoc """
-  Entry point for a primitive host shell available through Erlang's job control mode.
+  Entry point for a primitive command shell available through Erlang's job
+  control mode. To use, type Ctrl+G at an iex prompt to enter job control mode.
+  At the prompt, type `s 'Elixir.Nerves.Runtime.Shell'` and then `c`` to
+  connect to it. To return to the iex prompt, type Ctrl+G again and `c 1`.
+
+  Here's an example session:
+
+      iex> [Ctrl+G]
+      User switch command
+      --> s 'Elixir.Nerves.Runtime.Shell'
+      --> j
+      1  {erlang,apply,[#Fun<Elixir.IEx.CLI.1.112225073>,[]]}
+      2* {'Elixir.Nerves.Runtime.Shell',start,[]}
+      --> c
+      Nerves Interactive Host Shell
+      host[1]> find . -name "shell.ex"
+      ./lib/nerves_runtime/shell.ex
+      host[2]> [Ctrl+G]
+      User switch command
+      --> c 1
+
+      nil
+      iex>
   """
 
   alias Nerves.Runtime.Shell.Server
