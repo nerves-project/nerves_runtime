@@ -28,7 +28,8 @@ defmodule Nerves.Runtime.Shell do
   alias Nerves.Runtime.Shell.Server
 
   @doc """
-  This is the callback invoked by Erlang's shell when someone presses Ctrl+G and adds 's Elixir.Nerves.Host'.
+  This is the callback invoked by Erlang's shell when someone presses Ctrl+G
+  and adds 's Elixir.Nerves.Host'.
   """
   def start(opts \\ [], mfa \\ {Nerves.Runtime.Shell, :dont_display_result, []}) do
     spawn(fn ->
@@ -38,7 +39,8 @@ defmodule Nerves.Runtime.Shell do
         _        -> :init.wait_until_started()
       end
 
-      # Make sure the OTP app fires up since we came in through the shell's job control mode.
+      # Make sure the OTP app fires up since we came in through the shell's
+      # job control mode.
       {:ok, _} = Application.ensure_all_started(:nerves_runtime)
       :io.setopts(Process.group_leader, binary: true, encoding: :unicode)
 
