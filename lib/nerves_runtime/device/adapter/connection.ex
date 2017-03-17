@@ -1,6 +1,6 @@
 defmodule Nerves.Runtime.Device.Adapter.Connection do
 
-  @callback handle_data_in(data :: any, state :: map) ::
-    {:noreply, state :: map} |
-    {:disconnect, state :: map}
+  @callback handle_data_in(device :: Device.t, data :: term, state :: term) ::
+    {:noreply, state :: term} |
+    {:disconnect, state :: term}
 end

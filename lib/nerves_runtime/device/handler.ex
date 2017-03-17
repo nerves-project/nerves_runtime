@@ -13,9 +13,6 @@ defmodule Nerves.Runtime.Device.Handler do
   @callback handle_disconnect(device :: Device.t, state :: term) ::
     {:noreply, new_state :: term}
 
-  @callback handle_data_in(device :: Device.t, data :: term, state :: term) ::
-    {:noreply, new_state :: term}
-
   @callback handle_call(call :: term, GenServer.from, state :: term) ::
     {:noreply, new_state :: term} |
     {:reply, reply :: term, new_state :: term}
