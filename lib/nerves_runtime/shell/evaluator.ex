@@ -1,6 +1,7 @@
 defmodule Nerves.Runtime.Shell.Evaluator do
   @moduledoc """
-  The evaluator is responsible for managing the shell port and executing commands against it.
+  The evaluator is responsible for managing the shell port and executing
+  commands against it.
   """
 
   def init(command, server, leader, _opts) do
