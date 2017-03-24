@@ -46,7 +46,7 @@ defmodule Nerves.Runtime.Mixfile do
 
   defp package do
     [maintainers: ["Frank Hunleth", "Garth Hitchens", "Justin Schneck", "Greg Mefford"],
-     files: ["lib", "LICENSE", "mix.exs", "README.md", "src", "Makefile"],
+     files: ["lib", "LICENSE", "mix.exs", "README.md", "src/*.[ch]", "Makefile"],
      licenses: ["Apache 2.0"],
      links: %{"Github" => "https://github.com/nerves-project/nerves"}]
   end
