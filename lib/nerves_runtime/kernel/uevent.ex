@@ -84,7 +84,6 @@ defmodule Nerves.Runtime.Kernel.UEvent do
         Map.put(acc, String.to_atom(k), v)
       end)
     event = {:uevent, to_string(uevent), kv}
-    |> IO.inspect
     {:noreply, [event], state}
   end
 end
