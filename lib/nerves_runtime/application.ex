@@ -10,9 +10,7 @@ defmodule Nerves.Runtime.Application do
 
     # Define workers and child supervisors to be supervised
     children = [
-      supervisor(Registry, [:duplicate, Nerves.Runtime.Kernel]),
       supervisor(Nerves.Runtime.Kernel, []),
-      worker(Nerves.Runtime.Device.Tree, []),
     ]
 
     # See http://elixir-lang.org/docs/stable/elixir/Supervisor.html
