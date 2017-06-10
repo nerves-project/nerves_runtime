@@ -19,7 +19,12 @@ defmodule Nerves.Runtime.Shell.Server do
   end
 
   defp run(opts) when is_list(opts) do
-    IO.puts "Nerves Interactive Command Shell"
+    IO.puts """
+    Nerves Interactive Command Shell
+
+    Type Ctrl+G to exit the shell and return to Erlang job control.
+    This is not a normal shell, so try not to type Ctrl+C.
+    """
     evaluator = start_evaluator(opts)
     state = %{counter: 1, prefix: "sh"}
     loop(state, evaluator, Process.monitor(evaluator))
