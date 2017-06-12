@@ -55,7 +55,7 @@ by adding `nerves_runtime` to your list of dependencies in `mix.exs`:
 
 ```elixir
 def deps do
-  [{:nerves_runtime, "~> 0.1.2"}]
+  [{:nerves_runtime, "~> 0.2.0"}]
 end
 ```
 
