@@ -1,5 +1,6 @@
 # Nerves.Runtime
 
+[![Build Status](https://travis-ci.org/nerves-project/nerves_runtime.svg)](https://travis-ci.org/nerves-project/nerves_runtime.svg)
 [![Hex version](https://img.shields.io/hexpm/v/nerves_runtime.svg "Hex version")](https://hex.pm/packages/nerves_runtime)
 
 Nerves.Runtime is an optional component of Nerves but it's really handy and has
