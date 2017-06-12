@@ -2,14 +2,14 @@ defmodule Nerves.Runtime.Shell do
   @moduledoc """
   Entry point for a primitive command shell available through Erlang's job
   control mode. To use, type Ctrl+G at an iex prompt to enter job control mode.
-  At the prompt, type `s 'Elixir.Nerves.Runtime.Shell'` and then `c`` to
-  connect to it. To return to the iex prompt, type Ctrl+G again and `c 1`.
+  At the prompt, type `s sh` and then `c`` to connect to it. To return to the
+  iex prompt, type Ctrl+G again and `c 1`.
 
   Here's an example session:
 
       iex> [Ctrl+G]
       User switch command
-      --> s 'Elixir.Nerves.Runtime.Shell'
+      --> s sh
       --> j
       1  {erlang,apply,[#Fun<Elixir.IEx.CLI.1.112225073>,[]]}
       2* {'Elixir.Nerves.Runtime.Shell',start,[]}
@@ -29,7 +29,7 @@ defmodule Nerves.Runtime.Shell do
 
   @doc """
   This is the callback invoked by Erlang's shell when someone presses Ctrl+G
-  and types `s Elixir.Nerves.Runtime.Shell`.
+  and types `s Elixir.Nerves.Runtime.Shell` or `s sh`.
   """
   def start(opts \\ [], mfa \\ {Nerves.Runtime.Shell, :dont_display_result, []}) do
     spawn(fn ->
@@ -51,3 +51,12 @@ defmodule Nerves.Runtime.Shell do
   def dont_display_result, do: "don't display result"
 end
 
+defmodule :sh do
+  @moduledoc """
+  This is a shortcut for invoking `Nerves.Runtime.Shell` in the Erlang job
+  control menu.  The alternative is to type `:Elixir.Nerves.Runtime.Shell` at
+  the `s [shell]` prompt.
+  """
+
+  defdelegate start, to: Nerves.Runtime.Shell
+end
