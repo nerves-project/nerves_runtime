@@ -3,7 +3,7 @@ defmodule Nerves.Runtime.Mixfile do
 
   def project do
     [app: :nerves_runtime,
-     version: "0.1.2",
+     version: "0.2.0-dev",
      elixir: "~> 1.4",
      build_embedded: Mix.env == :prod,
      start_permanent: Mix.env == :prod,
@@ -33,10 +33,10 @@ defmodule Nerves.Runtime.Mixfile do
   #
   # Type "mix help deps" for more examples and options
   defp deps do
-    [{:elixir_make, "~> 0.3", runtime: false},
+    [{:elixir_make, "~> 0.4", runtime: false},
      {:gen_stage, "~> 0.4"},
-     {:nerves_uart, "~> 0.1.0", optional: true}]
-  end
+     {:ex_doc, "~> 0.11", only: :dev}]
+end
 
   defp description do
     """
