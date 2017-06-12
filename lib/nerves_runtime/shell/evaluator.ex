@@ -31,8 +31,13 @@ defmodule Nerves.Runtime.Shell.Evaluator do
         IO.puts("Interactive shell port exited with status #{status}")
         :ok
       {:eval, ^server, command, shell_state} ->
-        new_shell_state = %{shell_state | counter: shell_state.counter + 1}
         send(state.port, {self(), {:command, command}})
+
+        # If the command changes the shell's directory, there's
+        # a chance that this checks too early. In practice, it
+        # seems to work for "cd".
+        new_shell_state = %{shell_state | counter: shell_state.counter + 1,
+                                          cwd: get_cwd(port)  }
         send(server, {:evaled, self(), new_shell_state})
         loop(server, state)
       {:done, ^server} ->
@@ -42,5 +47,12 @@ defmodule Nerves.Runtime.Shell.Evaluator do
         IO.inspect(other, label: "Unknown message received by Nerves host command evaluator")
         loop(server, state)
     end
+  end
+
+  defp get_cwd(port) do
+    # Get the current working directory of the port via the Linux /proc mechanism
+    with {:os_pid, os_pid} <- Port.info(port, :os_pid),
+         {:ok, cwd} <- :file.read_link("/proc/#{os_pid}/cwd"),
+      do: cwd
   end
 end

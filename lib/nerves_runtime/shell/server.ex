@@ -26,14 +26,14 @@ defmodule Nerves.Runtime.Shell.Server do
     This is not a normal shell, so try not to type Ctrl+C.
     """
     evaluator = start_evaluator(opts)
-    state = %{counter: 1, prefix: "sh"}
+    state = %{counter: 1, cwd: File.cwd!(), prefix: "sh"}
     loop(state, evaluator, Process.monitor(evaluator))
   end
 
   defp loop(state, evaluator, evaluator_ref) do
     self_pid = self()
     counter = state.counter
-    prefix = state.prefix
+    prefix = state.cwd
 
     input = spawn(fn -> io_get(self_pid, prefix, counter) end)
     wait_input(state, evaluator, evaluator_ref, input)
