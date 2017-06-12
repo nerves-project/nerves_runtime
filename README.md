@@ -1,5 +1,7 @@
 # Nerves.Runtime
 
+[![Hex version](https://img.shields.io/hexpm/v/nerves_runtime.svg "Hex version")](https://hex.pm/packages/nerves_runtime)
+
 Nerves.Runtime is an optional component of Nerves but it's really handy and has
 a small footprint. Here are some of its features:
 
@@ -52,7 +54,7 @@ by adding `nerves_runtime` to your list of dependencies in `mix.exs`:
 
 ```elixir
 def deps do
-  [{:nerves_runtime, "~> 0.1.0"}]
+  [{:nerves_runtime, "~> 0.1.2"}]
 end
 ```
 
