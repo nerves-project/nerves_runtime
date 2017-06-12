@@ -1,44 +1,47 @@
 defmodule Nerves.Runtime.Kernel.UEvent do
   @moduledoc ~S"""
   Provides a GenStage.BroadcastDispatcher which produces messages
-  received by the Linux UEvemt Interface.
+  received by the Linux UEvent Interface.
 
   These messages represent hotplug events for devices. Events will be
   delivered in the following 3 tuple format
 
-    {:uevent, event_string :: String.t, key_values :: map}
+  `{:uevent, event_string :: String.t, key_values :: map}`
 
   For Example:
 
-    {:uevent, "add@/devices/pci0000:00/0000:00:1d.0/usb2/2-1/2-1:1.0/tty/ttyACM0",
-      %{action: "add", devname: "ttyACM0",
-        devpath: "/devices/pci0000:00/0000:00:1d.0/usb2/2-1/2-1:1.0/tty/ttyACM0",
-        major: "166", minor: "0", seqnum: "2946", subsystem: "tty"}}
+  ```
+  {:uevent, "add@/devices/pci0000:00/0000:00:1d.0/usb2/2-1/2-1:1.0/tty/ttyACM0",
+    %{action: "add", devname: "ttyACM0",
+      devpath: "/devices/pci0000:00/0000:00:1d.0/usb2/2-1/2-1:1.0/tty/ttyACM0",
+      major: "166", minor: "0", seqnum: "2946", subsystem: "tty"}}
+  ```
 
   To consume the UEvent GenStage, create a consumer and sync_subscribe
 
-    defmodule Consumer do
-      use GenStage
+  ```
+  defmodule Consumer do
+    use GenStage
 
-      @doc "Starts the consumer."
-      def start_link() do
-        GenStage.start_link(__MODULE__, :ok)
-      end
-
-      def init(:ok) do
-        # Starts a permanent subscription to the broadcaster
-        # which will automatically start requesting items.
-        {:consumer, :ok, subscribe_to: [Nerves.Runtime.Kernel.UEvent]}
-      end
-
-      def handle_events(events, _from, state) do
-        for event <- events do
-          IO.inspect {self(), event}
-        end
-        {:noreply, [], state}
-      end
+    @doc "Starts the consumer."
+    def start_link() do
+      GenStage.start_link(__MODULE__, :ok)
     end
 
+    def init(:ok) do
+      # Starts a permanent subscription to the broadcaster
+      # which will automatically start requesting items.
+      {:consumer, :ok, subscribe_to: [Nerves.Runtime.Kernel.UEvent]}
+    end
+
+    def handle_events(events, _from, state) do
+      for event <- events do
+        IO.inspect {self(), event}
+      end
+      {:noreply, [], state}
+    end
+  end
+  ```
 
   """
   use GenStage
