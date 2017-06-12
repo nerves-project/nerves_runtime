@@ -34,8 +34,7 @@ defmodule Nerves.Runtime.Mixfile do
   # Type "mix help deps" for more examples and options
   defp deps do
     [{:elixir_make, "~> 0.3", runtime: false},
-     {:gen_stage, "~> 0.4"},
-     {:nerves_uart, "~> 0.1.0", optional: true}]
+     {:gen_stage, "~> 0.4"}]
   end
 
   defp description do
