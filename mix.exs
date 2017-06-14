@@ -34,7 +34,7 @@ defmodule Nerves.Runtime.Mixfile do
   # Type "mix help deps" for more examples and options
   defp deps do
     [{:elixir_make, "~> 0.4", runtime: false},
-     {:system_registry, path: "../system_registry"},
+     {:system_registry, github: "mobileoverlord/system_registry"},
      {:ex_doc, "~> 0.11", only: :dev}]
 end
 
