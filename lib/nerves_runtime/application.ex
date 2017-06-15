@@ -11,6 +11,8 @@ defmodule Nerves.Runtime.Application do
     # Define workers and child supervisors to be supervised
     children = [
       supervisor(Nerves.Runtime.Kernel, []),
+      worker(Nerves.Runtime.KV, []),
+      worker(Nerves.Runtime.Init, [])
     ]
 
     # See http://elixir-lang.org/docs/stable/elixir/Supervisor.html
@@ -18,4 +20,5 @@ defmodule Nerves.Runtime.Application do
     opts = [strategy: :one_for_one, name: Nerves.Runtime.Supervisor]
     Supervisor.start_link(children, opts)
   end
+
 end
