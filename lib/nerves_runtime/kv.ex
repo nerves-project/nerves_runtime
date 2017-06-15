@@ -22,7 +22,7 @@ defmodule Nerves.Runtime.KV do
     GenServer.call(__MODULE__, :get_all)
   end
 
-  def init(kv) do
+  def init(_kv) do
     exec = System.find_executable("fw_printenv")
     s = load_kv(exec)
     {:ok, s}

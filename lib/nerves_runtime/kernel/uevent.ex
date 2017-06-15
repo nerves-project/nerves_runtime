@@ -46,7 +46,7 @@ defmodule Nerves.Runtime.Kernel.UEvent do
   end
 
   def registry(%{"action" => "add", "devpath" => devpath} = event) do
-    scope = scope(devpath)
+    #scope = scope(devpath)
     #Logger.debug "UEvent Add: #{inspect scope}"
     attributes = Map.drop(event, ["action", "devpath"])
     SystemRegistry.update(scope(devpath), attributes)
