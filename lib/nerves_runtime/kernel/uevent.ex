@@ -1,60 +1,15 @@
 defmodule Nerves.Runtime.Kernel.UEvent do
-  @moduledoc ~S"""
-  Provides a GenStage.BroadcastDispatcher which produces messages
-  received by the Linux UEvent Interface.
+  use GenServer
+  require Logger
+  alias Nerves.Runtime.Device
 
-  These messages represent hotplug events for devices. Events will be
-  delivered in the following 3 tuple format
-
-  `{:uevent, event_string :: String.t, key_values :: map}`
-
-  For Example:
-
-  ```
-  {:uevent, "add@/devices/pci0000:00/0000:00:1d.0/usb2/2-1/2-1:1.0/tty/ttyACM0",
-    %{action: "add", devname: "ttyACM0",
-      devpath: "/devices/pci0000:00/0000:00:1d.0/usb2/2-1/2-1:1.0/tty/ttyACM0",
-      major: "166", minor: "0", seqnum: "2946", subsystem: "tty"}}
-  ```
-
-  To consume the UEvent GenStage, create a consumer and sync_subscribe
-
-  ```
-  defmodule Consumer do
-    use GenStage
-
-    @doc "Starts the consumer."
-    def start_link() do
-      GenStage.start_link(__MODULE__, :ok)
-    end
-
-    def init(:ok) do
-      # Starts a permanent subscription to the broadcaster
-      # which will automatically start requesting items.
-      {:consumer, :ok, subscribe_to: [Nerves.Runtime.Kernel.UEvent]}
-    end
-
-    def handle_events(events, _from, state) do
-      for event <- events do
-        IO.inspect {self(), event}
-      end
-      {:noreply, [], state}
-    end
-  end
-  ```
-
-  """
-  use GenStage
-
-  @doc """
-  Starts a UEvent Stage linked to the current process
-  """
-  @spec start_link() :: GenStage.on_start
   def start_link() do
-    GenStage.start_link(__MODULE__, [], name: __MODULE__)
+    GenServer.start_link(__MODULE__, [], name: __MODULE__)
   end
 
   def init([]) do
+    Logger.debug "Start UEvent Mon"
+    send(self(), :discover)
     executable = :code.priv_dir(:nerves_runtime) ++ '/uevent'
     port = Port.open({:spawn_executable, executable},
     [{:args, []},
@@ -63,15 +18,12 @@ defmodule Nerves.Runtime.Kernel.UEvent do
       :binary,
       :exit_status])
 
-    {:producer, %{port: port}, dispatcher: GenStage.BroadcastDispatcher}
+    {:ok, %{port: port}}
   end
 
-  def handle_call({:notify, event}, _from, state) do
-    {:reply, :ok, [event], state} # Dispatch immediately
-  end
-
-  def handle_demand(_demand, state) do
-    {:noreply, [], state} # We don't care about the demand
+  def handle_info(:discover, state) do
+    Device.discover
+    {:noreply, state}
   end
 
   def handle_info({_, {:data, <<?n, message::binary>>}}, state) do
@@ -79,14 +31,57 @@ defmodule Nerves.Runtime.Kernel.UEvent do
     handle_port(msg, state)
   end
 
-  defp handle_port({:uevent, uevent, kv}, state) do
-    kv = kv
-      |> Enum.reduce(%{}, fn (str, acc) ->
+  defp handle_port({:uevent, _uevent, kv}, state) do
+    event =
+      Enum.reduce(kv, %{}, fn (str, acc) ->
         [k, v] = String.split(str, "=")
         k = String.downcase(k)
-        Map.put(acc, String.to_atom(k), v)
+        Map.put(acc, k, v)
       end)
-    event = {:uevent, to_string(uevent), kv}
-    {:noreply, [event], state}
+    case Map.get(event, "devpath", "") do
+      "/devices" <> _path -> registry(event)
+      _ -> :noop
+    end
+    {:noreply, state}
   end
+
+  def registry(%{"action" => "add", "devpath" => devpath} = event) do
+    scope = scope(devpath)
+    Logger.debug "UEvent Add: #{inspect scope}"
+    attributes = Map.drop(event, ["action", "devpath"])
+    SystemRegistry.update(scope(devpath), attributes)
+  end
+
+  def registry(%{"action" => "remove", "devpath" => devpath}) do
+    scope = scope(devpath)
+    Logger.debug "UEvent Remove: #{inspect scope}"
+    SystemRegistry.delete(scope)
+  end
+
+  def registry(%{"action" => "change"} = event) do
+    Logger.debug "UEvent Change: #{inspect event}"
+    raw = Map.drop(event, ["action"])
+    Map.put(raw, "action", "remove")
+    |> registry
+
+    Map.put(raw, "action", "add")
+    |> registry
+  end
+
+  def registry(%{"action" => "move", "devpath" => new, "devpath_old" => old}) do
+    Logger.debug "UEvent Move: #{inspect scope(old)} -> #{inspect scope(new)}"
+    SystemRegistry.move(scope(old), scope(new))
+  end
+
+  def registry(event) do
+    Logger.debug "UEvent Unhandled: #{inspect event}"
+  end
+
+  defp scope("/" <> devpath) do
+    scope(devpath)
+  end
+  defp scope(devpath) do
+    [:state | String.split(devpath, "/")]
+  end
+
 end
