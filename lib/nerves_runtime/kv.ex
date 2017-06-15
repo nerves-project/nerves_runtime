@@ -73,7 +73,7 @@ defmodule Nerves.Runtime.KV do
 
   def active(s), do: Map.get(s, "nerves_fw_active", "")
   def active(key, s) do
-    "#{active(s)}.#{key}"
+    Map.get(s, "#{active(s)}.#{key}")
   end
 
 end

@@ -13,16 +13,16 @@ defmodule Nerves.Runtime.Init do
 
   def init_application_partition() do
     prefix = "nerves_fw_application_part0"
-    fstype = KV.get_active("#{prefix}_fstype")
+    fstype = KV.get_active("#{prefix}_fstype") |> IO.inspect
     target = KV.get_active("#{prefix}_target")
     devpath = KV.get_active("#{prefix}_devpath")
     if  fstype  != nil
     and target  != nil
     and devpath != nil do
 
-      opts = %{fstype: fstype, target: target, devpath: devpath}
+      opts = %{mounted: nil, fstype: fstype, target: target, devpath: devpath}
       mounted_state = mounted_state(opts)
-      Map.put(opts, :mounted_state, mounted_state)
+      Map.put(opts, :mounted, mounted_state)
       |> unmount_if_error()
       |> mount()
       |> unmount_if_error()
@@ -35,7 +35,7 @@ defmodule Nerves.Runtime.Init do
   end
 
   def mounted_state(s) do
-    {mounts, 0} = System.cmd("mounts", [])
+    {mounts, 0} = System.cmd("mount", [])
     mount =
       String.split(mounts, "\n")
       |> Enum.find(fn(mount) ->
@@ -76,7 +76,7 @@ defmodule Nerves.Runtime.Init do
   defp unmount_if_error(s), do: s
 
   defp format_if_unmounted(%{mounted: :unmounted} = s) do
-    System.cmd("mkfs.#{s.fs_type}", ["#{s.devpath}", "-F"])
+    System.cmd("mkfs.#{s.fstype}", ["#{s.devpath}", "-F"])
     s
   end
 
