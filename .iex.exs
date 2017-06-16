@@ -7,3 +7,5 @@ defmodule T do
     r Nerves.Runtime.Device
   end
 end
+
+alias Nerves.Runtime.KV

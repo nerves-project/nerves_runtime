@@ -8,7 +8,7 @@ defmodule Nerves.Runtime.Kernel.UEvent do
   end
 
   def init([]) do
-    Logger.debug "Start UEvent Mon"
+    #Logger.debug "Start UEvent Mon"
     send(self(), :discover)
     executable = :code.priv_dir(:nerves_runtime) ++ '/uevent'
     port = Port.open({:spawn_executable, executable},
@@ -46,20 +46,20 @@ defmodule Nerves.Runtime.Kernel.UEvent do
   end
 
   def registry(%{"action" => "add", "devpath" => devpath} = event) do
-    scope = scope(devpath)
-    Logger.debug "UEvent Add: #{inspect scope}"
+    #scope = scope(devpath)
+    #Logger.debug "UEvent Add: #{inspect scope}"
     attributes = Map.drop(event, ["action", "devpath"])
     SystemRegistry.update(scope(devpath), attributes)
   end
 
   def registry(%{"action" => "remove", "devpath" => devpath}) do
     scope = scope(devpath)
-    Logger.debug "UEvent Remove: #{inspect scope}"
+    #Logger.debug "UEvent Remove: #{inspect scope}"
     SystemRegistry.delete(scope)
   end
 
   def registry(%{"action" => "change"} = event) do
-    Logger.debug "UEvent Change: #{inspect event}"
+    #Logger.debug "UEvent Change: #{inspect event}"
     raw = Map.drop(event, ["action"])
     Map.put(raw, "action", "remove")
     |> registry
@@ -69,7 +69,7 @@ defmodule Nerves.Runtime.Kernel.UEvent do
   end
 
   def registry(%{"action" => "move", "devpath" => new, "devpath_old" => old}) do
-    Logger.debug "UEvent Move: #{inspect scope(old)} -> #{inspect scope(new)}"
+    #Logger.debug "UEvent Move: #{inspect scope(old)} -> #{inspect scope(new)}"
     SystemRegistry.move(scope(old), scope(new))
   end
 

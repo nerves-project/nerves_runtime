@@ -1,10 +1,16 @@
 # Changelog
 
-## v0.2.0
+## v0.3.0-dev
+  * Enhancements
+    * Removed GenStage in favor of SystemRegistry
+    * Added KV firmware variable key value store
+    * Added Init worker for initializing the application partition
 
-  * Moved hardware abstraction layer to separate project for further
+## v0.2.0
+  * Enhancements
+    * Moved hardware abstraction layer to separate project for further
     development
-  * Start the shell using the name `sh` instead of `'Elixir.Nerves.Runtime.Shell'`
+    * Start the shell using the name `sh` instead of `'Elixir.Nerves.Runtime.Shell'`
 
 ## v0.1.2
 

@@ -33,10 +33,7 @@ defmodule Nerves.Runtime.Device do
   end
 
   defp invoke_uevent_action(uevent, action) do
-    uevent
-    |> IO.inspect
-    |> File.write(action)
-    |> IO.inspect
+    File.write(uevent, action)
   end
 
 end
