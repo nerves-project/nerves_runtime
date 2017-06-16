@@ -2,7 +2,7 @@ defmodule InitTest do
   use ExUnit.Case
   doctest Nerves.Runtime.Init
 
-  alias Nerves.Runtime.Init
+  #alias Nerves.Runtime.Init
 
   # test "mounted?" do
   #   mounts =

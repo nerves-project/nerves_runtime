@@ -8,7 +8,7 @@ defmodule Nerves.Runtime.Kernel.UEvent do
   end
 
   def init([]) do
-    Logger.debug "Start UEvent Mon"
+    #Logger.debug "Start UEvent Mon"
     send(self(), :discover)
     executable = :code.priv_dir(:nerves_runtime) ++ '/uevent'
     port = Port.open({:spawn_executable, executable},
