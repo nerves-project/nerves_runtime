@@ -12,6 +12,7 @@ of its features:
 * Introspection of Nerves system firmware and deployment metadata
 * A custom shell for debugging and running commands in a `bash` shell like
   environment
+* Device reboot and shutdown
 * A small Linux kernel `uevent` application for capturing hardware change events
   and more
 * More to come...
@@ -85,6 +86,17 @@ call one of the following:
 * `Nerves.Runtime.KV.get_active/1` - look up the value of a key associated with
   the currently running firmware.
 * `Nerves.Runtime.KV.get/1` - look up the value of a key
+
+## Device reboot and shutdown
+
+Reboot, poweroff, and halting a device work by signaling to
+[erlinit](https://github.com/nerves-project/erlinit) an intention to shutdown
+and then exiting the Erlang VM by calling `:init.stop/0`. The
+`Nerves.Runtime.reboot/0` and related utilities are helper methods for this.
+Once they return, the Erlang VM will likely only be available momentarily before
+shutdown. If the OTP applications cannot be stopped within a timeout as
+specified in the `erlinit.config`, `erlinit` will ungracefully terminate the
+Erlang VM.
 
 ## The Nerves Runtime Shell
 
