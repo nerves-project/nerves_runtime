@@ -13,7 +13,7 @@ defmodule Nerves.Runtime.Init do
 
   def init_application_partition() do
     prefix = "nerves_fw_application_part0"
-    fstype = KV.get_active("#{prefix}_fstype") |> IO.inspect
+    fstype = KV.get_active("#{prefix}_fstype")
     target = KV.get_active("#{prefix}_target")
     devpath = KV.get_active("#{prefix}_devpath")
     if  fstype  != nil
@@ -45,13 +45,11 @@ defmodule Nerves.Runtime.Init do
       case mount do
         nil -> :unmounted
         mount ->
-          IO.inspect mount
           opts =
             String.split(mount, " ")
             |> List.last
             |> String.slice(1..-2)
             |> String.split(",")
-            |> IO.inspect
           cond do
             "rw" in opts ->
               :mounted
