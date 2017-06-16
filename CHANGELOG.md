@@ -1,5 +1,7 @@
 # Changelog
 
+## v0.3.0-dev
+
 ## v0.2.0
 
   * Moved hardware abstraction layer to separate project for further
