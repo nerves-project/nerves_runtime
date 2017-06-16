@@ -38,11 +38,7 @@ defmodule Nerves.Runtime.KV do
 
   def handle_call(:get_all_active, _from, s) do
     active = active(s) <> "."
-    reply =
-      Enum.filter(s, fn({k, _}) ->
-        String.starts_with?(k, active)
-      end)
-      |> Enum.into(%{})
+    reply = filter_trim_active(s, active)
     {:reply, reply, s}
   end
 
@@ -74,6 +70,14 @@ defmodule Nerves.Runtime.KV do
   def active(s), do: Map.get(s, "nerves_fw_active", "")
   def active(key, s) do
     Map.get(s, "#{active(s)}.#{key}")
+  end
+
+  def filter_trim_active(s, active) do
+    Enum.filter(s, fn({k, _}) ->
+      String.starts_with?(k, active)
+    end)
+    |> Enum.map(fn({k, v}) -> {String.replace_leading(k, active, ""), v} end)
+    |> Enum.into(%{})
   end
 
 end
