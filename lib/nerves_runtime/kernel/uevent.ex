@@ -99,11 +99,10 @@ defmodule Nerves.Runtime.Kernel.UEvent do
   end
 
   defp subsystem_scope(subsystem) do
-    [:state, :subsystems, subsystem]
+    [:state, "subsystems", subsystem]
   end
 
   defp modprobe(%{"modalias" => modalias}) do
-    IO.inspect "here"
     System.cmd("modprobe", [modalias], stderr_to_stdout: true)
   end
   defp modprobe(_), do: :noop
