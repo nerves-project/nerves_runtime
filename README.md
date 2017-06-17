@@ -34,12 +34,14 @@ functionality propagates through templates and examples.)
    `Bootloader.Plugin` is in your `rel/config.exs`.
 2. In your `config/config.exs`, make sure that `:nerves_runtime` is at the
    beginning of the `init:` list:
+
 ```elixir
 config :bootloader,
   overlay_path: "",
   init: [:nerves_runtime, :other_app],
   app: :your_app
 ```
+
 ### Kernel Modules
 
 Nerves.Runtime will attempt to autoload kernel modules by calling `modprobe`
@@ -48,7 +50,7 @@ disable this feature by configuring `autoload: false` in your application config
 
 ```elixir
 config :nerves_runtime, :kernel,
-  autoload: false
+  autoload_modules: false
 ```
 
 ## Filesystem initialization

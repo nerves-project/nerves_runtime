@@ -8,7 +8,7 @@ defmodule Nerves.Runtime.Kernel.UEvent do
   end
 
   def init(opts) do
-    autoload = if opts[:autoload] != nil, do: opts[:autoload], else: true
+    autoload = if opts[:autoload_modules] != nil, do: opts[:autoload_modules], else: true
     send(self(), :discover)
     executable = :code.priv_dir(:nerves_runtime) ++ '/uevent'
     port = Port.open({:spawn_executable, executable},
