@@ -34,7 +34,7 @@ defmodule Nerves.Runtime.Mixfile do
   # Type "mix help deps" for more examples and options
   defp deps do
     [{:elixir_make, "~> 0.4", runtime: false},
-     {:system_registry, github: "mobileoverlord/system_registry"},
+     {:system_registry, "~> 0.3.0"},
      {:ex_doc, "~> 0.11", only: :dev}]
 end
 
@@ -45,7 +45,7 @@ end
   end
 
   defp package do
-    [maintainers: ["Frank Hunleth", "Garth Hitchens", "Justin Schneck", "Greg Mefford"],
+    [maintainers: ["Frank Hunleth", "Justin Schneck", "Greg Mefford"],
      files: ["lib", "LICENSE", "mix.exs", "README.md", "src/*.[ch]", "Makefile"],
      licenses: ["Apache 2.0"],
      links: %{"Github" => "https://github.com/nerves-project/nerves"}]
