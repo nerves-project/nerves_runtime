@@ -1,6 +1,6 @@
 # Changelog
 
-## v0.3.0-dev
+## v0.3.0
   * Enhancements
     * Removed GenStage in favor of SystemRegistry
     * Added KV firmware variable key value store

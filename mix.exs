@@ -3,7 +3,7 @@ defmodule Nerves.Runtime.Mixfile do
 
   def project do
     [app: :nerves_runtime,
-     version: "0.3.0-dev",
+     version: "0.3.0",
      elixir: "~> 1.4",
      build_embedded: Mix.env == :prod,
      start_permanent: Mix.env == :prod,
@@ -11,6 +11,7 @@ defmodule Nerves.Runtime.Mixfile do
      compilers: [:elixir_make | Mix.compilers],
      description: description(),
      package: package(),
+     docs: docs(),
      deps: deps()]
   end
 
@@ -36,7 +37,12 @@ defmodule Nerves.Runtime.Mixfile do
     [{:elixir_make, "~> 0.4", runtime: false},
      {:system_registry, "~> 0.3.0"},
      {:ex_doc, "~> 0.11", only: :dev}]
-end
+  end
+
+  defp docs do
+    [extras: ["README.md"],
+     main: "readme"]
+  end
 
   defp description do
     """
