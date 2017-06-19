@@ -8,7 +8,7 @@ libraries that are expected to be useful on all Nerves devices.  Here are some
 of its features:
 
 * Generic system and filesystem initialization (suitable for use with
-  [bootloader](https://github.com/nerves-project/bootloader)
+  [bootloader](https://github.com/nerves-project/bootloader))
 * Introspection of Nerves system firmware and deployment metadata
 * A custom shell for debugging and running commands in a `bash` shell like
   environment
