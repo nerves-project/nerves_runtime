@@ -99,6 +99,39 @@ call one of the following:
   the currently running firmware.
 * `Nerves.Runtime.KV.get/1` - look up the value of a key
 
+Global Nerves metadata includes the following:
+
+Key               | Build env variable | Example value  | Description
+------------------|--------------------|----------------|------------
+nerves_fw_active  | -                  | "a"            | This key holds the prefix that identifies the actively running firmware metadata. In this example, all keys starting with "a." hold information about the running firmware.
+nerves_fw_devpath | NERVES_FW_DEVPATH  | "/dev/mmcblk0" | This is the primary storage device for the firmware.
+
+Firmware-specific Nerves metadata includes the following. Note that the keys are
+stored in the environment block prefixed by the firmware slot for which they
+pertain. E.g., `a.nerves_fw_description` is the description for the firmware in
+the "A" slot.
+
+Key                                 | mix.exs project key | Build environment variable          | fwup -m           | Example value   | Description
+------------------------------------|---------------------|-------------------------------------|-------------------|-----------------|---------------
+nerves_fw_application_part0_devpath | -                   | NERVES_FW_APPLICATION_PART0_DEVPATH | -                 | "/dev/mmcblkp3" | The block device that contains the application partition
+nerves_fw_application_part0_fstype  | -                   | NERVES_FW_APPLICATION_PART0_FSTYPE  | -                 | "ext4"          | The application partition's filesystem type (see the mount command for options)
+nerves_fw_application_part0_target  | -                   | NERVES_FW_APPLICATION_PART0_TARGET  | -                 | "/root"         | Where to mount the application partition.
+nerves_fw_architecture              | -                   | NERVES_FW_ARCHITECTURE              | meta-architecture | "arm"           | The processor architecture. Not currently used.
+nerves_fw_author                    | :author             | NERVES_FW_AUTHOR                    | meta-author       | "John Doe"      | The person or company that created this firmware.
+nerves_fw_description               | :description        | NERVES_FW_DESCRIPTION               | meta-description  | "Stuff"         | A description of the project
+nerves_fw_platform                  | -                   | NERVES_FW_PLATFORM                  | meta-platform     | "rpi3"          | A name to identify the board that this runs on. It can be checked in the fwup.conf before performing an upgrade.
+nerves_fw_product                   | :name               | NERVES_FW_PRODUCT                   | meta-product      | "My Product"    | A product name that may show up in a firmware selection list, for example.
+nerves_fw_version                   | :version            | NERVES_FW_VERSION                   | meta-version      | "1.0.0"         | The project's version
+
+As shown above, several keys can be set in the `mix.exs` file or your main
+Nerves project. That is also the preferred location of setting them. Assuming
+that the `fwup.conf` respects the `fwup` variable names above, those are all
+overridable by setting environment variables. Overriding the `fwup.conf`
+provided by the Nerves system may be a preferrable way of setting them, though.
+
+The `fwup -m` column shows the key that you'll see if you run
+`fwup -m -i <project.fw>` to extract the firmware metadata from the `.fw` file.
+
 ## Device reboot and shutdown
 
 Reboot, poweroff, and halting a device work by signaling to
