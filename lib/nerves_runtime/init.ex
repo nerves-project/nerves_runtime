@@ -21,8 +21,7 @@ defmodule Nerves.Runtime.Init do
     and devpath != nil do
 
       opts = %{mounted: nil, fstype: fstype, target: target, devpath: devpath}
-      mounted_state = mounted_state(opts)
-      Map.put(opts, :mounted, mounted_state)
+      mounted_state(opts)
       |> unmount_if_error()
       |> mount()
       |> unmount_if_error()
