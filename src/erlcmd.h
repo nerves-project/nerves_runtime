@@ -24,7 +24,7 @@
 /*
  * Erlang request/response processing
  */
-#define ERLCMD_BUF_SIZE 1024
+#define ERLCMD_BUF_SIZE 2048
 struct erlcmd
 {
     char buffer[ERLCMD_BUF_SIZE];
