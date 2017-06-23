@@ -1,4 +1,7 @@
 # Changelog
+## v0.3.1
+  * Bug Fixes
+    * Increased erl_cmd buffer size to 2048 to prevent segfaults with uevents for devices with many attributes.
 
 ## v0.3.0
   * Enhancements
