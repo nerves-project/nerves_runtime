@@ -1,6 +1,8 @@
 # Changelog
 
-## v0.3.2-dev
+## v0.4.0
+  * Enhancements
+    * Loosen dependency requirements on SystemRegistry
 
 ## v0.3.1
   * Bug Fixes
