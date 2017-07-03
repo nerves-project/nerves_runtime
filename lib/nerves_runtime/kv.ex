@@ -8,17 +8,17 @@ defmodule Nerves.Runtime.KV do
   is located, etc.
 
   Values are stored in two ways.
-  * Values do not pertain to a specific firmware slot
+  * Values that do not pertain to a specific firmware slot
   For example:
     `"nerves_fw_active" => "a"`
 
-  * Values pretain to a specific firmware slot
+  * Values that pertain to a specific firmware slot
   For Example:
     `"a.nerves_fw_author" => "The Nerves Team"`
 
   You can find values for just the active firmware slot by
   using get_active and get_all_active. The result of these
-  functions will trim the firmware slot "a." or "b." off the
+  functions will trim the firmware slot (`"a."` or `"b."`)
   from the leading characters of the keys returned.
   """
   use GenServer
@@ -39,7 +39,7 @@ defmodule Nerves.Runtime.KV do
   end
 
   @doc """
-  get the key regardless of firmware slot
+  Get the key regardless of firmware slot
   """
   def get(key) do
     GenServer.call(__MODULE__, {:get, key})
