@@ -73,7 +73,7 @@ defmodule Nerves.Runtime.Init do
   defp unmount_if_error(s), do: s
 
   defp format_if_unmounted(%{mounted: :unmounted} = s) do
-    System.cmd("mkfs.#{s.fstype}", ["#{s.devpath}", "-F"])
+    System.cmd("mkfs.#{s.fstype}", ["-F", "#{s.devpath}"])
     s
   end
 
