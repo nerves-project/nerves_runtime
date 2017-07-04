@@ -1,5 +1,9 @@
 # Changelog
 
+## v0.4.1
+  * Bug Fixes
+    * Fixed issue with the order of args being passed to mkfs
+
 ## v0.4.0
   * Enhancements
     * Loosen dependency requirements on SystemRegistry
