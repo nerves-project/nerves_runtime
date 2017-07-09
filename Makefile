@@ -4,7 +4,8 @@
 # CROSSCOMPILE	crosscompiler prefix, if any
 # CFLAGS	compiler flags for compiling all C files
 # ERL_CFLAGS	additional compiler flags for files using Erlang header files
-# ERL_EI_LIBDIR path to libei.a
+# ERL_EI_INCLUDE_DIR include path to ei.h (Required for crosscompile)
+# ERL_EI_LIBDIR path to libei.a (Required for crosscompile)
 # LDFLAGS	linker flags for linking all binaries
 # ERL_LDFLAGS	additional linker flags for projects referencing Erlang libraries
 
@@ -12,9 +13,16 @@
 ifeq ($(CROSSCOMPILE),)
     # Not crosscompiling, so check that we're on Linux.
     ifneq ($(shell uname -s),Linux)
-        $(error Nerves runtime only works on Linux. Crosscompiling is possible if $$CROSSCOMPILE is set.)
+        $(warning nerves_runtime only works on Linux, but crosscompilation)
+        $(warning is supported by defining $$CROSSCOMPILE, $$ERL_EI_INCLUDE_DIR,)
+        $(warning and $$ERL_EI_LIBDIR. See Makefile for details. If using Nerves,)
+        $(warning this should be done automatically.)
+        $(warning .)
+        $(warning Skipping C compilation unless targets explicitly passed to make.)
+	DEFAULT_TARGETS = priv
     endif
 endif
+DEFAULT_TARGETS ?= priv priv/uevent
 
 # Look for the EI library and header files
 # For crosscompiled builds, ERL_EI_INCLUDE_DIR and ERL_EI_LIBDIR must be
@@ -34,23 +42,24 @@ ERL_LDFLAGS ?= -L$(ERL_EI_LIBDIR) -lei
 
 LDFLAGS += -lmnl
 CFLAGS ?= -O2 -Wall -Wextra -Wno-unused-parameter -pedantic
+CC ?= $(CROSSCOMPILE)-gcc
 
 # Enable for debug messages
 # CFLAGS += -DDEBUG
-
-CC ?= $(CROSSCOMPILER)gcc
 
 CFLAGS += -std=gnu99
 
 .PHONY: all clean
 
-all: priv/uevent
+all: $(DEFAULT_TARGETS)
 
 %.o: %.c
 	$(CC) -c $(ERL_CFLAGS) $(CFLAGS) -o $@ $<
 
+priv:
+	mkdir -p priv
+
 priv/uevent: src/uevent.o src/erlcmd.o
-	@mkdir -p priv
 	$(CC) $^ $(ERL_LDFLAGS) $(LDFLAGS) -o $@
 
 clean:
