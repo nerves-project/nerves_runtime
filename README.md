@@ -122,6 +122,8 @@ nerves_fw_description               | :description        | NERVES_FW_DESCRIPTIO
 nerves_fw_platform                  | -                   | NERVES_FW_PLATFORM                  | meta-platform     | "rpi3"          | A name to identify the board that this runs on. It can be checked in the fwup.conf before performing an upgrade.
 nerves_fw_product                   | :name               | NERVES_FW_PRODUCT                   | meta-product      | "My Product"    | A product name that may show up in a firmware selection list, for example.
 nerves_fw_version                   | :version            | NERVES_FW_VERSION                   | meta-version      | "1.0.0"         | The project's version
+nerves_fw_vcs_identifier            | -                   | NERVES_FW_VCS_IDENTIFIER            | meta-vcs-identifier | "bdeead38..." | A `git` SHA or other identifier (optional)
+nerves_fw_misc                      | -                   | NERVES_FW_MISC                      | meta-misc         | "anything..."   | Any application info that doesn't fit in another field (optional)
 
 As shown above, several keys can be set in the `mix.exs` file or your main
 Nerves project. That is also the preferred location of setting them. Assuming
