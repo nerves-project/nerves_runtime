@@ -1,5 +1,9 @@
 # Changelog
 
+## v0.4.2
+  * Enhancements
+    * Makefile only builds for Linux hosts or cross compile environments. Allows package to compile on other platforms.
+
 ## v0.4.1
   * Bug Fixes
     * Fixed issue with the order of args being passed to mkfs
