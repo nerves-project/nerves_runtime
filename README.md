@@ -15,6 +15,7 @@ Here are some of its features:
 * Device reboot and shutdown
 * A small Linux kernel `uevent` application for capturing hardware change events
   and more
+* IEx helpers to make life better when working from the IEx prompt
 * More to come...
 
 The following sections describe the features in more detail. For even more
@@ -226,6 +227,31 @@ There are a few caveats to using this shell for now:
     regular shell. For most commands, it's harmless. One side effect is that if
     a command changes the current directory, it could be that the prompt shows
     the wrong path.
+
+## IEx helpers
+
+The `Nerves.Runtime.Helpers` module provides a number of functions that are
+useful when working at the IEx prompt on a target. They include:
+
+* `cmd/1` - runs a shell command and prints the output
+* `hex/1` - inspects a value in hexadecimal mode
+* `reboot/0` - reboots gracefully
+* `reboot!/0 ` - reboots immediately
+
+More information is available in the module docs for `Nerves.Runtime.Helpers`
+and through `h/1`.
+
+The IEx helpers aren't loaded by default. To use them, run the following:
+```
+iex> use Nerves.Runtime.Helpers
+```
+
+If you expect to use them frequently, add them to your `.iex.exs` on the
+target by running:
+
+```
+iex> File.write!("/root/.iex.exs", "use Nerves.Runtime.Helpers")
+```
 
 ## Installation
 
