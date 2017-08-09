@@ -1,5 +1,10 @@
 # Changelog
 
+## v0.4.3
+  * Enhancements
+    * The `Nerves.Runtime.Helpers` module provides a number of functions that are
+    useful when working at the IEx prompt on a target.
+
 ## v0.4.2
   * Enhancements
     * Makefile only builds for Linux hosts or cross compile environments. Allows package to compile on other platforms.
