@@ -1,4 +1,7 @@
 defmodule Nerves.Runtime.Helpers do
+  # This is the path on all official Nerves systems
+  @iex_exs_path "/root/.iex.exs"
+
   @moduledoc """
   Helper functions for making the IEx prompt a little friendlier to use
   with Nerves. It is intended to be imported to minimize typing:
@@ -7,9 +10,9 @@ defmodule Nerves.Runtime.Helpers do
 
   For development, you may want to run
 
-      iex> File.write!("/root/.iex.exs", "use Nerves.Runtime.Helpers")
+      iex> Nerves.Runtime.Helpers.install
 
-  on the target so that it gets imported automatically.
+  on the target so that the helpers get automatically imported on each boot.
 
   Helpers include:
 
@@ -26,8 +29,23 @@ defmodule Nerves.Runtime.Helpers do
 
   defmacro __using__(_) do
     quote do
-      import Nerves.Runtime.Helpers
+      import Nerves.Runtime.Helpers, except: [install: 0]
       IO.puts("Nerves.Runtime.Helpers imported. Run h(Nerves.Runtime.Helpers) for more info")
+    end
+  end
+
+  @doc """
+  Install the helpers so that they're autoloaded on subsequent reboots.
+  """
+  def install() do
+    case File.exists?(@iex_exs_path) do
+      false ->
+        File.write!(@iex_exs_path, "use Nerves.Runtime.Helpers")
+        IO.puts("Helpers installed and will be loaded on next reboot. To use")
+        IO.puts("them now, run `use Nerves.Runtime.Helpers`")
+      true ->
+        IO.puts("#{@iex_exs_path} already exists.")
+        IO.puts("Please manually add 'use Nerves.Runtime.Helpers' if it's not already there.")
     end
   end
 
