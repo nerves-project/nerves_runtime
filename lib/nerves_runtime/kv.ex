@@ -85,8 +85,8 @@ defmodule Nerves.Runtime.KV do
     {:reply, s, s}
   end
 
-  def load_kv(nil), do: %{}
-  def load_kv(exec) do
+  defp load_kv(nil), do: %{}
+  defp load_kv(exec) do
     case System.cmd(exec, []) do
       {result, 0} ->
         parse_kv(result)
@@ -106,12 +106,12 @@ defmodule Nerves.Runtime.KV do
     end)
   end
 
-  def active(s), do: Map.get(s, "nerves_fw_active", "")
-  def active(key, s) do
+  defp active(s), do: Map.get(s, "nerves_fw_active", "")
+  defp active(key, s) do
     Map.get(s, "#{active(s)}.#{key}")
   end
 
-  def filter_trim_active(s, active) do
+  defp filter_trim_active(s, active) do
     Enum.filter(s, fn({k, _}) ->
       String.starts_with?(k, active)
     end)
