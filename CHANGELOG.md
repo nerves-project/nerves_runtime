@@ -1,5 +1,18 @@
 # Changelog
 
+## v0.5.0
+
+  * The Nerves runtime shell (the bash shell-like shell from CTRL+G) has been
+    moved to a separate project so that it can evolve independently from
+    `nerves_runtime`. As such, it's no longer available, but see
+    the `nerves_runtime_shell` project to include it again.
+
+  * Enhancements
+    * Force application partition UUID. The UUID has previously been random. The
+      main reason for change is to avoid a delay when waiting for the urandom
+      pool to initialize. Having a known UUID for the application partition may
+      come in handy in the future, though.
+
 ## v0.4.4
 
   * Enhancements
