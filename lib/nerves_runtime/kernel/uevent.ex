@@ -34,7 +34,7 @@ defmodule Nerves.Runtime.Kernel.UEvent do
   defp handle_port({:uevent, _uevent, kv}, s) do
     event =
       Enum.reduce(kv, %{}, fn (str, acc) ->
-        [k, v] = String.split(str, "=")
+        [k, v] = String.split(str, "=", parts: 2)
         k = String.downcase(k)
         Map.put(acc, k, v)
       end)
