@@ -1,5 +1,10 @@
 # Changelog
 
+## v0.5.1
+
+  * Bug Fixes
+    * Split device attributes into only two parts
+
 ## v0.5.0
 
   * The Nerves runtime shell (the bash shell-like shell from CTRL+G) has been
