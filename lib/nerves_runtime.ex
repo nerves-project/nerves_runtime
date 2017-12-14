@@ -1,6 +1,8 @@
 defmodule Nerves.Runtime do
   require Logger
 
+  @revert_fw_path "/usr/share/fwup/revert.fw"
+
   @moduledoc """
 
   """
@@ -25,6 +27,22 @@ defmodule Nerves.Runtime do
   """
   @spec halt() :: :ok
   def halt(), do: logged_shutdown "halt"
+
+  @doc """
+  Revert the device to running the previous firmware.
+
+  This requires a specially constructed fw file.
+  """
+  @spec revert([any]) :: :ok | {:error, reason :: any}
+  def revert(opts \\ []) do
+    reboot? = opts[:reboot] || true
+    if File.exists?(@revert_fw_path) do
+      System.cmd("fwup", [@revert_fw_path, "-t", "revert", "-d", "/dev/rootdisk0"])
+      if reboot?, do: reboot()
+    else
+      {:error, "Unable to locate revert firmware at path: #{@revert_fw_path}"}
+    end
+  end
 
   # private helpers
 
