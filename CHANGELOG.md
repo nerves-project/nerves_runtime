@@ -1,5 +1,15 @@
 # Changelog
 
+## v0.5.2
+
+  * Enhancements
+    * Added `Nerves.Runtime.revert` to revert the device to the inactive
+      firmware. To use this, the Nerves system needs to include revert
+      instructions. This is currently being implemented.
+
+  * Bug Fixes
+    * Setuid the `uevent` port binary for debugging on the host.
+
 ## v0.5.1
 
   * Bug Fixes

@@ -161,6 +161,46 @@ shutdown. If the OTP applications cannot be stopped within a timeout as
 specified in the `erlinit.config`, `erlinit` will ungracefully terminate the
 Erlang VM.
 
+## Reverting firmware
+
+If you'd like to go back to the previous version of firmware running on a
+device, you can do that if the Nerves system supports it. At the IEx prompt,
+run:
+
+```
+iex> Nerves.Runtime.revert
+```
+
+Going back to previous versions of firmware is an important topic for building
+devices that can survive buggy firmware updates without manual intervention.
+Making this work well involves non-Elixir components like bootloaders. This
+feature isn't intended to be bulletproof, but it certainly can get you out of
+bad situations.
+
+One important use case is to be able to remotely update a device and have it
+automatically revert its firmware after a timeout or if it can't reach the
+network. A common requirement is to handle crashes and hangs. The noraml strategy for
+implementing this to have the device allow one boot of new firmware and then to
+mark it "valid" if code gets to a good point (like connect to a server). If
+something goes wrong, then the next reboot reverts back to the original
+firmware. If you're running a scriptable bootloader like U-boot, it's
+best to have the logic implemented there to minimize the code that must work.
+Here's a simple alternative:
+
+1. After upgrading firmware, save that the next boot is the first one.
+1. On the reboot, if this is the first boot, record that the boot happened and
+   revert the firmware with `reboot: false`.  If this is not the first boot,
+   carry on.
+1. When you're happy with the new firmware, revert the firmware again with
+   `reboot: false`. I.e., revert the revert. It is critical that `revert` is
+   only called once.
+
+To make this handle issues that result in hangs, you'll want to enable a
+hardware watchdog.
+
+Note that this simple mechanism doesn't help with any failure that happens
+before the tentative revert step.
+
 ## IEx helpers
 
 The `Nerves.Runtime.Helpers` module provides a number of functions that are
