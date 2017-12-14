@@ -35,7 +35,7 @@ defmodule Nerves.Runtime do
   """
   @spec revert([any]) :: :ok | {:error, reason :: any}
   def revert(opts \\ []) do
-    reboot? = opts[:reboot] || true
+    reboot? = if opts[:reboot] != nil, do: opts[:reboot], else: true
     if File.exists?(@revert_fw_path) do
       System.cmd("fwup", [@revert_fw_path, "-t", "revert", "-d", "/dev/rootdisk0"])
       if reboot?, do: reboot()
