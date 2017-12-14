@@ -1,5 +1,10 @@
 # Changelog
 
+## v0.5.3
+
+  * Bug Fixes
+    * `Nerves.Runtime.revert` would always reboot even if told not to.
+
 ## v0.5.2
 
   * Enhancements

@@ -3,7 +3,7 @@ defmodule Nerves.Runtime.Mixfile do
 
   def project do
     [app: :nerves_runtime,
-     version: "0.5.2",
+     version: "0.5.3",
      elixir: "~> 1.4",
      build_embedded: Mix.env == :prod,
      start_permanent: Mix.env == :prod,
