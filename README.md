@@ -100,14 +100,14 @@ written frequently. To get this information, you can call one of the following:
 Global Nerves metadata includes the following:
 
 Key                 | Build Environment Variable   | Example Value    | Description
---------------------|------------------------------|------------------|------------
+------------------- | ---------------------------- | ---------------- | -----------
 `nerves_fw_active`  | -                            | `"a"`            | This key holds the prefix that identifies the active firmware metadata. In this example, all keys starting with `"a."` hold information about the running firmware.
 `nerves_fw_devpath` | `NERVES_FW_DEVPATH`          | `"/dev/mmcblk0"` | This is the primary storage device for the firmware.
 
 Firmware-specific Nerves metadata includes the following:
 
 Key                                   | Example Value     | Description
---------------------------------------|-------------------|------------
+:------------------------------------ | :---------------- | :----------
 `nerves_fw_application_part0_devpath` | `"/dev/mmcblkp3"` | The block device that contains the application partition
 `nerves_fw_application_part0_fstype`  | `"ext4"`          | The application partition's filesystem type
 `nerves_fw_application_part0_target`  | `"/root"`         | Where to mount the application partition
@@ -137,7 +137,7 @@ The `fwup -m` value shows the key that you'll see if you run `fwup -m -i
 <project.fw>` to extract the firmware metadata from the `.fw` file.
 
 Key in `Nerves.Runtime`               | Key in `mix.exs`            | Build Environment Variable            | Key in `fwup -m`
---------------------------------------|-----------------------------|---------------------------------------|-----------------
+------------------------------------- | --------------------------- | ------------------------------------- | ----------------
 `nerves_fw_application_part0_devpath` | N/A                         | `NERVES_FW_APPLICATION_PART0_DEVPATH` | N/A
 `nerves_fw_application_part0_fstype`  | N/A                         | `NERVES_FW_APPLICATION_PART0_FSTYPE`  | N/A
 `nerves_fw_application_part0_target`  | N/A                         | `NERVES_FW_APPLICATION_PART0_TARGET`  | N/A
