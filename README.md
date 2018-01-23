@@ -9,7 +9,7 @@ libraries that are expected to be useful on all Nerves devices.
 Here are some of its features:
 
 * Generic system and filesystem initialization (suitable for use with
-  [`bootloader`](https://github.com/nerves-project/bootloader))
+  [`shoehorn`](https://github.com/nerves-project/shoehorn))
 * Introspection of Nerves system, firmware, and deployment metadata
 * Device reboot and shutdown
 * A small Linux kernel `uevent` application for capturing hardware change events
@@ -26,15 +26,15 @@ information, consult the [hex docs](https://hexdocs.pm/nerves_runtime).
 initialize the system when it is started. For this to be useful,
 `nerves_runtime` must be started before other OTP applications, since most will
 assume that the system is already initialized before they start. To set up
-`nerves_runtime` to work with `bootloader`, you will need to do the following:
+`nerves_runtime` to work with `shoehorn`, you will need to do the following:
 
-1.  Include `bootloader` in `mix.exs`
-2.  Include `Bootloader.Plugin` in your `rel/config.exs`
+1.  Include `shoehorn` in `mix.exs`
+2.  Include `shoehorn` in your `rel/config.exs`
 2.  Ensure that `:nerves_runtime` is at the beginning of the `init:` list in
     your `config/config.exs`:
 
     ```elixir
-    config :bootloader,
+    config :shoehorn,
       overlay_path: "",
       init: [:nerves_runtime, :other_app1, :other_app2],
       app: :your_app
