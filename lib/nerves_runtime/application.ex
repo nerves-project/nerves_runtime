@@ -3,13 +3,22 @@ defmodule Nerves.Runtime.Application do
 
   use Application
 
+  alias Nerves.Runtime.{
+    Init,
+    Kernel,
+    KV,
+    LogTailer,
+  }
+
   def start(_type, _args) do
     import Supervisor.Spec, warn: false
 
     children = [
-      supervisor(Nerves.Runtime.Kernel, []),
-      worker(Nerves.Runtime.KV, []),
-      worker(Nerves.Runtime.Init, [])
+      worker(LogTailer.Syslog, []),
+      worker(LogTailer.Kmsg, []),
+      supervisor(Kernel, []),
+      worker(KV, []),
+      worker(Init, [])
     ]
 
     opts = [strategy: :one_for_one, name: Nerves.Runtime.Supervisor]

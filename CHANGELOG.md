@@ -1,6 +1,9 @@
 # Changelog
 
 ## v0.5.3
+  * Enchancements
+    * Forward operating system messages from `/dev/log` and `/proc/kmsg` to
+      Elixir's `Logger`.
 
   * Bug Fixes
     * `Nerves.Runtime.revert` would always reboot even if told not to.

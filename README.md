@@ -226,6 +226,20 @@ target by running:
 iex> File.write!("/root/.iex.exs", "use Nerves.Runtime.Helpers")
 ```
 
+## Operating system log collection
+
+Operating system-level messages from `/dev/log` and `/proc/kmsg`, forwarding
+them to `Logger` with an appropriate level to match the syslog priority parsed
+out of the message.
+
+You can disable this feature (e.g. when running in CI) by configuring the
+following option:
+
+```elixir
+# config.exs
+config :nerves_runtime, enable_syslog: false
+```
+
 ## Installation
 
 The package can be installed by adding `nerves_runtime` to your list of
