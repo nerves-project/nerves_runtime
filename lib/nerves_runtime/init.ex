@@ -29,11 +29,10 @@ defmodule Nerves.Runtime.Init do
     fstype = KV.get_active("#{prefix}_fstype")
     target = KV.get_active("#{prefix}_target")
     devpath = KV.get_active("#{prefix}_devpath")
-    if  fstype  != nil
-    and target  != nil
-    and devpath != nil do
 
+    if fstype != nil and target != nil and devpath != nil do
       opts = %{mounted: nil, fstype: fstype, target: target, devpath: devpath}
+
       mounted_state(opts)
       |> unmount_if_error()
       |> mount()
@@ -48,32 +47,40 @@ defmodule Nerves.Runtime.Init do
 
   def mounted_state(s) do
     {mounts, 0} = System.cmd("mount", [])
+
     mount =
       String.split(mounts, "\n")
-      |> Enum.find(fn(mount) ->
+      |> Enum.find(fn mount ->
         String.starts_with?(mount, "#{s.devpath} on #{s.target}")
       end)
+
     mounted_state =
       case mount do
-        nil -> :unmounted
+        nil ->
+          :unmounted
+
         mount ->
           opts =
             String.split(mount, " ")
-            |> List.last
+            |> List.last()
             |> String.slice(1..-2)
             |> String.split(",")
+
           cond do
             "rw" in opts ->
               :mounted
+
             true ->
               # Mount was read only or any other type
               :mounted_with_error
           end
       end
+
     %{s | mounted: mounted_state}
   end
 
   defp mount(%{mounted: :mounted} = s), do: s
+
   defp mount(s) do
     System.cmd("mount", ["-t", s.fstype, "-o", "rw", s.devpath, s.target])
     mounted_state(s)
@@ -83,10 +90,14 @@ defmodule Nerves.Runtime.Init do
     System.cmd("umount", [s.target])
     mounted_state(s)
   end
+
   defp unmount_if_error(s), do: s
 
   defp format_if_unmounted(%{mounted: :unmounted} = s) do
-    Logger.warn("Formatting application partition. If this hangs, it could be waiting on the urandom pool to be initialized")
+    Logger.warn(
+      "Formatting application partition. If this hangs, it could be waiting on the urandom pool to be initialized"
+    )
+
     System.cmd("mkfs.#{s.fstype}", ["-U", @app_partition_uuid, "-F", "#{s.devpath}"])
     s
   end
@@ -94,5 +105,4 @@ defmodule Nerves.Runtime.Init do
   defp format_if_unmounted(s), do: s
 
   defp validate_mount(s), do: s.mounted
-
 end

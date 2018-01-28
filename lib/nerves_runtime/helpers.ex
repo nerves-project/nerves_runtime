@@ -43,6 +43,7 @@ defmodule Nerves.Runtime.Helpers do
         File.write!(@iex_exs_path, "use Nerves.Runtime.Helpers")
         IO.puts("Helpers installed and will be loaded on next reboot. To use")
         IO.puts("them now, run `use Nerves.Runtime.Helpers`")
+
       true ->
         IO.puts("#{@iex_exs_path} already exists.")
         IO.puts("Please manually add 'use Nerves.Runtime.Helpers' if it's not already there.")
@@ -56,8 +57,9 @@ defmodule Nerves.Runtime.Helpers do
   def cmd(str) when is_binary(str) do
     cmd(to_charlist(str))
   end
+
   def cmd(str) when is_list(str) do
-    :os.cmd(str) |> IO.puts
+    :os.cmd(str) |> IO.puts()
   end
 
   @doc """
@@ -87,5 +89,4 @@ defmodule Nerves.Runtime.Helpers do
   def hex(value) do
     inspect(value, base: :hex)
   end
-
 end
