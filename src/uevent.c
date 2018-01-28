@@ -102,34 +102,34 @@ static void uevent_request_handler(const char *req, void *cookie)
 
 static void nl_uevent_process(struct netif *nb)
 {
-  int bytecount = mnl_socket_recvfrom(nb->nl_uevent, nb->nlbuf, sizeof(nb->nlbuf));
-  if (bytecount <= 0)
-      err(EXIT_FAILURE, "mnl_socket_recvfrom");
+    int bytecount = mnl_socket_recvfrom(nb->nl_uevent, nb->nlbuf, sizeof(nb->nlbuf));
+    if (bytecount <= 0)
+        err(EXIT_FAILURE, "mnl_socket_recvfrom");
 
-  const char *str = nb->nlbuf;
-  debug("UEvent: %s", str);
-  nb->resp_index = sizeof(uint16_t); // Skip over payload size
-  nb->resp[nb->resp_index++] = 'n';
-  ei_encode_version(nb->resp, &nb->resp_index);
-  ei_encode_tuple_header(nb->resp, &nb->resp_index, 3);
-  ei_encode_atom(nb->resp, &nb->resp_index, "uevent");
-  ei_encode_string(nb->resp, &nb->resp_index, str);
+    const char *str = nb->nlbuf;
+    debug("UEvent: %s", str);
+    nb->resp_index = sizeof(uint16_t); // Skip over payload size
+    nb->resp[nb->resp_index++] = 'n';
+    ei_encode_version(nb->resp, &nb->resp_index);
+    ei_encode_tuple_header(nb->resp, &nb->resp_index, 3);
+    ei_encode_atom(nb->resp, &nb->resp_index, "uevent");
+    ei_encode_string(nb->resp, &nb->resp_index, str);
 
-  const char *str_end = str + bytecount;
-  str += strlen(str) + 1;
+    const char *str_end = str + bytecount;
+    str += strlen(str) + 1;
 
-  for (;str < str_end; str += strlen(str) + 1) {
-    debug("String: %s", str);
-    ei_encode_list_header(nb->resp, &nb->resp_index, 1);
-    ei_encode_binary(nb->resp, &nb->resp_index, str, strlen(str));
-  }
-  ei_encode_empty_list(nb->resp, &nb->resp_index);
-  erlcmd_send(nb->resp, nb->resp_index);
+    for (; str < str_end; str += strlen(str) + 1) {
+        debug("String: %s", str);
+        ei_encode_list_header(nb->resp, &nb->resp_index, 1);
+        ei_encode_binary(nb->resp, &nb->resp_index, str, strlen(str));
+    }
+    ei_encode_empty_list(nb->resp, &nb->resp_index);
+    erlcmd_send(nb->resp, nb->resp_index);
 }
 
 int main(int argc, char *argv[])
 {
-  debug("UEvent Main");
+    debug("UEvent Main");
     (void) argc;
     (void) argv;
 
