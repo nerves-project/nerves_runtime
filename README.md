@@ -233,7 +233,7 @@ dependencies in `mix.exs`:
 
 ```elixir
 def deps do
-  [{:nerves_runtime, "~> 0.2.0"}]
+  [{:nerves_runtime, "~> 0.5.0"}]
 end
 ```
 
