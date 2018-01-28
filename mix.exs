@@ -12,7 +12,8 @@ defmodule Nerves.Runtime.Mixfile do
      description: description(),
      package: package(),
      docs: docs(),
-     deps: deps()]
+     deps: deps(),
+     aliases: [format: ["format", &format_c/1]]]
   end
 
   # Configuration for the OTP application
@@ -55,5 +56,15 @@ defmodule Nerves.Runtime.Mixfile do
      files: ["lib", "LICENSE", "mix.exs", "README.md", "src/*.[ch]", "Makefile"],
      licenses: ["Apache 2.0"],
      links: %{"Github" => "https://github.com/nerves-project/nerves_runtime"}]
+  end
+
+  defp format_c(_) do
+    astyle =
+      System.find_executable("astyle") ||
+        Mix.raise("""
+        Could not format C code since astyle is not available.
+        """)
+
+    System.cmd(astyle, ["-n", "-r", "src/*.c", "src/*.h"])
   end
 end
