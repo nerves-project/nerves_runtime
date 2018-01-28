@@ -7,7 +7,7 @@ defmodule Nerves.Runtime.Application do
     Init,
     Kernel,
     KV,
-    LogTailer,
+    LogTailer
   }
 
   def start(_type, _args) do
@@ -24,5 +24,4 @@ defmodule Nerves.Runtime.Application do
     opts = [strategy: :one_for_one, name: Nerves.Runtime.Supervisor]
     Supervisor.start_link(children, opts)
   end
-
 end

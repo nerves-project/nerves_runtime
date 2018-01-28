@@ -86,37 +86,41 @@ defmodule Nerves.Runtime.KV do
   end
 
   defp load_kv(nil), do: %{}
+
   defp load_kv(exec) do
     case System.cmd(exec, []) do
       {result, 0} ->
         parse_kv(result)
+
       _ ->
-        Logger.warn "#{inspect __MODULE__} could not find executable fw_printenv"
+        Logger.warn("#{inspect(__MODULE__)} could not find executable fw_printenv")
         %{}
     end
   end
 
   def parse_kv(str) do
     String.split(str, "\n")
-    |> Enum.map(& String.split(&1, "="))
+    |> Enum.map(&String.split(&1, "="))
     |> Enum.reduce(%{}, fn
-      ([k, v], acc) ->
+      [k, v], acc ->
         Map.put(acc, k, v)
-      (_, acc) -> acc
+
+      _, acc ->
+        acc
     end)
   end
 
   defp active(s), do: Map.get(s, "nerves_fw_active", "")
+
   defp active(key, s) do
     Map.get(s, "#{active(s)}.#{key}")
   end
 
   defp filter_trim_active(s, active) do
-    Enum.filter(s, fn({k, _}) ->
+    Enum.filter(s, fn {k, _} ->
       String.starts_with?(k, active)
     end)
-    |> Enum.map(fn({k, v}) -> {String.replace_leading(k, active, ""), v} end)
+    |> Enum.map(fn {k, v} -> {String.replace_leading(k, active, ""), v} end)
     |> Enum.into(%{})
   end
-
 end
