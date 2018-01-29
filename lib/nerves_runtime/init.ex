@@ -30,19 +30,23 @@ defmodule Nerves.Runtime.Init do
     target = KV.get_active("#{prefix}_target")
     devpath = KV.get_active("#{prefix}_devpath")
 
-    if fstype != nil and target != nil and devpath != nil do
-      opts = %{mounted: nil, fstype: fstype, target: target, devpath: devpath}
+    %{mounted: nil, fstype: fstype, target: target, devpath: devpath}
+    |> do_format()
+  end
 
-      mounted_state(opts)
-      |> unmount_if_error()
-      |> mount()
-      |> unmount_if_error()
-      |> format_if_unmounted()
-      |> mount()
-      |> validate_mount()
-    else
-      :noop
-    end
+  defp do_format(%{fstype: nil}), do: :noop
+  defp do_format(%{target: nil}), do: :noop
+  defp do_format(%{devpath: nil}), do: :noop
+
+  defp do_format(s) do
+    s
+    |> mounted_state()
+    |> unmount_if_error()
+    |> mount()
+    |> unmount_if_error()
+    |> format_if_unmounted()
+    |> mount()
+    |> validate_mount()
   end
 
   def mounted_state(s) do
@@ -61,7 +65,8 @@ defmodule Nerves.Runtime.Init do
 
         mount ->
           opts =
-            String.split(mount, " ")
+            mount
+            |> String.split(" ")
             |> List.last()
             |> String.slice(1..-2)
             |> String.split(",")
@@ -94,9 +99,8 @@ defmodule Nerves.Runtime.Init do
   defp unmount_if_error(s), do: s
 
   defp format_if_unmounted(%{mounted: :unmounted} = s) do
-    Logger.warn(
-      "Formatting application partition. If this hangs, it could be waiting on the urandom pool to be initialized"
-    )
+    "Formatting application partition. If this hangs, it could be waiting on the urandom pool to be initialized"
+    |> Logger.warn()
 
     System.cmd("mkfs.#{s.fstype}", ["-U", @app_partition_uuid, "-F", "#{s.devpath}"])
     s
