@@ -13,7 +13,8 @@
 
 static char buffer[BUFFER_SIZE];
 
-int main(int argc, char *argv[]) {
+int main(int argc, char *argv[])
+{
     if (argc != 2)
         err(EXIT_FAILURE, "Usage: %s type\n  type must be either syslog or kmsg", argv[0]);
 
