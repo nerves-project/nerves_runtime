@@ -13,45 +13,61 @@
 
 static char buffer[BUFFER_SIZE];
 
+static void usage()
+{
+    errx(EXIT_FAILURE, "Specify either syslog or kmsg as the parameter");
+}
+
+static int open_syslog()
+{
+    int fd = socket(AF_UNIX, SOCK_DGRAM, 0);
+    if (fd < 0)
+        err(EXIT_FAILURE, "socket");
+
+    // Erase the old log file (if any) so that we can bind to it
+    unlink(SYSLOG_PATH);
+
+    struct sockaddr_un addr;
+    memset(&addr, 0, sizeof(addr));
+    addr.sun_family = AF_UNIX;
+    strcpy(addr.sun_path, SYSLOG_PATH);
+
+    if (bind(fd, (struct sockaddr *) &addr, sizeof(addr)) < 0)
+        err(EXIT_FAILURE, "bind %s", SYSLOG_PATH);
+
+    // Make the syslog file writable
+    chmod(SYSLOG_PATH, 0666);
+
+    return fd;
+}
+
+static int open_klog()
+{
+    int fd = open(KMSG_PATH, O_RDONLY);
+    if (fd < 0)
+        err(EXIT_FAILURE, "open %s", KMSG_PATH);
+    return fd;
+}
+
 int main(int argc, char *argv[])
 {
     if (argc != 2)
-        err(EXIT_FAILURE, "Usage: %s type\n  type must be either syslog or kmsg", argv[0]);
+        usage();
 
     int fd = 0;
-
-    if (strcasecmp(argv[1], "syslog")) {
-        fd = socket(AF_UNIX, SOCK_DGRAM, 0);
-        if (fd < 0)
-            err(EXIT_FAILURE, "failed to create syslog socket");
-
-        // Erase the old log file (if any) so that we can bind to it
-        unlink(SYSLOG_PATH);
-
-        struct sockaddr_un addr;
-        memset(&addr, 0, sizeof(addr));
-        addr.sun_family = AF_UNIX;
-        strcpy(addr.sun_path, SYSLOG_PATH);
-
-        if (bind(fd, (struct sockaddr *) &addr, sizeof(addr)) < 0)
-            err(EXIT_FAILURE, "failed to bind");
-
-        // Make the syslog file writable
-        chmod(SYSLOG_PATH, 0666);
-    } else if (strcasecmp(argv[1], "kmsg")) {
-        fd = open(KMSG_PATH, O_RDONLY);
-        if (fd < 0)
-            err(EXIT_FAILURE, "failed to open");
-    } else {
-        err(EXIT_FAILURE, "Usage: %s type\n  type must be either syslog or kmsg", argv[0]);
-    }
+    if (strcmp(argv[1], "syslog"))
+        fd = open_syslog();
+    else if (strcmp(argv[1], "kmsg"))
+        fd = open_klog();
+    else
+        usage();
 
     for (;;) {
         ssize_t amt = read(fd, buffer, sizeof(buffer));
         if (amt < 0)
-            err(EXIT_FAILURE, "failed to read");
+            err(EXIT_FAILURE, "%s: read", argv[1]);
 
         if (write(STDOUT_FILENO, &buffer, amt) < 0)
-            err(EXIT_FAILURE, "write");
+            err(EXIT_FAILURE, "%s: write", argv[1]);
     }
 }
