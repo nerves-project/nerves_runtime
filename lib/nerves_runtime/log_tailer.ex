@@ -148,23 +148,3 @@ defmodule Nerves.Runtime.LogTailer do
   defp logger_level(severity) when severity in [:Notice, :Informational], do: :info
   defp logger_level(severity) when severity == :Debug, do: :debug
 end
-
-defmodule Nerves.Runtime.LogTailer.Syslog do
-  use GenServer
-
-  defdelegate handle_info(message, state), to: Nerves.Runtime.LogTailer
-
-  def start_link() do
-    Nerves.Runtime.LogTailer.start_link(:syslog)
-  end
-end
-
-defmodule Nerves.Runtime.LogTailer.Kmsg do
-  use GenServer
-
-  defdelegate handle_info(message, state), to: Nerves.Runtime.LogTailer
-
-  def start_link() do
-    Nerves.Runtime.LogTailer.start_link(:kmsg)
-  end
-end
