@@ -19,9 +19,8 @@ defmodule Nerves.Runtime.LogTailer do
 
   @port_binary_name "log_tailer"
 
-  @doc false
-  def gen_server_name(:syslog), do: __MODULE__.Syslog
-  def gen_server_name(:kmsg), do: __MODULE__.Kmsg
+  defp gen_server_name(:syslog), do: __MODULE__.Syslog
+  defp gen_server_name(:kmsg), do: __MODULE__.Kmsg
 
   @type type :: :syslog | :kmsg
 
