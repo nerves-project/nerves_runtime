@@ -14,8 +14,8 @@ defmodule Nerves.Runtime.Application do
     import Supervisor.Spec, warn: false
 
     children = [
-      worker(LogTailer.Syslog, []),
-      worker(LogTailer.Kmsg, []),
+      worker(LogTailer, [:syslog], id: :syslog),
+      worker(LogTailer, [:kmsg], id: :kmsg),
       supervisor(Kernel, []),
       worker(KV, []),
       worker(Init, [])
