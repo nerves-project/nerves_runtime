@@ -50,6 +50,7 @@ int main(int argc, char *argv[]) {
         if (amt < 0)
             err(EXIT_FAILURE, "failed to read");
 
-        write(STDOUT_FILENO, &buffer, amt);
+        if (write(STDOUT_FILENO, &buffer, amt) < 0)
+            err(EXIT_FAILURE, "write");
     }
 }
