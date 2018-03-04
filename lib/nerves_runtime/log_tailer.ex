@@ -36,7 +36,7 @@ defmodule Nerves.Runtime.LogTailer do
   end
 
   @spec init(%{type: :syslog | :kmsg, enabled: boolean()}) ::
-          {:ok, %{type: atom(), port: port(), buffer: binary()}}
+          {:ok, %{type: atom(), port: port(), buffer: binary()}} | :ignore
   def init(%{enabled: false}), do: :ignore
   def init(%{type: type}), do: {:ok, %{type: type, port: open_port(type), buffer: ""}}
 
