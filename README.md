@@ -28,10 +28,10 @@ initialize the system when it is started. For this to be useful,
 assume that the system is already initialized before they start. To set up
 `nerves_runtime` to work with `shoehorn`, you will need to do the following:
 
-1.  Include `shoehorn` in `mix.exs`
-2.  Include `shoehorn` in your `rel/config.exs`
-2.  Ensure that `:nerves_runtime` is at the beginning of the `init:` list in
-    your `config/config.exs`:
+1. Include `shoehorn` in `mix.exs`
+2. Include `shoehorn` in your `rel/config.exs`
+3. Ensure that `:nerves_runtime` is at the beginning of the `init:` list in
+   your `config/config.exs`:
 
     ```elixir
     config :shoehorn,
@@ -167,7 +167,7 @@ If you'd like to go back to the previous version of firmware running on a
 device, you can do that if the Nerves system supports it. At the IEx prompt,
 run:
 
-```
+```elixir
 iex> Nerves.Runtime.revert
 ```
 
@@ -209,21 +209,22 @@ useful when working at the IEx prompt on a target. They include:
 * `cmd/1` - runs a shell command and prints the output
 * `hex/1` - inspects a value in hexadecimal mode
 * `reboot/0` - reboots gracefully
-* `reboot!/0 ` - reboots immediately
+* `reboot!/0` - reboots immediately
 
 More information is available in the module docs for `Nerves.Runtime.Helpers`
 and through `h/1`.
 
 The IEx helpers aren't loaded by default. To use them, run the following:
-```
+
+```elixir
 iex> use Nerves.Runtime.Helpers
 ```
 
 If you expect to use them frequently, add them to your `.iex.exs` on the
 target by running:
 
-```
-iex> File.write!("/root/.iex.exs", "use Nerves.Runtime.Helpers")
+```elixir
+iex> Nerves.Runtime.Helpers.install
 ```
 
 ## Operating system log collection
