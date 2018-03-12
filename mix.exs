@@ -49,13 +49,15 @@ defmodule Nerves.Runtime.MixProject do
     ]
   end
 
-  defp format_c(_) do
+  defp format_c([]) do
     astyle =
       System.find_executable("astyle") ||
         Mix.raise("""
         Could not format C code since astyle is not available.
         """)
 
-    System.cmd(astyle, ["-n", "-r", "src/*.c", "src/*.h"])
+    System.cmd(astyle, ["-n", "-r", "src/*.c", "src/*.h"], into: IO.stream(:stdio, :line))
   end
+
+  defp format_c(_args), do: true
 end
