@@ -1,4 +1,4 @@
-defmodule Nerves.Runtime.Mixfile do
+defmodule Nerves.Runtime.MixProject do
   use Mix.Project
 
   def project do
