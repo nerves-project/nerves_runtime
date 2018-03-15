@@ -64,6 +64,14 @@ defmodule Nerves.Runtime.Helpers do
   end
 
   @doc """
+  Print out kernel log messages
+  """
+  def dmesg() do
+    cmd("dmesg")
+    IEx.dont_display_result()
+  end
+
+  @doc """
   Shortcut to reboot a board. This is a graceful reboot, so it takes some time
   before the real reboot.
   """

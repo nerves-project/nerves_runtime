@@ -207,6 +207,7 @@ The `Nerves.Runtime.Helpers` module provides a number of functions that are
 useful when working at the IEx prompt on a target. They include:
 
 * `cmd/1` - runs a shell command and prints the output
+* `dmesg/0` - dump kernel messages
 * `hex/1` - inspects a value in hexadecimal mode
 * `reboot/0` - reboots gracefully
 * `reboot!/0` - reboots immediately
@@ -214,7 +215,8 @@ useful when working at the IEx prompt on a target. They include:
 More information is available in the module docs for `Nerves.Runtime.Helpers`
 and through `h/1`.
 
-The IEx helpers aren't loaded by default. To use them, run the following:
+Prior to Nerves 1.0.0, the IEx helpers weren't loaded by default in the new
+project generator. To use them, run the following:
 
 ```elixir
 iex> use Nerves.Runtime.Helpers
