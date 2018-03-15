@@ -21,7 +21,7 @@ defmodule Nerves.Runtime.Kernel.UEvent do
         :exit_status
       ])
 
-    {:ok, %{port: port, autoload: autoload}}
+    {:ok, %{port: port, autoload: autoload, queue: :queue.new(), queue_len: 0}}
   end
 
   def handle_info(:discover, s) do
@@ -31,10 +31,28 @@ defmodule Nerves.Runtime.Kernel.UEvent do
 
   def handle_info({_, {:data, <<?n, message::binary>>}}, s) do
     msg = :erlang.binary_to_term(message)
-    handle_port(msg, s)
+
+    if s.queue_len == 0 do
+      send(self(), :process_queue)
+    end
+
+    s = %{s | queue: :queue.in(msg, s.queue), queue_len: s.queue_len + 1}
+    {:noreply, s}
   end
 
-  defp handle_port({:uevent, _uevent, kv}, s) do
+  def handle_info(:process_queue, s) do
+    case :queue.out(s.queue) do
+      {:empty, _queue} ->
+        {:noreply, %{s | queue_len: 0}}
+
+      {{:value, msg}, queue} ->
+        handle_uevent(msg, s)
+        send(self(), :process_queue)
+        {:noreply, %{s | queue: queue, queue_len: s.queue_len - 1}}
+    end
+  end
+
+  defp handle_uevent({:uevent, _uevent, kv}, s) do
     event =
       Enum.reduce(kv, %{}, fn str, acc ->
         [k, v] = String.split(str, "=", parts: 2)
@@ -46,8 +64,6 @@ defmodule Nerves.Runtime.Kernel.UEvent do
       "/devices" <> _path -> registry(event, s)
       _ -> :noop
     end
-
-    {:noreply, s}
   end
 
   def registry(%{"action" => "add", "devpath" => devpath} = event, s) do
