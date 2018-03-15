@@ -3,8 +3,8 @@ defmodule Nerves.Runtime.Helpers do
   @iex_exs_path "/root/.iex.exs"
 
   @moduledoc """
-  Helper functions for making the IEx prompt a little friendlier to use
-  with Nerves. It is intended to be imported to minimize typing:
+  Helper functions for making the IEx prompt a little friendlier to use with
+  Nerves. It is intended to be imported to minimize typing:
 
       iex> use Nerves.Runtime.Helpers
 
@@ -51,26 +51,26 @@ defmodule Nerves.Runtime.Helpers do
   end
 
   @doc """
-  Run a command using :os.cmd/1 and run its output
-  through IO.puts so that newlines get printed nicely.
+  Run a command and return the exit code. This function is intended to be run
+  interactively.
   """
   def cmd(str) when is_binary(str) do
-    cmd(to_charlist(str))
+    {_collectable, exit_code} = System.cmd("sh", ["-c", str], into: IO.stream(:stdio, :line))
+    exit_code
   end
 
   def cmd(str) when is_list(str) do
-    :os.cmd(str) |> IO.puts()
+    str |> to_string |> cmd
   end
 
   @doc """
-  Shortcut to reboot a board. This is a graceful reboot, so it takes
-  some time before the real reboot.
+  Shortcut to reboot a board. This is a graceful reboot, so it takes some time
+  before the real reboot.
   """
   defdelegate reboot(), to: Nerves.Runtime
 
   @doc """
-  Remote immediately without a graceful shutdown. This is for the
-  impatient.
+  Remote immediately without a graceful shutdown. This is for the impatient.
   """
   def reboot!() do
     Nerves.Runtime.reboot()
@@ -78,8 +78,8 @@ defmodule Nerves.Runtime.Helpers do
   end
 
   @doc """
-  Inspect a value with all integers printed out in hex. This is useful
-  for one-off hex conversions. If you're doing a lot of work that requires
+  Inspect a value with all integers printed out in hex. This is useful for
+  one-off hex conversions. If you're doing a lot of work that requires
   hexadecimal output, you should consider running:
 
   `IEx.configure(inspect: [base: :hex])`
