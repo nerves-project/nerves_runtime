@@ -4,7 +4,7 @@ defmodule Nerves.Runtime.MixProject do
   def project do
     [
       app: :nerves_runtime,
-      version: "0.5.3",
+      version: "0.6.0",
       elixir: "~> 1.4",
       build_embedded: Mix.env() == :prod,
       start_permanent: Mix.env() == :prod,

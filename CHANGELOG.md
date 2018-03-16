@@ -1,13 +1,21 @@
 # Changelog
 
-## v0.5.3
+## v0.6.0
 
-* Enchancements
+* New features
   * Forward operating system messages from `/dev/log` and `/proc/kmsg` to
-    Elixir's `Logger`.
+    Elixir's `Logger`. If the log volume is too much to the console, consider
+    replacing the console logger with `ring_logger` or another logger backend.
+
 
 * Bug Fixes
+  * `cmd/1` helper improvements to interactively print output from long running
+    commands.
   * `Nerves.Runtime.revert` would always reboot even if told not to.
+  * Cleanup throughout to improve docs, formatting, and newer Elixir stylistic
+    conventions
+  * Remove scary suid printout when crosscompiling since nothing setuid related
+    was going on.
 
 ## v0.5.2
 
