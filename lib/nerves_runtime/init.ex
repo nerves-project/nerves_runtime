@@ -99,7 +99,7 @@ defmodule Nerves.Runtime.Init do
   defp unmount_if_error(s), do: s
 
   defp format_if_unmounted(%{mounted: :unmounted, fstype: "f2fs"} = s) do
-    "Formatting application partition."
+    "Formatting application partition. If this hangs, it could be waiting on the urandom pool to be initialized"
     |> Logger.warn()
 
     System.cmd("mkfs.f2fs", ["#{s.devpath}"])
