@@ -1,6 +1,8 @@
 defmodule Nerves.Runtime do
   require Logger
 
+  alias Nerves.Runtime.OutputLogger
+
   @revert_fw_path "/usr/share/fwup/revert.fw"
 
   @moduledoc """
@@ -49,8 +51,8 @@ defmodule Nerves.Runtime do
   Run system command and log output into logger.
   """
   @spec cmd(binary(), [binary()], :debug | :info | :warn | :error | :return) :: {Collectable.t(), exit_status :: non_neg_integer()}
-  defp cmd(cmd, params, :return), do: System.cmd(cmd, params, stderr_to_stdout: true)
-  defp cmd(cmd, params, out), do: System.cmd(cmd, params, into: OutputLogger.new(out), stderr_to_stdout: true)
+  def cmd(cmd, params, :return), do: System.cmd(cmd, params, stderr_to_stdout: true)
+  def cmd(cmd, params, out), do: System.cmd(cmd, params, into: OutputLogger.new(out), stderr_to_stdout: true)
 
   # private helpers
 

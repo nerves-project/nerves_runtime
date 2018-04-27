@@ -2,7 +2,7 @@ defmodule Nerves.Runtime.OutputLogger do
   defstruct [:level]
 
   def new(level) do
-    %OutputLogger{level: level}
+    %__MODULE__{level: level}
   end
 
   defimpl Collectable do
