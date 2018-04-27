@@ -38,12 +38,19 @@ defmodule Nerves.Runtime do
     reboot? = if opts[:reboot] != nil, do: opts[:reboot], else: true
 
     if File.exists?(@revert_fw_path) do
-      System.cmd("fwup", [@revert_fw_path, "-t", "revert", "-d", "/dev/rootdisk0"])
+      cmd("fwup", [@revert_fw_path, "-t", "revert", "-d", "/dev/rootdisk0"], :info)
       if reboot?, do: reboot()
     else
       {:error, "Unable to locate revert firmware at path: #{@revert_fw_path}"}
     end
   end
+
+  @doc """
+  Run system command and log output into logger.
+  """
+  @spec cmd(binary(), [binary()], :debug | :info | :warn | :error | :return) :: {Collectable.t(), exit_status :: non_neg_integer()}
+  defp cmd(cmd, params, :return), do: System.cmd(cmd, params, stderr_to_stdout: true)
+  defp cmd(cmd, params, out), do: System.cmd(cmd, params, into: OutputLogger.new(out), stderr_to_stdout: true)
 
   # private helpers
 
@@ -54,7 +61,7 @@ defmodule Nerves.Runtime do
     # of the Erlang VM is imminent. Once this returns, the Erlang has
     # about 10 seconds to exit unless `--graceful-powerdown` is used
     # in the `erlinit.config` to modify the timeout.
-    System.cmd(cmd, [])
+    cmd(cmd, [], :info)
 
     # Gracefully shut down
     :init.stop()
