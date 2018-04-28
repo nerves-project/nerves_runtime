@@ -14,7 +14,7 @@ defmodule Nerves.Runtime.MixProject do
       package: package(),
       docs: docs(),
       deps: deps(),
-      aliases: [format: ["format", &format_c/1]]
+      aliases: [format: [&format_c/1, "format"]]
     ]
   end
 
