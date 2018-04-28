@@ -1,6 +1,7 @@
 defmodule Nerves.Runtime.Init do
   use GenServer
   require Logger
+  alias Nerves.Runtime
   alias Nerves.Runtime.KV
 
   # Use a fixed UUID for the application partition. This has two
@@ -50,7 +51,7 @@ defmodule Nerves.Runtime.Init do
   end
 
   def mounted_state(s) do
-    {mounts, 0} = System.cmd("mount", [])
+    {mounts, 0} = Runtime.cmd("mount", [], :return)
 
     mount =
       String.split(mounts, "\n")
@@ -87,12 +88,12 @@ defmodule Nerves.Runtime.Init do
   defp mount(%{mounted: :mounted} = s), do: s
 
   defp mount(s) do
-    System.cmd("mount", ["-t", s.fstype, "-o", "rw", s.devpath, s.target])
+    Runtime.cmd("mount", ["-t", s.fstype, "-o", "rw", s.devpath, s.target], :info)
     mounted_state(s)
   end
 
   defp unmount_if_error(%{mounted: :mounted_with_error} = s) do
-    System.cmd("umount", [s.target])
+    Runtime.cmd("umount", [s.target], :info)
     mounted_state(s)
   end
 
@@ -109,11 +110,11 @@ defmodule Nerves.Runtime.Init do
   defp format_if_unmounted(s), do: s
 
   defp mkfs("f2fs", devpath) do
-    System.cmd("mkfs.f2fs", ["#{devpath}"])
+    Runtime.cmd("mkfs.f2fs", ["#{devpath}"], :info)
   end
 
   defp mkfs(fstype, devpath) do
-    System.cmd("mkfs.#{fstype}", ["-U", @app_partition_uuid, "-F", "#{devpath}"])
+    Runtime.cmd("mkfs.#{fstype}", ["-U", @app_partition_uuid, "-F", "#{devpath}"], :info)
   end
 
   defp validate_mount(s), do: s.mounted
