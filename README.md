@@ -1,6 +1,6 @@
-# `nerves_runtime`
+# nerves_runtime
 
-[![Build Status](https://travis-ci.org/nerves-project/nerves_runtime.svg)](https://travis-ci.org/nerves-project/nerves_runtime.svg)
+[![Build Status](https://travis-ci.org/nerves-project/nerves_runtime.svg)](https://travis-ci.org/nerves-project/nerves_runtime)
 [![Hex version](https://img.shields.io/hexpm/v/nerves_runtime.svg "Hex version")](https://hex.pm/packages/nerves_runtime)
 
 `nerves_runtime` is a core component of Nerves. It contains applications and
