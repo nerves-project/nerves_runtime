@@ -50,9 +50,12 @@ defmodule Nerves.Runtime do
   @doc """
   Run system command and log output into logger.
   """
-  @spec cmd(binary(), [binary()], :debug | :info | :warn | :error | :return) :: {Collectable.t(), exit_status :: non_neg_integer()}
+  @spec cmd(binary(), [binary()], :debug | :info | :warn | :error | :return) ::
+          {Collectable.t(), exit_status :: non_neg_integer()}
   def cmd(cmd, params, :return), do: System.cmd(cmd, params, stderr_to_stdout: true)
-  def cmd(cmd, params, out), do: System.cmd(cmd, params, into: OutputLogger.new(out), stderr_to_stdout: true)
+
+  def cmd(cmd, params, out),
+    do: System.cmd(cmd, params, into: OutputLogger.new(out), stderr_to_stdout: true)
 
   # private helpers
 
