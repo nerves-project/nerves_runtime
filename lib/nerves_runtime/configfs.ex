@@ -16,7 +16,7 @@ defmodule Nerves.Runtime.ConfigFS do
     end
     |> unless do
       Logger.info("Going to mount ConfigFS.")
-      {_, 0} = Runtime.cmd("mount", ["none", "/sys/kernel/config", "-t", "configfs"], :info)
+      {_, 0} = Runtime.cmd("mount", ["none", "/sys/kernel/config", "-t", "configfs"], :return)
     end
 
     apply_map_to_configfs(gadget_config())
@@ -25,9 +25,12 @@ defmodule Nerves.Runtime.ConfigFS do
     apply_link(Path.join(g, "functions/acm.usb0"), Path.join(g, "configs/c.1"))
     apply_link(Path.join(g, "functions/rndis.usb0"), Path.join(g, "configs/c.2"))
     apply_link(Path.join(g, "functions/acm.usb0"), Path.join(g, "configs/c.2"))
-    apply_link(Path.join(g, "configs/c.2"), Path.join(g, "configs/os_desc"))
+    # apply_link(Path.join(g, "configs/c.2"), Path.join(g, "configs/os_desc"))
     [device] = File.ls!("/sys/class/udc")
+
     write(Path.join(g, "UDC"), device)
+    {_, 0} = Runtime.cmd("sh", ["-c", "ls /sys/class/udc > #{Path.join(g, "UDC")}"], :return)
+
     {:ok, %{}}
   end
 
@@ -35,42 +38,44 @@ defmodule Nerves.Runtime.ConfigFS do
     mani = build_manifest(map)
 
     Enum.each(Enum.reverse(mani.folders), fn folder ->
-      # IO.puts "mkdir -p /sys/kernel/config/#{folder}"
       mkdir_p(Path.join("/sys/kernel/config/", folder))
     end)
 
     Enum.each(Enum.reverse(mani.files), fn {file, value} ->
-      # IO.puts "echo '#{value}' > /sys/kernel/config/#{file}"
       write(Path.join("/sys/kernel/config/", file), value)
     end)
   end
 
   defp apply_link(patha, pathb) do
-    # IO.puts "ln -s #{patha} #{pathb}"
     ln_s(patha, pathb)
   end
 
   defp mkdir_p(dir) do
-    {_, 0} = Runtime.cmd("mkdir", ["-p", dir], :info)
+    {_, 0} = Runtime.cmd("mkdir", ["-p", dir], :return)
   end
 
   defp ln_s(patha, pathb) do
-    {_, 0} = Runtime.cmd("ln", ["-s", patha, pathb], :info)
+    {_, 0} = Runtime.cmd("ln", ["-s", patha, pathb], :return)
   end
 
   defp write(path, value) do
-    {_, 0} = Runtime.cmd("sh", ["-c", "echo", value, ">", path], :info)
+    {_, 0} = Runtime.cmd("sh", ["-c", "echo", value, ">", path], :return)
   end
 
-  def build_manifest(map, state \\ %{path: "", files: [], folders: []})
+  def build_manifest(map, state \\ %{path: "/", files: [], folders: []})
 
   def build_manifest(%{} = map, state) do
     build_manifest(Map.to_list(map), state)
   end
 
+  def build_manifest([{key, %{} = val} | rest], state) when map_size(val) == 0 do
+    folder = Path.join(state.path, key)
+    build_manifest(rest, %{state | path: state.path, folders: (state.folders -- [folder]) ++ [folder]})
+  end
+
   def build_manifest([{key, %{} = val} | rest], state) do
     state = build_manifest(val, %{state | path: Path.join(state.path, key)})
-    build_manifest(rest, %{state | path: state.path})
+    build_manifest(rest, state)
   end
 
   def build_manifest([{key, edge_node} | rest], state) do
@@ -81,7 +86,7 @@ defmodule Nerves.Runtime.ConfigFS do
     })
   end
 
-  def build_manifest([], state), do: state
+  def build_manifest([], state), do: %{state | path: Path.dirname(state.path)}
 
   def gadget_config do
     %{
