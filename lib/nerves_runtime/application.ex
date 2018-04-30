@@ -7,7 +7,8 @@ defmodule Nerves.Runtime.Application do
     Init,
     Kernel,
     KV,
-    LogTailer
+    LogTailer,
+    ConfigFS
   }
 
   def start(_type, _args) do
@@ -18,7 +19,8 @@ defmodule Nerves.Runtime.Application do
       worker(LogTailer, [:kmsg], id: :kmsg),
       supervisor(Kernel, []),
       worker(KV, []),
-      worker(Init, [])
+      worker(Init, []),
+      worker(ConfigFS, [])
     ]
 
     opts = [strategy: :one_for_one, name: Nerves.Runtime.Supervisor]
