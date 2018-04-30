@@ -23,14 +23,13 @@ defmodule Nerves.Runtime.ConfigFS do
     g = "/sys/kernel/config/usb_gadget/g"
     apply_link(Path.join(g, "functions/ecm.usb0"), Path.join(g, "configs/c.1"))
     apply_link(Path.join(g, "functions/acm.usb0"), Path.join(g, "configs/c.1"))
+
     apply_link(Path.join(g, "functions/rndis.usb0"), Path.join(g, "configs/c.2"))
-    apply_link(Path.join(g, "functions/acm.usb0"), Path.join(g, "configs/c.2"))
-    # apply_link(Path.join(g, "configs/c.2"), Path.join(g, "configs/os_desc"))
-    [device] = File.ls!("/sys/class/udc")
+    # apply_link(Path.join(g, "functions/acm.usb0"), Path.join(g, "configs/c.2"))
 
-    write(Path.join(g, "UDC"), device)
+    apply_link(Path.join(g, "configs/c.2"), Path.join(g, "os_desc"))
+
     {_, 0} = Runtime.cmd("sh", ["-c", "ls /sys/class/udc > #{Path.join(g, "UDC")}"], :return)
-
     {:ok, %{}}
   end
 
@@ -121,9 +120,10 @@ defmodule Nerves.Runtime.ConfigFS do
           },
           "strings" => %{
             "0x409" => %{
-              "manufacturer" => "Nerves Team",
-              "product" => "Nerves OTG Device",
-              "serialnumber" => "abcdefg123456"
+              "manufacturer" => Nerves.Runtime.KV.get_active("nerves_fw_author"),
+              "product" => Nerves.Runtime.KV.get_active("nerves_fw_product"),
+              # This is obviously not a good idea.
+              "serialnumber" => Nerves.Runtime.cmd("cat", ["/proc/cpuinfo"], :return) |> elem(0) |> String.split("Serial\t\t: ") |> List.last() |> String.trim()
             }
           },
           "configs" => %{
