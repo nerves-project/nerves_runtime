@@ -1,14 +1,23 @@
 defmodule Nerves.Runtime.ConfigFS do
   use GenServer
   alias Nerves.Runtime
-
+  require Logger
 
   def start_link() do
     GenServer.start_link(__MODULE__, [], name: __MODULE__)
   end
 
   def init([]) do
-    Runtime.cmd("mount", ["none", "/sys/kernel/config", "-t", "configfs"], :info)
+    # configfs_home="/sys/kernel/config"
+    # mount none $configfs_home -t configfs
+    case Runtime.cmd("mount", [], :return) do
+      {str, 0} -> String.contains?(str, "none on /sys/kernel/config type configfs")
+      {err, _} -> raise "Failed to check mounted partitions: #{inspect err}"
+    end
+    |> unless do
+      Logger.info "ConfigFS not mounted."
+      {_, 0} = Runtime.cmd("mount", ["none", "/sys/kernel/config", "-t", "configfs"], :info)
+    end
 
     apply_map_to_configfs(gadget_config())
     g = "/sys/kernel/config/usb_gadget/g"
@@ -24,11 +33,11 @@ defmodule Nerves.Runtime.ConfigFS do
 
   def apply_map_to_configfs(map) do
     mani = build_manifest(map)
-    Enum.each(mani.folders, fn(folder) ->
+    Enum.each(Enum.reverse(mani.folders), fn(folder) ->
       # IO.puts "mkdir -p /sys/kernel/config/#{folder}"
       mkdir_p(Path.join("/sys/kernel/config/", folder))
     end)
-    Enum.each(mani.files, fn({file, value}) ->
+    Enum.each(Enum.reverse(mani.files), fn({file, value}) ->
       # IO.puts "echo '#{value}' > /sys/kernel/config/#{file}"
       write(Path.join("/sys/kernel/config/", file), value)
     end)
@@ -40,15 +49,15 @@ defmodule Nerves.Runtime.ConfigFS do
   end
 
   defp mkdir_p(dir) do
-    System.cmd("mkdir", ["-p", dir])
+    {_, 0} = Runtime.cmd("mkdir", ["-p", dir], :info)
   end
 
   defp ln_s(patha, pathb) do
-    System.cmd("ln", ["-s", patha, pathb])
+    {_, 0} = Runtime.cmd("ln", ["-s", patha, pathb], :info)
   end
 
   defp write(path, value) do
-    System.cmd("sh", ["-c", "echo", value, ">", path])
+    {_, 0} = Runtime.cmd("sh", ["-c", "echo", value, ">", path], :info)
   end
 
   defp build_manifest(map, state \\ %{path: "", files: [], folders: []})
