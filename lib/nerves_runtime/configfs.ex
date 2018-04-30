@@ -12,10 +12,10 @@ defmodule Nerves.Runtime.ConfigFS do
     # mount none $configfs_home -t configfs
     case Runtime.cmd("mount", [], :return) do
       {str, 0} -> String.contains?(str, "none on /sys/kernel/config type configfs")
-      {err, _} -> raise "Failed to check mounted partitions: #{inspect err}"
+      {err, _} -> raise "Failed to check mounted partitions: #{inspect(err)}"
     end
     |> unless do
-      Logger.info "ConfigFS not mounted."
+      Logger.info("Going to mount ConfigFS.")
       {_, 0} = Runtime.cmd("mount", ["none", "/sys/kernel/config", "-t", "configfs"], :info)
     end
 
@@ -26,18 +26,20 @@ defmodule Nerves.Runtime.ConfigFS do
     apply_link(Path.join(g, "functions/rndis.usb0"), Path.join(g, "configs/c.2"))
     apply_link(Path.join(g, "functions/acm.usb0"), Path.join(g, "configs/c.2"))
     apply_link(Path.join(g, "configs/c.2"), Path.join(g, "configs/os_desc"))
-    device = File.ls!("/sys/class/udc") |> List.first()
+    [device] = File.ls!("/sys/class/udc")
     write(Path.join(g, "UDC"), device)
     {:ok, %{}}
   end
 
   def apply_map_to_configfs(map) do
     mani = build_manifest(map)
-    Enum.each(Enum.reverse(mani.folders), fn(folder) ->
+
+    Enum.each(Enum.reverse(mani.folders), fn folder ->
       # IO.puts "mkdir -p /sys/kernel/config/#{folder}"
       mkdir_p(Path.join("/sys/kernel/config/", folder))
     end)
-    Enum.each(Enum.reverse(mani.files), fn({file, value}) ->
+
+    Enum.each(Enum.reverse(mani.files), fn {file, value} ->
       # IO.puts "echo '#{value}' > /sys/kernel/config/#{file}"
       write(Path.join("/sys/kernel/config/", file), value)
     end)
@@ -60,22 +62,26 @@ defmodule Nerves.Runtime.ConfigFS do
     {_, 0} = Runtime.cmd("sh", ["-c", "echo", value, ">", path], :info)
   end
 
-  defp build_manifest(map, state \\ %{path: "", files: [], folders: []})
-  defp build_manifest(%{} = map, state) do
+  def build_manifest(map, state \\ %{path: "", files: [], folders: []})
+
+  def build_manifest(%{} = map, state) do
     build_manifest(Map.to_list(map), state)
   end
 
-  defp build_manifest([{key, %{} = val} | rest], state) do
+  def build_manifest([{key, %{} = val} | rest], state) do
     state = build_manifest(val, %{state | path: Path.join(state.path, key)})
     build_manifest(rest, %{state | path: state.path})
   end
 
-  defp build_manifest([{key, edge_node} | rest], state) do
-    build_manifest(rest, %{state | folders: (state.folders -- [state.path]) ++ [state.path], files: state.files ++ [{Path.join(state.path, key), edge_node}]})
+  def build_manifest([{key, edge_node} | rest], state) do
+    build_manifest(rest, %{
+      state
+      | folders: (state.folders -- [state.path]) ++ [state.path],
+        files: state.files ++ [{Path.join(state.path, key), edge_node}]
+    })
   end
 
-  defp build_manifest([], state), do: state
-
+  def build_manifest([], state), do: state
 
   def gadget_config do
     %{
