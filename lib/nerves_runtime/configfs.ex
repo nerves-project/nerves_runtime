@@ -59,7 +59,7 @@ defmodule Nerves.Runtime.ConfigFS do
   end
 
   defp write(path, value) do
-    {_, 0} = Runtime.cmd("sh", ["-c", "echo", value, ">", path], :return)
+    {_, 0} = Runtime.cmd("sh", ["-c", "echo #{value} > #{path}"], :return)
   end
 
   def build_manifest(map, state \\ %{path: "/", files: [], folders: []})
@@ -106,14 +106,6 @@ defmodule Nerves.Runtime.ConfigFS do
             "ecm.usb0" => %{
               "dev_addr" => "02:1e:58:8a:8f:42",
               "host_addr" => "12:1e:58:8a:8f:42"
-            },
-            "mass_storage.0" => %{
-              "stall" => "1",
-              "lun.0" => %{
-                "file" => "whatever",
-                "removable" => "1",
-                "cdrom" => "0"
-              }
             },
             "acm.usb0" => %{},
             "rndis.usb0" => %{
