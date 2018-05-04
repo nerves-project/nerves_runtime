@@ -1,5 +1,11 @@
 # Changelog
 
+## v0.6.1
+
+* Bug fixes
+  * Log the output of system commands to that they're easier to review
+  * Support mounting `f2fs` (requires support in the Nerves system to work)
+
 ## v0.6.0
 
 * New features
