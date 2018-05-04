@@ -6,7 +6,7 @@
 `nerves_runtime` is a core component of Nerves. It contains applications and
 libraries that are expected to be useful on all Nerves devices.
 
-Here are some of its features:
+Here are its features:
 
 * Generic system and filesystem initialization (suitable for use with
   [`shoehorn`](https://github.com/nerves-project/shoehorn))
@@ -15,10 +15,9 @@ Here are some of its features:
 * A small Linux kernel `uevent` application for capturing hardware change events
   and more
 * IEx helpers to make life better when working from the IEx prompt
-* More to come...
 
-The following sections describe the features in more detail. For even more
-information, consult the [hex docs](https://hexdocs.pm/nerves_runtime).
+The following sections describe the features in more detail. For more
+information, see the [hex docs](https://hexdocs.pm/nerves_runtime).
 
 ## System Initialization
 
@@ -242,17 +241,3 @@ following option:
 # config.exs
 config :nerves_runtime, enable_syslog: false
 ```
-
-## Installation
-
-The package can be installed by adding `nerves_runtime` to your list of
-dependencies in `mix.exs`:
-
-```elixir
-def deps do
-  [{:nerves_runtime, "~> 0.5.0"}]
-end
-```
-
-More detailed documentation can be found at
-[https://hexdocs.pm/nerves_runtime](https://hexdocs.pm/nerves_runtime).
