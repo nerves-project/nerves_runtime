@@ -11,12 +11,20 @@ defmodule Nerves.Runtime do
 
   @doc """
   Reboot the device and gracefully shutdown the Erlang VM.
+
+  This calls `:init.stop/0` internally. If `:init.stop/0` takes longer than the
+  `erlinit.config`'s `--graceful-powerdown` setting (likely 10 seconds) then
+  the system will be hard rebooted.
   """
   @spec reboot() :: :ok
   def reboot(), do: logged_shutdown("reboot")
 
   @doc """
   Power off the device.
+
+  This calls `:init.stop/0` internally. If `:init.stop/0` takes longer than the
+  `erlinit.config`'s `--graceful-powerdown` setting (likely 10 seconds) then
+  the system will be hard rebooted.
   """
   @spec poweroff() :: :ok
   def poweroff(), do: logged_shutdown("poweroff")
