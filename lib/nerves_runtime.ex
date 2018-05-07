@@ -5,8 +5,14 @@ defmodule Nerves.Runtime do
 
   @revert_fw_path "/usr/share/fwup/revert.fw"
 
-  @moduledoc """
+  @typedoc """
+  Options for `Nerves.Runtime.revert/1`.
 
+  * `:reboot` - Call `Nerves.Runtime.reboot/0` after reverting (defaults to `true`)
+  """
+  @type revert_options :: {:reboot, boolean()}
+
+  @moduledoc """
   Nerves.Runtime contains functions useful for almost all Nerves-based devices.
   """
 
@@ -44,7 +50,7 @@ defmodule Nerves.Runtime do
 
   This requires a specially constructed fw file.
   """
-  @spec revert([any]) :: :ok | {:error, reason :: any}
+  @spec revert([revert_options]) :: :ok | {:error, reason :: any}
   def revert(opts \\ []) do
     reboot? = if opts[:reboot] != nil, do: opts[:reboot], else: true
 
