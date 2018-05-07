@@ -13,7 +13,8 @@ defmodule Nerves.Runtime.MixProject do
       package: package(),
       docs: docs(),
       deps: deps(),
-      aliases: [format: [&format_c/1, "format"]]
+      aliases: [format: [&format_c/1, "format"]],
+      dialyzer: [plt_add_apps: [:iex]]
     ]
   end
 
