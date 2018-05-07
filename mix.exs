@@ -26,7 +26,8 @@ defmodule Nerves.Runtime.MixProject do
     [
       {:elixir_make, "~> 0.4", runtime: false},
       {:system_registry, "~> 0.5"},
-      {:ex_doc, "~> 0.11", only: :dev}
+      {:ex_doc, "~> 0.11", only: :dev},
+      {:dialyxir, "~> 0.5.1", runtime: false}
     ]
   end
 
