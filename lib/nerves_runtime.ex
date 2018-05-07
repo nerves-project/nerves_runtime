@@ -7,6 +7,7 @@ defmodule Nerves.Runtime do
 
   @moduledoc """
 
+  Nerves.Runtime contains functions useful for almost all Nerves-based devices.
   """
 
   @doc """
@@ -32,8 +33,8 @@ defmodule Nerves.Runtime do
   @doc """
   Halt the device (meaning hang, not power off, nor reboot).
 
-  Note: this is different than :erlang.halt(), which exits BEAM, and
-  may end up rebooting the device if `erlinit.config` settings allow reboot on exit.
+  Note: this is different than :erlang.halt(), which exits BEAM, and may end up
+  rebooting the device if `erlinit.config` settings allow reboot on exit.
   """
   @spec halt() :: :ok
   def halt(), do: logged_shutdown("halt")
