@@ -17,8 +17,6 @@ defmodule Nerves.Runtime.LogTailer do
 
   require Logger
 
-  @port_binary_name "log_tailer"
-
   defp gen_server_name(:syslog), do: __MODULE__.Syslog
   defp gen_server_name(:kmsg), do: __MODULE__.Kmsg
 
@@ -63,9 +61,7 @@ defmodule Nerves.Runtime.LogTailer do
   end
 
   defp executable() do
-    :nerves_runtime
-    |> :code.priv_dir()
-    |> Path.join(@port_binary_name)
+    :code.priv_dir(:nerves_runtime) ++ '/log_tailer'
   end
 
   defp handle_message(type, data) do
