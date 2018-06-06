@@ -92,8 +92,8 @@ defmodule Nerves.Runtime.KV do
       {result, 0} ->
         parse_kv(result)
 
-      _ ->
-        Logger.warn("#{inspect(__MODULE__)} could not find executable fw_printenv")
+      {result, code} ->
+        Logger.warn("#{inspect(__MODULE__)} failed to load fw env (#{code}): #{result}")
         %{}
     end
   end
