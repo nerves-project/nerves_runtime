@@ -21,15 +21,21 @@ defmodule Nerves.Runtime.ConfigFS do
 
     apply_map_to_configfs(gadget_config())
     g = "/sys/kernel/config/usb_gadget/g"
-    apply_link(Path.join(g, "functions/ecm.usb0"), Path.join(g, "configs/c.1"))
-    apply_link(Path.join(g, "functions/acm.usb0"), Path.join(g, "configs/c.1"))
-
-    apply_link(Path.join(g, "functions/rndis.usb0"), Path.join(g, "configs/c.2"))
-    # apply_link(Path.join(g, "functions/acm.usb0"), Path.join(g, "configs/c.2"))
-
-    apply_link(Path.join(g, "configs/c.2"), Path.join(g, "os_desc"))
+    apply_link(Path.join(g, "functions/rndis.usb0"), Path.join(g, "configs/c.1/rndis.usb0"))
+    apply_link(Path.join(g, "functions/ecm.usb1"), Path.join(g, "configs/c.1/ecm.usb1"))
+    apply_link(Path.join(g, "functions/acm.GS0"), Path.join(g, "configs/c.1/acm.GS0"))
+    apply_link(Path.join(g, "configs/c.1"), Path.join(g, "os_desc/c.1"))
 
     {_, 0} = Runtime.cmd("sh", ["-c", "ls /sys/class/udc > #{Path.join(g, "UDC")}"], :return)
+
+    :os.cmd('ip link set bond0 down')
+    :os.cmd('echo active-backup > /sys/class/net/bond0/bonding/mode')
+    :os.cmd('echo 100 > /sys/class/net/bond0/bonding/miimon')
+    :os.cmd('echo +usb0 > /sys/class/net/bond0/bonding/slaves')
+    :os.cmd('echo +usb1 > /sys/class/net/bond0/bonding/slaves')
+    :os.cmd('echo usb1 > /sys/class/net/bond0/bonding/primary')
+    :os.cmd('ip link set bond0 up')
+
     {:ok, %{}}
   end
 
@@ -50,15 +56,19 @@ defmodule Nerves.Runtime.ConfigFS do
   end
 
   defp mkdir_p(dir) do
-    {_, 0} = Runtime.cmd("mkdir", ["-p", dir], :return)
+    Logger.info("Creating #{dir}")
+    File.mkdir_p!(dir)
   end
 
   defp ln_s(patha, pathb) do
-    {_, 0} = Runtime.cmd("ln", ["-s", patha, pathb], :return)
+    Logger.info("Linking #{pathb} to #{patha}")
+    #{_, 0} = Runtime.cmd("ln", ["-s", patha, pathb], :return)
+    File.ln_s!(patha, pathb)
   end
 
   defp write(path, value) do
-    {_, 0} = Runtime.cmd("sh", ["-c", "echo #{value} > #{path}"], :return)
+    Logger.info("Writing #{value} to #{path}")
+    File.write!(path, value)
   end
 
   def build_manifest(map, state \\ %{path: "/", files: [], folders: []})
@@ -92,21 +102,18 @@ defmodule Nerves.Runtime.ConfigFS do
       "usb_gadget" => %{
         "g" => %{
           "bcdUSB" => "0x0200",
-          "bcdDevice" => "0x3000",
-          "bDeviceClass" => "2",
-          "idVendor" => "0x1d6b",
-          "idProduct" => "0x0104",
+          "bcdDevice" => "0x0100",
+          "bDeviceClass" => "0xEF",
+          "bDeviceSubClass" => "0x02",
+          "bDeviceProtocol" => "0x01",
+          "idVendor" => "0x0525",
+          "idProduct" => "0xB4AB",
           "os_desc" => %{
             "use" => "1",
             "b_vendor_code" => "0xcd",
             "qw_sign" => "MSFT100"
           },
           "functions" => %{
-            "ecm.usb0" => %{
-              "dev_addr" => "02:1e:58:8a:8f:42",
-              "host_addr" => "12:1e:58:8a:8f:42"
-            },
-            "acm.usb0" => %{},
             "rndis.usb0" => %{
               "dev_addr" => "22:1e:58:8a:8f:42",
               "host_addr" => "32:1e:58:8a:8f:42",
@@ -116,7 +123,12 @@ defmodule Nerves.Runtime.ConfigFS do
                   "sub_compatible_id" => "5162001"
                 }
               }
-            }
+            },
+            "ecm.usb1" => %{
+              "dev_addr" => "02:1e:58:8a:8f:42",
+              "host_addr" => "12:1e:58:8a:8f:42"
+            },
+            "acm.GS0" => %{},
           },
           "strings" => %{
             "0x409" => %{
@@ -132,16 +144,7 @@ defmodule Nerves.Runtime.ConfigFS do
               "MaxPower" => "1",
               "strings" => %{
                 "0x409" => %{
-                  "configuration" => "CDC"
-                }
-              }
-            },
-            "c.2" => %{
-              "bmAttributes" => "0xC0",
-              "MaxPower" => "1",
-              "strings" => %{
-                "0x409" => %{
-                  "configuration" => "RNDIS"
+                  "configuration" => "Config 1"
                 }
               }
             }
