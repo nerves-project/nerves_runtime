@@ -100,8 +100,9 @@ Global Nerves metadata includes the following:
 
 Key                 | Build Environment Variable   | Example Value    | Description
 ------------------- | ---------------------------- | ---------------- | -----------
-`nerves_fw_active`  | -                            | `"a"`            | This key holds the prefix that identifies the active firmware metadata. In this example, all keys starting with `"a."` hold information about the running firmware.
+`nerves_fw_active`  | N/A                          | `"a"`            | This key holds the prefix that identifies the active firmware metadata. In this example, all keys starting with `"a."` hold information about the running firmware.
 `nerves_fw_devpath` | `NERVES_FW_DEVPATH`          | `"/dev/mmcblk0"` | This is the primary storage device for the firmware.
+`serial_number`     | N/A                          | `"12345abc"`     | This is a text serial number. See [Serial numbers](#serial_numbers) for details.
 
 Firmware-specific Nerves metadata includes the following:
 
@@ -241,3 +242,17 @@ following option:
 # config.exs
 config :nerves_runtime, enable_syslog: false
 ```
+
+## Serial numbers
+
+Nerves systems support several methods for assigning serial numbers to devices.
+By default serial numbers are derived using board-specific identifiers.
+Currently, no one place exists that can be queried for the serial number.
+However, many people are using the `serial_number` key in the U-Boot environment
+block to store a serial number for their device. This location is not "secure"
+against a determined person who wants to clone a device. However, it is good
+enough for many use cases and is available on all platforms supported by Nerves.
+
+See
+[embedded-elixir](https://embedded-elixir.com/post/2018-06-15-serial_number/)
+for how to assign serial numbers to devices.
