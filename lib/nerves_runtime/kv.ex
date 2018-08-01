@@ -35,7 +35,7 @@ defmodule Nerves.Runtime.KV do
   The U-Boot environment configuration is loaded from /etc/fw_env.config.
   If you are using OTP >= 21, the contents of the U-Boot environment will be
   read directly from the device. This addresses an issue with parsing
-  milti-line values from a call to `fw_printenv`
+  multi-line values from a call to `fw_printenv`.
   """
   use GenServer
   require Logger
