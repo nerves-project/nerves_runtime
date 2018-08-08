@@ -1,5 +1,10 @@
 # Changelog
 
+## v0.6.3
+
+* Bug Fixes
+  * Fix issue with parsing fw_env.config files with space separated values.
+
 ## v0.6.2
 
 * Enhancements
