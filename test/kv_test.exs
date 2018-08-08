@@ -2,6 +2,8 @@ defmodule KVTest do
   use ExUnit.Case
   doctest Nerves.Runtime.KV
 
+  @fixtures Path.expand("fixtures", __DIR__)
+
   alias Nerves.Runtime.KV
 
   test "parse kv" do
@@ -34,5 +36,21 @@ defmodule KVTest do
     }
 
     assert KV.parse_kv(kv_raw) == kv
+  end
+
+  test "can parse fw_env.config for common systems" do
+    {:ok, config} =
+      Path.join(@fixtures, "fw_env.config")
+      |> KV.read_config()
+
+    assert {"/dev/mmcblk0", 0x100000, 0x2000} = KV.parse_config(config)
+  end
+
+  test "can parse fw_env.config with spaces" do
+    {:ok, config} =
+      Path.join(@fixtures, "spaces_fw_env.config")
+      |> KV.read_config()
+
+    assert {"/dev/mtd3", 0x0, 0x1000} = KV.parse_config(config)
   end
 end

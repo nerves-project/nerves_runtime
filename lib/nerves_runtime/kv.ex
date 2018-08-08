@@ -109,6 +109,38 @@ defmodule Nerves.Runtime.KV do
     {:reply, s, s}
   end
 
+  def read_config(file) do
+    case File.read(file) do
+      {:ok, config} -> {:ok, config}
+      _ -> {:error, :no_config}
+    end
+  end
+
+  def parse_config(config) do
+    [config] =
+      config
+      |> String.split("\n", trim: true)
+      |> Enum.map(&String.trim/1)
+      |> Enum.reject(&String.starts_with?(&1, "#"))
+
+    [dev_name, dev_offset, env_size | _] = String.split(config) |> Enum.map(&String.trim/1)
+
+    {dev_name, parse_int(dev_offset), parse_int(env_size)}
+  end
+
+  def parse_kv(kv) when is_list(kv) do
+    kv
+    |> Enum.map(&to_string(&1))
+    |> Enum.map(&String.split(&1, "=", parts: 2))
+    |> Enum.map(fn [k, v] -> {k, v} end)
+    |> Enum.into(%{})
+  end
+
+  def parse_kv(kv) when is_binary(kv) do
+    String.split(kv, "\n", trim: true)
+    |> parse_kv()
+  end
+
   defp load_kv(nil), do: %{}
 
   defp load_kv(exec) do
@@ -171,25 +203,6 @@ defmodule Nerves.Runtime.KV do
     end)
     |> Enum.map(fn {k, v} -> {String.replace_leading(k, active, ""), v} end)
     |> Enum.into(%{})
-  end
-
-  defp read_config(file) do
-    case File.read(file) do
-      {:ok, config} -> {:ok, config}
-      _ -> {:error, :no_config}
-    end
-  end
-
-  defp parse_config(config) do
-    [config] =
-      config
-      |> String.split("\n", trim: true)
-      |> Enum.map(&String.trim/1)
-      |> Enum.reject(&String.starts_with?(&1, "#"))
-
-    [dev_name, dev_offset, env_size | _] = String.split(config, "\t", trim: true)
-
-    {dev_name, parse_int(dev_offset), parse_int(env_size)}
   end
 
   defp parse_int(<<"0x", hex_int::binary()>>), do: String.to_integer(hex_int, 16)
