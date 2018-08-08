@@ -1,5 +1,15 @@
 # Changelog
 
+## v0.6.2
+
+* Enhancements
+  * Updates to docs and typespecs.
+
+* Bug fixes
+  * Read the U-Boot environment directly using :file if possible. (OTP-21)
+    This fixes an issue with `fw_printenv` where multi-line values cause the
+    output to be unparseable.
+
 ## v0.6.1
 
 * Bug fixes
