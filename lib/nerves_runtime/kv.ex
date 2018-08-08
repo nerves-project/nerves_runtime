@@ -157,38 +157,30 @@ defmodule Nerves.Runtime.KV do
   # OTP 21 FTW
   # Load the UBoot env from the source
   defp load_kv(dev_name, dev_offset, env_size) do
-    {:ok, fd} = File.open(dev_name)
-    {:ok, bin} = :file.pread(fd, dev_offset, env_size)
-    File.close(fd)
-    <<expected_crc::little-size(32), tail::binary>> = bin
-    actual_crc = :erlang.crc32(tail)
+    case File.open(dev_name) do
+      {:ok, fd} ->
+        {:ok, bin} = :file.pread(fd, dev_offset, env_size)
+        File.close(fd)
+        <<expected_crc::little-size(32), tail::binary>> = bin
+        actual_crc = :erlang.crc32(tail)
 
-    if actual_crc == expected_crc do
-      kv =
-        tail
-        |> :binary.bin_to_list()
-        |> Enum.chunk_by(fn b -> b == 0 end)
-        |> Enum.reject(&(&1 == [0]))
-        |> Enum.take_while(&(&1 != [0, 0]))
-        |> parse_kv()
+        if actual_crc == expected_crc do
+          kv =
+            tail
+            |> :binary.bin_to_list()
+            |> Enum.chunk_by(fn b -> b == 0 end)
+            |> Enum.reject(&(&1 == [0]))
+            |> Enum.take_while(&(&1 != [0, 0]))
+            |> parse_kv()
 
-      {:ok, kv}
-    else
-      {:error, :invalid_crc}
+          {:ok, kv}
+        else
+          {:error, :invalid_crc}
+        end
+
+      error ->
+        error
     end
-  end
-
-  def parse_kv(kv) when is_list(kv) do
-    kv
-    |> Enum.map(&to_string(&1))
-    |> Enum.map(&String.split(&1, "=", parts: 2))
-    |> Enum.map(fn [k, v] -> {k, v} end)
-    |> Enum.into(%{})
-  end
-
-  def parse_kv(kv) when is_binary(kv) do
-    String.split(kv, "\n", trim: true)
-    |> parse_kv()
   end
 
   defp active(s), do: Map.get(s, "nerves_fw_active", "")
