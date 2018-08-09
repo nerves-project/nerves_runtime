@@ -5,7 +5,7 @@ defmodule Nerves.Runtime.MixProject do
     [
       app: :nerves_runtime,
       version: "0.6.3",
-      elixir: "~> 1.4",
+      elixir: "~> 1.6",
       start_permanent: Mix.env() == :prod,
       make_clean: ["clean"],
       compilers: [:elixir_make | Mix.compilers()],
@@ -26,7 +26,7 @@ defmodule Nerves.Runtime.MixProject do
     [
       {:elixir_make, "~> 0.4", runtime: false},
       {:system_registry, "~> 0.5"},
-      {:ex_doc, "~> 0.11", only: :dev},
+      {:ex_doc, "~> 0.18.0", only: :dev},
       {:dialyxir, "~> 0.5.1", runtime: false}
     ]
   end
