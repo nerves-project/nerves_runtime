@@ -23,12 +23,12 @@ defmodule Nerves.Runtime.KV do
 
   ## Technical Information
 
-  Nerves.Runtime.KV uses a non-replicated U-Boot environment block for storing 
+  Nerves.Runtime.KV uses a non-replicated U-Boot environment block for storing
   firmware and provisioning information. It has the following format:
 
     * CRC32 of bytes 4 through to the end
     * `"<key>=<value>\0"` for each key/value pair
-    * `"\0"` an empty key/value pair to terminate the list. 
+    * `"\0"` an empty key/value pair to terminate the list.
       This looks like "\0\0" when you're viewing the file in a hex editor.
     * Filler bytes to the end of the environment block. These are usually `0xff`.
 
@@ -156,7 +156,7 @@ defmodule Nerves.Runtime.KV do
 
   # OTP 21 FTW
   # Load the UBoot env from the source
-  defp load_kv(dev_name, dev_offset, env_size) do
+  def load_kv(dev_name, dev_offset, env_size) do
     case File.open(dev_name) do
       {:ok, fd} ->
         {:ok, bin} = :file.pread(fd, dev_offset, env_size)
@@ -170,7 +170,7 @@ defmodule Nerves.Runtime.KV do
             |> :binary.bin_to_list()
             |> Enum.chunk_by(fn b -> b == 0 end)
             |> Enum.reject(&(&1 == [0]))
-            |> Enum.take_while(&(&1 != [0, 0]))
+            |> Enum.take_while(&(hd(&1) != 0))
             |> parse_kv()
 
           {:ok, kv}
