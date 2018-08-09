@@ -1,8 +1,17 @@
 # Changelog
 
+## v0.6.4
+
+* Bug fixes
+  * Fix U-Boot environment load issue and add unit tests to cover environment
+    block generation using either U-Boot tools or fwup
+  * Load rngd if available. If it's available, this greatly shortens the time
+    for the Linux kernel's random number entropy pool to initialize. This
+    improves boot time for applications that need random numbers right away.
+
 ## v0.6.3
 
-* Bug Fixes
+* Bug fixes
   * Fix issue with parsing fw_env.config files with space separated values.
 
 ## v0.6.2
