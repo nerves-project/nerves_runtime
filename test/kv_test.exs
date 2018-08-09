@@ -53,4 +53,26 @@ defmodule KVTest do
 
     assert {"/dev/mtd3", 0x0, 0x1000} = KV.parse_config(config)
   end
+
+  test "can parse u-boot tools created environment" do
+    dev_name = Path.join(@fixtures, "fixture_uboot.bin")
+    dev_offset = 0x1000
+    env_size = 0x2000
+
+    {:ok, kv} = KV.load_kv(dev_name, dev_offset, env_size)
+
+    assert Map.get(kv, "serial_number") == "12345"
+    assert Map.get(kv, "a.nerves_fw_application_part0_devpath") == "/dev/mmcblk0p4"
+  end
+
+  test "can parse fwup-created environment" do
+    dev_name = Path.join(@fixtures, "fixture_fwup.bin")
+    dev_offset = 0x1000
+    env_size = 0x2000
+
+    {:ok, kv} = KV.load_kv(dev_name, dev_offset, env_size)
+
+    assert Map.get(kv, "serial_number") == "112233"
+    assert Map.get(kv, "a.nerves_fw_application_part0_devpath") == "/dev/mmcblk0p4"
+  end
 end

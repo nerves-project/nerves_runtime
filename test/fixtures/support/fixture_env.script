@@ -1,0 +1,8 @@
+# See kv_test.exs for the regression tests
+
+# U-boot adds quite a few other variables to the default environment so expect
+# a few more than the ones in this file.
+
+a.nerves_fw_application_part0_devpath /dev/mmcblk0p4
+serial_number 12345
+
