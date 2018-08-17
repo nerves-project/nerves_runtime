@@ -19,15 +19,20 @@ defmodule Nerves.Runtime.MixProject do
   end
 
   def application do
-    [extra_applications: [:logger], mod: {Nerves.Runtime.Application, []}]
+    [
+      extra_applications: [
+        :logger
+      ],
+      mod: {Nerves.Runtime.Application, []}
+    ]
   end
 
   defp deps do
     [
-      {:elixir_make, "~> 0.4", runtime: false},
       {:system_registry, "~> 0.5"},
       {:ex_doc, "~> 0.18.0", only: :dev},
-      {:dialyxir, "~> 0.5.1", runtime: false}
+      {:elixir_make, "~> 0.4", runtime: false},
+      {:dialyxir, "~> 0.5.1", only: [:dev, :test], runtime: false}
     ]
   end
 
