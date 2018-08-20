@@ -1,5 +1,13 @@
 # Changelog
 
+## v0.6.5
+
+Update dependencies to only include `dialyxir` for `[:dev, :test]`, preventing it
+from being distributed in the with the hex package. This addresses an issue
+where `dialyxir` and its dependencies would be included in the applications list 
+when producing the OTP release and cause `:wx` to raise because the target
+version of `erts` was compiled without it. 
+
 ## v0.6.4
 
 * Bug fixes
