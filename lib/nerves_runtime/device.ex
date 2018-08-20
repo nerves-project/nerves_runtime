@@ -21,7 +21,7 @@ defmodule Nerves.Runtime.Device do
   defp expand_uevent(path) do
     path
     |> Path.expand()
-    |> File.ls!()
+    |> safe_ls()
     |> Enum.map(&Path.join(path, &1))
     |> Enum.reduce([], fn path, acc ->
       filetype =
@@ -44,6 +44,13 @@ defmodule Nerves.Runtime.Device do
       end
     end)
     |> List.flatten()
+  end
+
+  defp safe_ls(path) do
+    case File.ls(path) do
+      {:ok, files} -> files
+      _ -> []
+    end
   end
 
   defp invoke_uevent_action(uevent, action) do
