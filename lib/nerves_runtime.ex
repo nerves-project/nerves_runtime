@@ -72,6 +72,11 @@ defmodule Nerves.Runtime do
   def cmd(cmd, params, out),
     do: System.cmd(cmd, params, into: OutputLogger.new(out), stderr_to_stdout: true)
 
+  def target() do
+    target = Application.get_env(:nerves_runtime, :target)
+    if target == "host", do: "host", else: "target"
+  end
+
   # private helpers
 
   defp logged_shutdown(cmd) do
