@@ -1,78 +1,74 @@
 defmodule KVTest do
-  use ExUnit.Case
+  use ExUnit.Case, async: false
   doctest Nerves.Runtime.KV
-
-  @fixtures Path.expand("fixtures", __DIR__)
 
   alias Nerves.Runtime.KV
 
-  test "parse kv" do
-    kv_raw = """
-    a.nerves_fw_application_part0_devpath=/dev/mmcblk0p3
-    a.nerves_fw_application_part0_fstype=ext4
-    a.nerves_fw_application_part0_target=/root
-    a.nerves_fw_architecture=arm
-    a.nerves_fw_author=The Nerves Team
-    a.nerves_fw_description=
-    a.nerves_fw_platform=rpi
-    a.nerves_fw_product=Nerves Firmware
-    a.nerves_fw_version=
-    nerves_fw_active=a
-    nerves_fw_devpath=/dev/mmcblk0
-    """
+  @kv %{
+    "a.nerves_fw_application_part0_devpath" => "/dev/mmcblk0p3",
+    "a.nerves_fw_application_part0_fstype" => "ext4",
+    "a.nerves_fw_application_part0_target" => "/root",
+    "a.nerves_fw_architecture" => "arm",
+    "a.nerves_fw_author" => "The Nerves Team",
+    "a.nerves_fw_description" => "",
+    "a.nerves_fw_misc" => "",
+    "a.nerves_fw_platform" => "rpi0",
+    "a.nerves_fw_product" => "test_app",
+    "a.nerves_fw_uuid" => "d9492bdb-94de-5288-425e-2de6928ef99c",
+    "a.nerves_fw_vcs_identifier" => "",
+    "a.nerves_fw_version" => "0.1.0",
+    "b.nerves_fw_application_part0_devpath" => "/dev/mmcblk0p3",
+    "b.nerves_fw_application_part0_fstype" => "ext4",
+    "b.nerves_fw_application_part0_target" => "/root",
+    "b.nerves_fw_architecture" => "arm",
+    "b.nerves_fw_author" => "The Nerves Team",
+    "b.nerves_fw_description" => "",
+    "b.nerves_fw_misc" => "",
+    "b.nerves_fw_platform" => "rpi0",
+    "b.nerves_fw_product" => "test_app",
+    "b.nerves_fw_uuid" => "4e08ad59-fa3c-5498-4a58-179b43cc1a25",
+    "b.nerves_fw_vcs_identifier" => "",
+    "b.nerves_fw_version" => "0.1.1",
+    "nerves_fw_active" => "b",
+    "nerves_fw_devpath" => "/dev/mmcblk0",
+    "nerves_serial_number" => ""
+  }
 
-    kv = %{
-      "a.nerves_fw_application_part0_devpath" => "/dev/mmcblk0p3",
-      "a.nerves_fw_application_part0_fstype" => "ext4",
-      "a.nerves_fw_application_part0_target" => "/root",
-      "a.nerves_fw_architecture" => "arm",
-      "a.nerves_fw_author" => "The Nerves Team",
-      "a.nerves_fw_description" => "",
-      "a.nerves_fw_platform" => "rpi",
-      "a.nerves_fw_product" => "Nerves Firmware",
-      "a.nerves_fw_version" => "",
-      "nerves_fw_active" => "a",
-      "nerves_fw_devpath" => "/dev/mmcblk0"
-    }
+  setup_all do
+    Application.stop(:nerves_runtime)
 
-    assert KV.parse_kv(kv_raw) == kv
+    on_exit(fn ->
+      Application.start(:nerves_runtime)
+    end)
   end
 
-  test "can parse fw_env.config for common systems" do
-    {:ok, config} =
-      Path.join(@fixtures, "fw_env.config")
-      |> KV.read_config()
-
-    assert {"/dev/mmcblk0", 0x100000, 0x2000} = KV.parse_config(config)
+  setup do
+    {:ok, _pid} = Nerves.Runtime.KV.start_link(@kv)
+    :ok
   end
 
-  test "can parse fw_env.config with spaces" do
-    {:ok, config} =
-      Path.join(@fixtures, "spaces_fw_env.config")
-      |> KV.read_config()
-
-    assert {"/dev/mtd3", 0x0, 0x1000} = KV.parse_config(config)
+  test "can get single value from kv" do
+    assert KV.get("nerves_fw_active") == "b"
   end
 
-  test "can parse u-boot tools created environment" do
-    dev_name = Path.join(@fixtures, "fixture_uboot.bin")
-    dev_offset = 0x1000
-    env_size = 0x2000
-
-    {:ok, kv} = KV.load_kv(dev_name, dev_offset, env_size)
-
-    assert Map.get(kv, "serial_number") == "12345"
-    assert Map.get(kv, "a.nerves_fw_application_part0_devpath") == "/dev/mmcblk0p4"
+  test "can get all values from kv" do
+    assert KV.get_all() == @kv
   end
 
-  test "can parse fwup-created environment" do
-    dev_name = Path.join(@fixtures, "fixture_fwup.bin")
-    dev_offset = 0x1000
-    env_size = 0x2000
+  test "can get all active values from kv" do
+    active = Map.get(@kv, "nerves_fw_active")
 
-    {:ok, kv} = KV.load_kv(dev_name, dev_offset, env_size)
+    active_values =
+      @kv
+      |> Enum.filter(&String.starts_with?(elem(&1, 0), active))
+      |> Enum.map(&{String.trim_leading(elem(&1, 0), active <> "."), elem(&1, 1)})
+      |> Enum.into(%{})
 
-    assert Map.get(kv, "serial_number") == "112233"
-    assert Map.get(kv, "a.nerves_fw_application_part0_devpath") == "/dev/mmcblk0p4"
+    assert KV.get_all_active() == active_values
+  end
+
+  test "can get single active value from kv" do
+    active_value = Map.get(@kv, "b.nerves_fw_version")
+    assert KV.get_active("nerves_fw_version") == active_value
   end
 end
