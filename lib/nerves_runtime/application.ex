@@ -11,8 +11,6 @@ defmodule Nerves.Runtime.Application do
   }
 
   def start(_type, _args) do
-    import Supervisor.Spec, warn: false
-
     # On systems with hardware random number generation, it is important that
     # "rngd" gets started as soon as possible to start adding entropy to the
     # system. So much code directly or indirectly uses random numbers that it's
@@ -20,16 +18,30 @@ defmodule Nerves.Runtime.Application do
     # numbers.
     try_rngd()
 
-    children = [
-      worker(LogTailer, [:syslog], id: :syslog),
-      worker(LogTailer, [:kmsg], id: :kmsg),
-      supervisor(Kernel, []),
-      worker(KV, []),
-      worker(Init, [])
-    ]
+    target = Nerves.Runtime.target()
+
+    children =
+      [
+        KV
+      ] ++ target_children(target)
 
     opts = [strategy: :one_for_one, name: Nerves.Runtime.Supervisor]
     Supervisor.start_link(children, opts)
+  end
+
+  defp target_children("host") do
+    []
+  end
+
+  defp target_children(_target) do
+    import Supervisor.Spec, warn: false
+
+    [
+      worker(LogTailer, [:syslog], id: :syslog),
+      worker(LogTailer, [:kmsg], id: :kmsg),
+      supervisor(Kernel, []),
+      worker(Init, [])
+    ]
   end
 
   defp try_rngd() do
