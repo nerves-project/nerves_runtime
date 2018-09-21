@@ -61,7 +61,7 @@ defmodule Nerves.Runtime.KV.UBootEnvTest do
 
     {:ok, kv} = UBootEnv.load_kv(dev_name, dev_offset, env_size)
 
-    assert Map.get(kv, "serial_number") == "12345"
+    assert Map.get(kv, "nerves_serial_number") == "12345"
     assert Map.get(kv, "a.nerves_fw_application_part0_devpath") == "/dev/mmcblk0p4"
   end
 
@@ -72,7 +72,7 @@ defmodule Nerves.Runtime.KV.UBootEnvTest do
 
     {:ok, kv} = UBootEnv.load_kv(dev_name, dev_offset, env_size)
 
-    assert Map.get(kv, "serial_number") == "112233"
+    assert Map.get(kv, "nerves_serial_number") == "112233"
     assert Map.get(kv, "a.nerves_fw_application_part0_devpath") == "/dev/mmcblk0p4"
   end
 end
