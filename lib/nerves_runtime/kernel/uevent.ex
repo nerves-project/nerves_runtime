@@ -79,24 +79,13 @@ defmodule Nerves.Runtime.Kernel.UEvent do
     end
   end
 
-  def registry(%{"action" => "change"} = event, s) do
-    # Logger.debug "UEvent Change: #{inspect event}"
-    raw = Map.drop(event, ["action"])
-
-    Map.put(raw, "action", "remove")
-    |> registry(s)
-
-    Map.put(raw, "action", "add")
-    |> registry(s)
-  end
-
   def registry(%{"action" => "move", "devpath" => new, "devpath_old" => old}, _) do
     # Logger.debug "UEvent Move: #{inspect scope(old)} -> #{inspect scope(new)}"
     SystemRegistry.move(scope(old), scope(new))
   end
 
   def registry(event, _) do
-    Logger.debug("UEvent Unhandled: #{inspect(event)}")
+    # Logger.debug("UEvent Unhandled: #{inspect(event)}")
   end
 
   defp scope("/" <> devpath) do
