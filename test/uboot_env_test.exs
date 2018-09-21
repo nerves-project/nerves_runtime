@@ -1,10 +1,11 @@
-defmodule Nerves.Runtime.KV.UBootEnvTest do
+defmodule Nerves.Runtime.UBootEnvTest do
   use ExUnit.Case
+  doctest Nerves.Runtime.UBootEnv
   doctest Nerves.Runtime.KV.UBootEnv
 
-  @fixtures Path.expand("../fixtures", __DIR__)
+  @fixtures Path.expand("fixtures", __DIR__)
 
-  alias Nerves.Runtime.KV.UBootEnv
+  alias Nerves.Runtime.UBootEnv
 
   test "parse kv" do
     kv_raw = """
@@ -35,23 +36,23 @@ defmodule Nerves.Runtime.KV.UBootEnvTest do
       "nerves_fw_devpath" => "/dev/mmcblk0"
     }
 
-    assert UBootEnv.decode(kv_raw) == kv
+    assert UBootEnv.Tools.decode(kv_raw) == kv
   end
 
   test "can parse fw_env.config for common systems" do
     {:ok, config} =
       Path.join(@fixtures, "fw_env.config")
-      |> UBootEnv.read_config()
+      |> UBootEnv.Config.read()
 
-    assert {"/dev/mmcblk0", 0x100000, 0x2000} = UBootEnv.parse_config(config)
+    assert {"/dev/mmcblk0", 0x100000, 0x2000} == config
   end
 
   test "can parse fw_env.config with spaces" do
     {:ok, config} =
       Path.join(@fixtures, "spaces_fw_env.config")
-      |> UBootEnv.read_config()
+      |> UBootEnv.Config.read()
 
-    assert {"/dev/mtd3", 0x0, 0x1000} = UBootEnv.parse_config(config)
+    assert {"/dev/mtd3", 0x0, 0x1000} == config
   end
 
   test "can parse u-boot tools created environment" do
