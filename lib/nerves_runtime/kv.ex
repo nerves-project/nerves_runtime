@@ -20,22 +20,6 @@ defmodule Nerves.Runtime.KV do
   using get_active and get_all_active. The result of these
   functions will trim the firmware slot (`"a."` or `"b."`)
   from the leading characters of the keys returned.
-
-  ## Technical Information
-
-  Nerves.Runtime.KV uses a non-replicated U-Boot environment block for storing
-  firmware and provisioning information. It has the following format:
-
-    * CRC32 of bytes 4 through to the end
-    * `"<key>=<value>\0"` for each key/value pair
-    * `"\0"` an empty key/value pair to terminate the list.
-      This looks like "\0\0" when you're viewing the file in a hex editor.
-    * Filler bytes to the end of the environment block. These are usually `0xff`.
-
-  The U-Boot environment configuration is loaded from /etc/fw_env.config.
-  If you are using OTP >= 21, the contents of the U-Boot environment will be
-  read directly from the device. This addresses an issue with parsing
-  multi-line values from a call to `fw_printenv`.
   """
 
   use GenServer
