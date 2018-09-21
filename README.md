@@ -104,7 +104,6 @@ Key                 | Build Environment Variable   | Example Value    | Descript
 `nerves_fw_devpath` | `NERVES_FW_DEVPATH`          | `"/dev/mmcblk0"` | This is the primary storage device for the firmware.
 `nerves_serial_number` | N/A                       | `"12345abc"`     | This is a text serial number. See [Serial numbers](#serial_numbers) for details.
 
-
 Firmware-specific Nerves metadata includes the following:
 
 Key                                   | Example Value     | Description
@@ -180,7 +179,7 @@ bad situations.
 
 One important use case is to be able to remotely update a device and have it
 automatically revert its firmware after a timeout or if it can't reach the
-network. A common requirement is to handle crashes and hangs. The noraml strategy for
+network. A common requirement is to handle crashes and hangs. The normal strategy for
 implementing this to have the device allow one boot of new firmware and then to
 mark it "valid" if code gets to a good point (like connect to a server). If
 something goes wrong, then the next reboot reverts back to the original
