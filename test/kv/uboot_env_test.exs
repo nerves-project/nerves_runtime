@@ -35,7 +35,7 @@ defmodule Nerves.Runtime.KV.UBootEnvTest do
       "nerves_fw_devpath" => "/dev/mmcblk0"
     }
 
-    assert UBootEnv.parse_kv(kv_raw) == kv
+    assert UBootEnv.decode(kv_raw) == kv
   end
 
   test "can parse fw_env.config for common systems" do
@@ -59,7 +59,7 @@ defmodule Nerves.Runtime.KV.UBootEnvTest do
     dev_offset = 0x1000
     env_size = 0x2000
 
-    {:ok, kv} = UBootEnv.load_kv(dev_name, dev_offset, env_size)
+    {:ok, kv} = UBootEnv.load(dev_name, dev_offset, env_size)
 
     assert Map.get(kv, "nerves_serial_number") == "12345"
     assert Map.get(kv, "a.nerves_fw_application_part0_devpath") == "/dev/mmcblk0p4"
@@ -70,9 +70,22 @@ defmodule Nerves.Runtime.KV.UBootEnvTest do
     dev_offset = 0x1000
     env_size = 0x2000
 
-    {:ok, kv} = UBootEnv.load_kv(dev_name, dev_offset, env_size)
+    {:ok, kv} = UBootEnv.load(dev_name, dev_offset, env_size)
 
     assert Map.get(kv, "nerves_serial_number") == "112233"
     assert Map.get(kv, "a.nerves_fw_application_part0_devpath") == "/dev/mmcblk0p4"
+  end
+
+  test "can encode environment" do
+    dev_name = Path.join(@fixtures, "fixture_fwup.bin")
+    dev_offset = 0x1000
+    env_size = 0x2000
+
+    {:ok, kv} = UBootEnv.load(dev_name, dev_offset, env_size)
+    {:ok, fd} = File.open(dev_name)
+
+    {:ok, bin} = :file.pread(fd, dev_offset, env_size)
+    encoded = UBootEnv.encode(kv, env_size)
+    assert bin == encoded
   end
 end
