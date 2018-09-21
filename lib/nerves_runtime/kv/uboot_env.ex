@@ -23,18 +23,14 @@ defmodule Nerves.Runtime.KV.UBootEnv do
 
   @config "/etc/fw_env.config"
 
-  # Nerves.Runtime.KV behaviour
-
   def init(_opts) do
-    with {:ok, config} <- read_config(@config),
-         {dev_name, dev_offset, env_size} <- parse_config(config),
-         {:ok, kv} <- load_kv(dev_name, dev_offset, env_size) do
-      kv
-    else
-      _error ->
-        exec = System.find_executable("fw_printenv")
-        load_kv(exec)
-    end
+    read()
+  end
+
+  def put(key, value) do
+    read()
+    |> Map.put(key, value)
+    |> write()
   end
 
   def read_config(file) do
@@ -56,7 +52,7 @@ defmodule Nerves.Runtime.KV.UBootEnv do
     {dev_name, parse_int(dev_offset), parse_int(env_size)}
   end
 
-  def parse_kv(kv) when is_list(kv) do
+  def decode(kv) when is_list(kv) do
     kv
     |> Enum.map(&to_string(&1))
     |> Enum.map(&String.split(&1, "=", parts: 2))
@@ -64,17 +60,60 @@ defmodule Nerves.Runtime.KV.UBootEnv do
     |> Enum.into(%{})
   end
 
-  def parse_kv(kv) when is_binary(kv) do
+  def decode(kv) when is_binary(kv) do
     String.split(kv, "\n", trim: true)
-    |> parse_kv()
+    |> decode()
   end
 
-  defp load_kv(nil), do: %{}
+  def encode(kv, env_size) when is_map(kv) do
+    kv =
+      kv
+      |> Enum.map(&(elem(&1, 0) <> "=" <> elem(&1, 1)))
+      |> Enum.join(<<0>>)
 
-  defp load_kv(exec) do
+    kv = kv <> <<0, 0>>
+    padding = env_size - byte_size(kv) - 4
+    padding = <<-1::signed-unit(8)-size(padding)>>
+    crc = :erlang.crc32(kv <> padding)
+    crc = <<crc::little-size(32)>>
+    crc <> kv <> padding
+  end
+
+  def read() do
+    with {:ok, config} <- read_config(@config),
+         {dev_name, dev_offset, env_size} <- parse_config(config),
+         {:ok, kv} <- load(dev_name, dev_offset, env_size) do
+      kv
+    else
+      _error ->
+        exec = System.find_executable("fw_printenv")
+        load(exec)
+    end
+  end
+
+  def write(kv) do
+    with {:ok, config} <- read_config(@config),
+         {dev_name, dev_offset, env_size} <- parse_config(config),
+         {:ok, fd} <- File.open(dev_name, [:raw, :binary, :write]) do
+      uboot_env = encode(kv, env_size)
+      :ok = :file.pwrite(fd, dev_offset, uboot_env)
+      File.close(fd)
+    else
+      _error ->
+        exec = System.find_executable("fw_setenv")
+
+        Enum.each(kv, fn {k, v} ->
+          System.cmd(exec, [k, v])
+        end)
+    end
+  end
+
+  def load(nil), do: %{}
+
+  def load(exec) do
     case System.cmd(exec, []) do
       {result, 0} ->
-        parse_kv(result)
+        decode(result)
 
       {result, code} ->
         Logger.warn("#{inspect(__MODULE__)} failed to load fw env (#{code}): #{result}")
@@ -84,7 +123,7 @@ defmodule Nerves.Runtime.KV.UBootEnv do
 
   # OTP 21 FTW
   # Load the UBoot env from the source
-  def load_kv(dev_name, dev_offset, env_size) do
+  def load(dev_name, dev_offset, env_size) do
     case File.open(dev_name) do
       {:ok, fd} ->
         {:ok, bin} = :file.pread(fd, dev_offset, env_size)
@@ -99,7 +138,7 @@ defmodule Nerves.Runtime.KV.UBootEnv do
             |> Enum.chunk_by(fn b -> b == 0 end)
             |> Enum.reject(&(&1 == [0]))
             |> Enum.take_while(&(hd(&1) != 0))
-            |> parse_kv()
+            |> decode()
 
           {:ok, kv}
         else
