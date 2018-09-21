@@ -73,13 +73,6 @@ defmodule Nerves.Runtime.KV do
     GenServer.call(__MODULE__, :get_all)
   end
 
-  @doc """
-  Get the key regardless of firmware slot
-  """
-  def put(key, value) do
-    mod().put(key, value)
-  end
-
   def init(opts) do
     {:ok, mod().init(opts)}
   end
