@@ -103,6 +103,8 @@ Key                 | Build Environment Variable   | Example Value    | Descript
 `nerves_fw_active`  | N/A                          | `"a"`            | This key holds the prefix that identifies the active firmware metadata. In this example, all keys starting with `"a."` hold information about the running firmware.
 `nerves_fw_devpath` | `NERVES_FW_DEVPATH`          | `"/dev/mmcblk0"` | This is the primary storage device for the firmware.
 `nerves_serial_number` | N/A                       | `"12345abc"`     | This is a text serial number. See [Serial numbers](#serial_numbers) for details.
+`nerves_fw_validated` | N/A                        | `0`              | Set to "1" to indicate that the currently running firmware is valid. (Only supported on some platforms)
+`nerves_fw_autovalidate` | N/A                     | `1`              | Set to "1" to indicate that firmware updates are valid without any additional checks.  (Only supported on some platforms)
 
 Firmware-specific Nerves metadata includes the following:
 
@@ -171,35 +173,53 @@ run:
 iex> Nerves.Runtime.revert
 ```
 
-Going back to previous versions of firmware is an important topic for building
-devices that can survive buggy firmware updates without manual intervention.
-Making this work well involves non-Elixir components like bootloaders. This
-feature isn't intended to be bulletproof, but it certainly can get you out of
-bad situations.
+Running this command manually is useful in development. Production use requires
+more work to protect against faulty upgrades.
 
-One important use case is to be able to remotely update a device and have it
-automatically revert its firmware after a timeout or if it can't reach the
-network. A common requirement is to handle crashes and hangs. The normal strategy for
-implementing this to have the device allow one boot of new firmware and then to
-mark it "valid" if code gets to a good point (like connect to a server). If
-something goes wrong, then the next reboot reverts back to the original
-firmware. If you're running a scriptable bootloader like U-boot, it's
-best to have the logic implemented there to minimize the code that must work.
-Here's a simple alternative:
+### Assisted firmware validation and automatic revert
 
-1. After upgrading firmware, save that the next boot is the first one.
-1. On the reboot, if this is the first boot, record that the boot happened and
+Nerves firmware updates protect against update corruption and powerloss
+midway into the update procedure. However, what happens if the firmware update
+contains bad code that hangs the device or makes breaks something important like
+networking? Some Nerves systems support tentative runs of new firmware and if
+something goes wrong, they'll revert back.
+
+At a high level, this involves some additional code from the developer that
+knows what constitutes "working". This could be "is it possible to connect to
+the firmware update server within 5 minutes of boot?"
+
+Here's the process:
+
+1. New firmware is installed in the normal manner. The `Nerves.Runtime.KV`
+   variable, `nerves_validated` is set to 0.
+2. The system reboots like normal.
+3. The device starts a five minute reboot timer (your code needs to do this)
+4. The application attempts to make a connection to the firmware update server.
+5. On a good connection, the application sets `nerves_validated` to 1 and
+   cancels the reboot timer.
+6. On error, the reboot timer failing, or a hardware watchdog timeout, the
+   system reboots. The bootloader reverts to the previous firmware.
+
+To use this feature, the `nerves_autovalidate` variable must be set to 0. This
+can be done at device provisioning time (like when the serial number is set) or
+inside a custom `fwup.conf`.
+
+### Best effort automatic revert
+
+Unfortunately, the bootloader for platforms like the Raspberry Pi makes it
+difficult to implement the above mechanism. The following strategy cannot
+protect against kernel and early boot issues, but it can still provide value:
+
+1. Upgrade firmware the normal way. Record that the next boot will be the first
+   one in the application data partition.
+2. On the reboot, if this is the first one, record that the boot happened and
    revert the firmware with `reboot: false`.  If this is not the first boot,
    carry on.
-1. When you're happy with the new firmware, revert the firmware again with
+3. When you're happy with the new firmware, revert the firmware again with
    `reboot: false`. I.e., revert the revert. It is critical that `revert` is
    only called once.
 
-To make this handle issues that result in hangs, you'll want to enable a
-hardware watchdog.
-
-Note that this simple mechanism doesn't help with any failure that happens
-before the tentative revert step.
+To make this handle hangs, you'll want to enable a hardware watchdog.
 
 ## IEx helpers
 
