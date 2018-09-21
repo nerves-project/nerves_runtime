@@ -4,5 +4,5 @@
 # a few more than the ones in this file.
 
 a.nerves_fw_application_part0_devpath /dev/mmcblk0p4
-serial_number 12345
+nerves_serial_number 12345
 
