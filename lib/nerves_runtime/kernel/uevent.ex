@@ -84,7 +84,7 @@ defmodule Nerves.Runtime.Kernel.UEvent do
     SystemRegistry.move(scope(old), scope(new))
   end
 
-  def registry(event, _) do
+  def registry(_event, _) do
     # Logger.debug("UEvent Unhandled: #{inspect(event)}")
   end
 
