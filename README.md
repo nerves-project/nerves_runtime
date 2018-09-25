@@ -276,3 +276,15 @@ enough for many use cases and is available on all platforms supported by Nerves.
 See
 [embedded-elixir](https://embedded-elixir.com/post/2018-06-15-serial_number/)
 for how to assign serial numbers to devices.
+
+## Using nerves_runtime in tests
+
+Applications that depend on `nerves_runtime` for accessing provisioning
+information from the `Nerves.Runtime.KV` can mock the contents through the
+Application config. 
+
+```elixir
+config :nerves_runtime, :modules, [
+  {Nerves.Runtime.KV.Mock, %{"key" => "value"}}
+]
+```
