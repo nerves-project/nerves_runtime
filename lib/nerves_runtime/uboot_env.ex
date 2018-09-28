@@ -38,6 +38,7 @@ defmodule Nerves.Runtime.UBootEnv do
   @doc """
   Decode a list of key value pairs into a map
   """
+  @spec decode([String.t()]) :: map()
   def decode(env) when is_list(env) do
     env
     |> Enum.map(&to_string(&1))
@@ -49,6 +50,7 @@ defmodule Nerves.Runtime.UBootEnv do
   @doc """
   Encode a list of key value pairs into the binary form of the UBoot Env
   """
+  @spec encode(map(), pos_integer()) :: binary()
   def encode(kv, env_size) when is_map(kv) do
     kv =
       kv

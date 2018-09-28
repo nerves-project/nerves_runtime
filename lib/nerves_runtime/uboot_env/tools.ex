@@ -1,19 +1,17 @@
 defmodule Nerves.Runtime.UBootEnv.Tools do
   alias Nerves.Runtime.UBootEnv
 
-  @spec fw_setenv(key :: binary, value :: binary) ::
-          {:ok, env :: [binary]}
-          | {:error, reason :: binary}
-  def fw_printenv do
+  @spec fw_printenv() :: {:ok, map()} | {:error, reason :: String.t()}
+  def fw_printenv() do
     case exec("fw_printenv") do
       {:ok, env} -> {:ok, decode(env)}
       error -> error
     end
   end
 
-  @spec fw_setenv(key :: binary, value :: binary) ::
+  @spec fw_setenv(String.t(), String.t()) ::
           :ok
-          | {:error, reason :: binary}
+          | {:error, reason :: String.t()}
   def fw_setenv(key, value) do
     case exec("fw_printenv", [key, value]) do
       {:ok, _} -> :ok
@@ -21,6 +19,7 @@ defmodule Nerves.Runtime.UBootEnv.Tools do
     end
   end
 
+  @spec decode(String.t()) :: map()
   def decode(env) when is_binary(env) do
     String.split(env, "\n", trim: true)
     |> UBootEnv.decode()
