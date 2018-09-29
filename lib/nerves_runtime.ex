@@ -78,17 +78,26 @@ defmodule Nerves.Runtime do
   end
 
   # private helpers
-
   defp logged_shutdown(cmd) do
-    Logger.info("#{__MODULE__} : device told to #{cmd}")
+    try do
+      Logger.info("#{__MODULE__} : device told to #{cmd}")
 
-    # Invoke the appropriate command to tell erlinit that a shutdown
-    # of the Erlang VM is imminent. Once this returns, the Erlang has
-    # about 10 seconds to exit unless `--graceful-powerdown` is used
-    # in the `erlinit.config` to modify the timeout.
-    cmd(cmd, [], :info)
+      # Invoke the appropriate command to tell erlinit that a shutdown of the
+      # Erlang VM is imminent. Once this returns, the Erlang has about 10
+      # seconds to exit unless `--graceful-powerdown` is used in the
+      # `erlinit.config` to modify the timeout.
+      {_, 0} = cmd(cmd, [], :info)
 
-    # Gracefully shut down
-    :init.stop()
+      # Start a graceful shutdown
+      :ok = :init.stop()
+
+      # `:init.stop()` is asynchronous, so sleep longer than it takes to avoid
+      # returning.
+      Process.sleep(60_000)
+    after
+      # If anything unexpected happens, call :erlang.halt() to avoid getting
+      # stuck in a state where the application thinks it's done.
+      :erlang.halt()
+    end
   end
 end
