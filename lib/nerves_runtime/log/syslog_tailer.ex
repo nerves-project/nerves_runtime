@@ -11,12 +11,9 @@ defmodule Nerves.Runtime.Log.SyslogTailer do
 
   @syslog_path "/dev/log"
 
-  def start_link(args \\ []) do
-    if Application.get_env(:nerves_runtime, :enable_syslog, true) do
-      GenServer.start_link(__MODULE__, args, name: __MODULE__)
-    else
-      {:error, :disabled}
-    end
+  @spec start_link() :: GenServer.on_start()
+  def start_link() do
+    GenServer.start_link(__MODULE__, [], name: __MODULE__)
   end
 
   def init(_args) do

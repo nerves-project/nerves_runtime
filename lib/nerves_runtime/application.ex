@@ -9,7 +9,7 @@ defmodule Nerves.Runtime.Application do
     KV
   }
 
-  alias Nerves.Runtime.Log.{LogTailer, SyslogTailer}
+  alias Nerves.Runtime.Log.{KmsgTailer, SyslogTailer}
 
   def start(_type, _args) do
     # On systems with hardware random number generation, it is important that
@@ -38,8 +38,8 @@ defmodule Nerves.Runtime.Application do
     import Supervisor.Spec, warn: false
 
     [
+      worker(KmsgTailer, []),
       worker(SyslogTailer, []),
-      worker(LogTailer, [:kmsg], id: :kmsg),
       supervisor(Kernel, []),
       worker(Init, [])
     ]
