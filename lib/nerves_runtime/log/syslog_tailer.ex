@@ -11,8 +11,8 @@ defmodule Nerves.Runtime.Log.SyslogTailer do
 
   @syslog_path "/dev/log"
 
-  @spec start_link() :: GenServer.on_start()
-  def start_link() do
+  @spec start_link(any()) :: GenServer.on_start()
+  def start_link(_args) do
     GenServer.start_link(__MODULE__, [], name: __MODULE__)
   end
 

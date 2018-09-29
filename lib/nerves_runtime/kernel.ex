@@ -2,7 +2,7 @@ defmodule Nerves.Runtime.Kernel do
   use Supervisor
   alias Nerves.Runtime.Kernel
 
-  def start_link do
+  def start_link(_args) do
     Supervisor.start_link(__MODULE__, [], name: Kernel.Supervisor)
   end
 
@@ -10,9 +10,9 @@ defmodule Nerves.Runtime.Kernel do
     kernel_opts = Application.get_env(:nerves_runtime, :kernel)
 
     children = [
-      worker(Kernel.UEvent, [kernel_opts])
+      {Kernel.UEvent, kernel_opts}
     ]
 
-    supervise(children, strategy: :one_for_one)
+    Supervisor.init(children, strategy: :one_for_one)
   end
 end
