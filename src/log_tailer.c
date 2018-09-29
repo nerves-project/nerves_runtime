@@ -63,11 +63,17 @@ int main(int argc, char *argv[])
         usage();
 
     for (;;) {
-        ssize_t amt = read(fd, buffer, sizeof(buffer));
+        ssize_t amt = read(fd, buffer, sizeof(buffer) - 1);
         if (amt < 0)
             err(EXIT_FAILURE, "%s: read", argv[1]);
 
-        if (write(STDOUT_FILENO, &buffer, amt) < 0)
-            err(EXIT_FAILURE, "%s: write", argv[1]);
+        if (amt > 0) {
+            // Tack on a newline if one wasn't included
+            if (buffer[amt - 1] != '\n')
+                buffer[amt++] = '\n';
+
+            if (write(STDOUT_FILENO, &buffer, amt) < 0)
+                err(EXIT_FAILURE, "%s: write", argv[1]);
+        }
     }
 }
