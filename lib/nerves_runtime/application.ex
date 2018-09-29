@@ -6,9 +6,10 @@ defmodule Nerves.Runtime.Application do
   alias Nerves.Runtime.{
     Init,
     Kernel,
-    KV,
-    LogTailer
+    KV
   }
+
+  alias Nerves.Runtime.Log.{LogTailer, SyslogTailer}
 
   def start(_type, _args) do
     # On systems with hardware random number generation, it is important that
@@ -37,7 +38,7 @@ defmodule Nerves.Runtime.Application do
     import Supervisor.Spec, warn: false
 
     [
-      worker(LogTailer, [:syslog], id: :syslog),
+      worker(SyslogTailer, []),
       worker(LogTailer, [:kmsg], id: :kmsg),
       supervisor(Kernel, []),
       worker(Init, [])
