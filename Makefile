@@ -22,7 +22,7 @@ ifeq ($(CROSSCOMPILE),)
 	DEFAULT_TARGETS = priv
     endif
 endif
-DEFAULT_TARGETS ?= priv priv/uevent priv/log_tailer
+DEFAULT_TARGETS ?= priv priv/uevent priv/kmsg_tailer
 
 # Look for the EI library and header files
 # For crosscompiled builds, ERL_EI_INCLUDE_DIR and ERL_EI_LIBDIR must be
@@ -76,8 +76,8 @@ priv/uevent: src/uevent.o src/erlcmd.o
 	$(CC) $^ $(ERL_LDFLAGS) $(LDFLAGS) -o $@
 	$(call update_perms, $@)
 
-priv/log_tailer: src/log_tailer.o
+priv/kmsg_tailer: src/kmsg_tailer.o
 	$(CC) $^ $(ERL_LDFLAGS) $(LDFLAGS) -o $@
 
 clean:
-	rm -f priv/uevent priv/log_tailer src/*.o
+	rm -f priv/uevent priv/kmsg_tailer src/*.o

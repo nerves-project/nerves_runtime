@@ -255,14 +255,6 @@ Operating system-level messages from `/dev/log` and `/proc/kmsg`, forwarding
 them to `Logger` with an appropriate level to match the syslog priority parsed
 out of the message.
 
-You can disable this feature (e.g. when running in CI) by configuring the
-following option:
-
-```elixir
-# config.exs
-config :nerves_runtime, enable_syslog: false
-```
-
 ## Serial numbers
 
 Nerves systems support several methods for assigning serial numbers to devices.
@@ -281,7 +273,7 @@ for how to assign serial numbers to devices.
 
 Applications that depend on `nerves_runtime` for accessing provisioning
 information from the `Nerves.Runtime.KV` can mock the contents through the
-Application config. 
+Application config.
 
 ```elixir
 config :nerves_runtime, :modules, [
