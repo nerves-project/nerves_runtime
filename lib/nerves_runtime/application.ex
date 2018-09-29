@@ -35,13 +35,11 @@ defmodule Nerves.Runtime.Application do
   end
 
   defp target_children(_target) do
-    import Supervisor.Spec, warn: false
-
     [
-      worker(KmsgTailer, []),
-      worker(SyslogTailer, []),
-      supervisor(Kernel, []),
-      worker(Init, [])
+      KmsgTailer,
+      SyslogTailer,
+      Kernel,
+      Init
     ]
   end
 

@@ -16,11 +16,11 @@ defmodule Nerves.Runtime.Init do
   #      can do so.
   @app_partition_uuid "3041e38d-615b-48d4-affb-a7787b5c4c39"
 
-  def start_link() do
+  def start_link(_args) do
     GenServer.start_link(__MODULE__, [], name: __MODULE__)
   end
 
-  def init([]) do
+  def init(_args) do
     init_application_partition()
     {:ok, %{}}
   end

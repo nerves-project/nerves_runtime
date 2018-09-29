@@ -12,12 +12,11 @@ defmodule Nerves.Runtime.Log.KmsgTailer do
 
   @doc """
   """
-  @spec start_link() :: GenServer.on_start()
-  def start_link() do
+  @spec start_link(any()) :: GenServer.on_start()
+  def start_link(_args) do
     GenServer.start_link(__MODULE__, [], name: __MODULE__)
   end
 
-  @spec init([]) :: {:ok, %{port: port(), buffer: binary()}} | :ignore
   def init(_args), do: {:ok, %{port: open_port(), buffer: ""}}
 
   def handle_info({port, {:data, {:noeol, fragment}}}, %{port: port, buffer: buffer} = state) do
