@@ -3,6 +3,7 @@ defmodule Nerves.Runtime do
 
   alias Nerves.Runtime.OutputLogger
 
+  # This is provided by all of the official Nerves system images
   @revert_fw_path "/usr/share/fwup/revert.fw"
 
   @typedoc """
@@ -23,7 +24,7 @@ defmodule Nerves.Runtime do
   `erlinit.config`'s `--graceful-powerdown` setting (likely 10 seconds) then
   the system will be hard rebooted.
   """
-  @spec reboot() :: :ok
+  @spec reboot() :: no_return()
   def reboot(), do: logged_shutdown("reboot")
 
   @doc """
@@ -33,7 +34,7 @@ defmodule Nerves.Runtime do
   `erlinit.config`'s `--graceful-powerdown` setting (likely 10 seconds) then
   the system will be hard rebooted.
   """
-  @spec poweroff() :: :ok
+  @spec poweroff() :: no_return()
   def poweroff(), do: logged_shutdown("poweroff")
 
   @doc """
@@ -42,7 +43,7 @@ defmodule Nerves.Runtime do
   Note: this is different than :erlang.halt(), which exits BEAM, and may end up
   rebooting the device if `erlinit.config` settings allow reboot on exit.
   """
-  @spec halt() :: :ok
+  @spec halt() :: no_return()
   def halt(), do: logged_shutdown("halt")
 
   @doc """
@@ -78,6 +79,7 @@ defmodule Nerves.Runtime do
   end
 
   # private helpers
+  @spec logged_shutdown(String.t()) :: no_return()
   defp logged_shutdown(cmd) do
     try do
       Logger.info("#{__MODULE__} : device told to #{cmd}")

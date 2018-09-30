@@ -1,6 +1,16 @@
 defmodule Nerves.Runtime.UBootEnv.Config do
   @default_config_file "/etc/fw_env.config"
 
+  @moduledoc """
+  Utilities for reading the U-Boot tools `fw_env.config` file.
+  """
+
+  @doc """
+  Read and decode the specified file (or `fw_env.config` if not passed).
+
+  On success, this returns a tuple with the device name that contains the
+  U-Boot environment block, the offset in that file, and the environment size.
+  """
   @spec read(Path.t()) ::
           {:ok,
            {dev_name :: String.t(), dev_offset :: non_neg_integer(), env_size :: pos_integer()}}
@@ -12,6 +22,9 @@ defmodule Nerves.Runtime.UBootEnv.Config do
     end
   end
 
+  @doc """
+  Decode the contents of a `fw_env.config` file.
+  """
   @spec decode(String.t()) ::
           {dev_name :: String.t(), dev_offset :: non_neg_integer(), env_size :: pos_integer()}
   def decode(config) do

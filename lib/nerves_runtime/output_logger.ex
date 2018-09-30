@@ -1,6 +1,8 @@
 defmodule Nerves.Runtime.OutputLogger do
   defstruct [:level]
 
+  @moduledoc false
+
   def new(level) do
     %__MODULE__{level: level}
   end

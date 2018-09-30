@@ -11,6 +11,7 @@ defmodule Nerves.Runtime.Log.KmsgTailer do
   alias Nerves.Runtime.Log.Parser
 
   @doc """
+  Start the kmsg monitoring GenServer.
   """
   @spec start_link(any()) :: GenServer.on_start()
   def start_link(_args) do

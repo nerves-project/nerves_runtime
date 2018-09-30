@@ -1,9 +1,9 @@
 defmodule Nerves.Runtime.UBootEnv do
   @moduledoc """
-  ## Technical Information
+  Nerves.Runtime.UBootEnv reads a non-replicated U-Boot environment block for
+  storing firmware and provisioning information.
 
-  Nerves.Runtime.UBootEnv uses a non-replicated U-Boot environment block for
-  storing firmware and provisioning information. It has the following format:
+  The U-Boot environment format looks like this:
 
     * CRC32 of bytes 4 through to the end
     * `"<key>=<value>\0"` for each key/value pair
@@ -13,8 +13,9 @@ defmodule Nerves.Runtime.UBootEnv do
 
   The U-Boot environment configuration is loaded from /etc/fw_env.config.
   If you are using OTP >= 21, the contents of the U-Boot environment will be
-  read directly from the device. This addresses an issue with parsing
-  multi-line values from a call to `fw_printenv`.
+  read directly from the device. If not, the code falls back to `fw_printenv`,
+  but be aware that there's a known issue with values that have embedded
+  newlines.
   """
 
   alias Nerves.Runtime.UBootEnv.{Config, Tools}

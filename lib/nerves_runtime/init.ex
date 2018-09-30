@@ -4,6 +4,25 @@ defmodule Nerves.Runtime.Init do
   alias Nerves.Runtime
   alias Nerves.Runtime.KV
 
+  @moduledoc """
+  GenServer that handles device initialization.
+
+  Initialization currently consists of:
+
+  1. Mounting the application partition
+  2. If the application partition can't be mounted, format it, and then mount it.
+
+  Device initialization is usually a first boot only operation. It's
+  possible that device filesystems get corrupt enough to cause them
+  to be reinitialized. Since one would expect this to be rare, Nerves systems
+  create firmware images with the do not initialize the application partition
+  so that this code is regularly exercised. Long format times can be problematic
+  in manufacturing. If this is an issue, see if you can use F2FS which formats
+  much faster than ext4. Some devices have also had stalls when formatting
+  while waiting for enough entropy to generate a UUID. Look into hardcoding
+  UUIDs or enabling a hw random number generator to increase entropy.
+  """
+
   # Use a fixed UUID for the application partition. This has two
   # purposes:
   #
@@ -16,6 +35,7 @@ defmodule Nerves.Runtime.Init do
   #      can do so.
   @app_partition_uuid "3041e38d-615b-48d4-affb-a7787b5c4c39"
 
+  @spec start_link(any()) :: GenServer.on_start()
   def start_link(_args) do
     GenServer.start_link(__MODULE__, [], name: __MODULE__)
   end

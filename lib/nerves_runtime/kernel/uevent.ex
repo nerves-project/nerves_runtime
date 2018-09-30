@@ -3,6 +3,11 @@ defmodule Nerves.Runtime.Kernel.UEvent do
   require Logger
   alias Nerves.Runtime.Device
 
+  @moduledoc """
+  GenServer that captures Linux uevent messages and passes them up to Elixir.
+  """
+
+  @spec start_link(any()) :: GenServer.on_start()
   def start_link(opts \\ []) do
     GenServer.start_link(__MODULE__, opts, name: __MODULE__)
   end
@@ -37,7 +42,7 @@ defmodule Nerves.Runtime.Kernel.UEvent do
 
   def registry("add", devpath, kvmap, s) do
     scope = scope(devpath)
-    # Logger.debug "UEvent Add: #{inspect scope}"
+    # Logger.debug "uevent add: #{inspect scope}"
     if subsystem = Map.get(kvmap, "subsystem") do
       SystemRegistry.update_in(subsystem_scope(subsystem), fn v ->
         v = if is_nil(v), do: [], else: v
@@ -51,7 +56,7 @@ defmodule Nerves.Runtime.Kernel.UEvent do
 
   def registry("remove", devpath, kvmap, _s) do
     scope = scope(devpath)
-    # Logger.debug "UEvent Remove: #{inspect scope}"
+    # Logger.debug "uevent remove: #{inspect scope}"
     SystemRegistry.delete(scope)
 
     if subsystem = Map.get(kvmap, "subsystem") do
@@ -64,12 +69,12 @@ defmodule Nerves.Runtime.Kernel.UEvent do
   end
 
   def registry("move", new, %{"devpath_old" => old}, _s) do
-    # Logger.debug "UEvent Move: #{inspect scope(old)} -> #{inspect scope(new)}"
+    # Logger.debug "uevent move: #{inspect scope(old)} -> #{inspect scope(new)}"
     SystemRegistry.move(scope(old), scope(new))
   end
 
   def registry(_action, _devpath, _kvmap, _s) do
-    # Logger.debug("UEvent Unhandled: #{inspect(action)}")
+    # Logger.debug("uevent unhandled: #{inspect(action)}")
   end
 
   defp scope("/" <> devpath) do
