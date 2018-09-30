@@ -85,7 +85,6 @@ defmodule Nerves.Runtime.Helpers do
   """
   @spec reboot!() :: no_return()
   def reboot!() do
-    Nerves.Runtime.reboot()
     :erlang.halt()
   end
 
