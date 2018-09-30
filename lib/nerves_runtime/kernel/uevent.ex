@@ -29,48 +29,32 @@ defmodule Nerves.Runtime.Kernel.UEvent do
     {:noreply, s}
   end
 
-  def handle_info({_, {:data, <<?n, message::binary>>}}, s) do
-    msg = :erlang.binary_to_term(message)
-    handle_port(msg, s)
-  end
-
-  defp handle_port({:uevent, _uevent, kv}, s) do
-    event =
-      Enum.reduce(kv, %{}, fn str, acc ->
-        [k, v] = String.split(str, "=", parts: 2)
-        k = String.downcase(k)
-        Map.put(acc, k, v)
-      end)
-
-    case Map.get(event, "devpath", "") do
-      "/devices" <> _path -> registry(event, s)
-      _ -> :noop
-    end
-
+  def handle_info({_, {:data, message}}, s) do
+    {action, devpath, kvmap} = :erlang.binary_to_term(message)
+    registry(action, devpath, kvmap, s)
     {:noreply, s}
   end
 
-  def registry(%{"action" => "add", "devpath" => devpath} = event, s) do
-    attributes = Map.drop(event, ["action", "devpath"])
+  def registry("add", devpath, kvmap, s) do
     scope = scope(devpath)
     # Logger.debug "UEvent Add: #{inspect scope}"
-    if subsystem = Map.get(event, "subsystem") do
+    if subsystem = Map.get(kvmap, "subsystem") do
       SystemRegistry.update_in(subsystem_scope(subsystem), fn v ->
         v = if is_nil(v), do: [], else: v
         [scope | v]
       end)
     end
 
-    if s.autoload, do: modprobe(event)
-    SystemRegistry.update(scope, attributes)
+    if s.autoload, do: modprobe(kvmap)
+    SystemRegistry.update(scope, kvmap)
   end
 
-  def registry(%{"action" => "remove", "devpath" => devpath} = event, _) do
+  def registry("remove", devpath, kvmap, _s) do
     scope = scope(devpath)
     # Logger.debug "UEvent Remove: #{inspect scope}"
     SystemRegistry.delete(scope)
 
-    if subsystem = Map.get(event, "subsystem") do
+    if subsystem = Map.get(kvmap, "subsystem") do
       SystemRegistry.update_in(subsystem_scope(subsystem), fn v ->
         v = if is_nil(v), do: [], else: v
         {_, scopes} = Enum.split_with(v, fn v -> v == scope end)
@@ -79,13 +63,13 @@ defmodule Nerves.Runtime.Kernel.UEvent do
     end
   end
 
-  def registry(%{"action" => "move", "devpath" => new, "devpath_old" => old}, _) do
+  def registry("move", new, %{"devpath_old" => old}, _s) do
     # Logger.debug "UEvent Move: #{inspect scope(old)} -> #{inspect scope(new)}"
     SystemRegistry.move(scope(old), scope(new))
   end
 
-  def registry(_event, _) do
-    # Logger.debug("UEvent Unhandled: #{inspect(event)}")
+  def registry(_action, _devpath, _kvmap, _s) do
+    # Logger.debug("UEvent Unhandled: #{inspect(action)}")
   end
 
   defp scope("/" <> devpath) do

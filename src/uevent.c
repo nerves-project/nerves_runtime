@@ -15,53 +15,57 @@
  */
 
 #include "utils.h"
-#include "erlcmd.h"
-
+#include <ctype.h>
 #include <err.h>
 #include <poll.h>
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
-#include <sys/ioctl.h>
 #include <unistd.h>
 
-#include <arpa/inet.h>
 #include <libmnl/libmnl.h>
-#include <linux/if.h>
-#include <linux/netlink.h>
 #include <linux/rtnetlink.h>
+
+#include <ei.h>
 
 struct netif {
     // NETLINK_ROUTE socket information
     struct mnl_socket *nl;
-    int seq;
 
     // NETLINK_KOBJECT_UEVENT socket information
     struct mnl_socket *nl_uevent;
 
-    // AF_INET socket for ioctls
-    int inet_fd;
-
     // Netlink buffering
     char nlbuf[8192]; // See MNL_SOCKET_BUFFER_SIZE
 
-    // Erlang request processing
-    const char *req;
-    int req_index;
-
     // Erlang response processing
-    char resp[ERLCMD_BUF_SIZE];
+    char resp[8192];
     int resp_index;
-
-    // Async response handling
-    void (*response_callback)(struct netif *nb, int bytecount);
-    void (*response_error_callback)(struct netif *nb, int err);
-    unsigned int response_portid;
-    int response_seq;
-
-    // Holder of the most recently encounted errno.
-    int last_error;
 };
+
+/**
+ * @brief Synchronously send a response back to Erlang
+ *
+ * @param response what to send back
+ */
+static void erlcmd_send(char *response, size_t len)
+{
+    uint16_t be_len = htons(len - sizeof(uint16_t));
+    memcpy(response, &be_len, sizeof(be_len));
+
+    size_t wrote = 0;
+    do {
+        ssize_t amount_written = write(STDOUT_FILENO, response + wrote, len - wrote);
+        if (amount_written < 0) {
+            if (errno == EINTR)
+                continue;
+
+            err(EXIT_FAILURE, "write");
+        }
+
+        wrote += amount_written;
+    } while (wrote < len);
+}
 
 static void netif_init(struct netif *nb)
 {
@@ -80,12 +84,6 @@ static void netif_init(struct netif *nb)
     // There is one single group in kobject over netlink
     if (mnl_socket_bind(nb->nl_uevent, (1 << 0), MNL_SOCKET_AUTOPID) < 0)
         err(EXIT_FAILURE, "mnl_socket_bind");
-
-    nb->inet_fd = socket(AF_INET, SOCK_DGRAM, 0);
-    if (nb->inet_fd < 0)
-        err(EXIT_FAILURE, "socket");
-
-    nb->seq = 1;
 }
 
 static void netif_cleanup(struct netif *nb)
@@ -95,9 +93,16 @@ static void netif_cleanup(struct netif *nb)
     nb->nl = NULL;
 }
 
-static void uevent_request_handler(const char *req, void *cookie)
+static void str_tolower(char *str)
 {
+    for (; *str; str++)
+        *str = tolower(*str);
+}
 
+static int ei_encode_elixir_string(char *buf, int *index, const char *p)
+{
+    size_t len = strlen(p);
+    return ei_encode_binary(buf, index, p, len);
 }
 
 static void nl_uevent_process(struct netif *nb)
@@ -106,38 +111,80 @@ static void nl_uevent_process(struct netif *nb)
     if (bytecount <= 0)
         err(EXIT_FAILURE, "mnl_socket_recvfrom");
 
-    const char *str = nb->nlbuf;
+    char *str = nb->nlbuf;
+    char *str_end = str + bytecount;
+
     debug("UEvent: %s", str);
     nb->resp_index = sizeof(uint16_t); // Skip over payload size
-    nb->resp[nb->resp_index++] = 'n';
     ei_encode_version(nb->resp, &nb->resp_index);
-    ei_encode_tuple_header(nb->resp, &nb->resp_index, 3);
-    ei_encode_atom(nb->resp, &nb->resp_index, "uevent");
-    ei_encode_string(nb->resp, &nb->resp_index, str);
 
-    const char *str_end = str + bytecount;
+    // The uevent comes in with the form:
+    //
+    // "action@devpath\0ACTION=action\0DEVPATH=devpath\0KEY=value\0"
+    //
+    // Construct the tuple for Elixir:
+    //   {action, devpath, kv_map}
+    //
+    // The kv_map contains all of the kv pairs in the uevent except
+    // ACTION, DEVPATH, and SEQNUM.
+
+    ei_encode_tuple_header(nb->resp, &nb->resp_index, 3);
+
+    char *atsign = strchr(str, '@');
+    if (!atsign)
+        return;
+    *atsign = '\0';
+
+    // action
+    ei_encode_elixir_string(nb->resp, &nb->resp_index, str);
+
+    // devpath - filter anything that's not under "/devices"
+    str = atsign + 1;
+    if (strncmp("/devices", str, 8) != 0)
+        return;
+    ei_encode_elixir_string(nb->resp, &nb->resp_index, str);
+
     str += strlen(str) + 1;
 
+#define MAX_KV_PAIRS 16
+    int kvpairs_count = 0;
+    char *keys[MAX_KV_PAIRS];
+    char *values[MAX_KV_PAIRS];
+
     for (; str < str_end; str += strlen(str) + 1) {
-        debug("String: %s", str);
-        ei_encode_list_header(nb->resp, &nb->resp_index, 1);
-        ei_encode_binary(nb->resp, &nb->resp_index, str, strlen(str));
+        // Don't encode these keys in the map
+        if (strncmp("ACTION=", str, 7) == 0 ||
+                strncmp("DEVPATH=", str, 8) == 0 ||
+                strncmp("SEQNUM=", str, 7) == 0)
+            continue;
+
+        char *equalsign = strchr(str, '=');
+        if (!equalsign)
+            continue;
+        *equalsign = '\0';
+
+        // We like lowercase keys
+        str_tolower(str);
+        keys[kvpairs_count] = str;
+        values[kvpairs_count] = equalsign + 1;
+        kvpairs_count++;
     }
-    ei_encode_empty_list(nb->resp, &nb->resp_index);
+
+    ei_encode_map_header(nb->resp, &nb->resp_index, kvpairs_count);
+    for (int i = 0; i < kvpairs_count; i++) {
+        ei_encode_elixir_string(nb->resp, &nb->resp_index, keys[i]);
+        ei_encode_elixir_string(nb->resp, &nb->resp_index, values[i]);
+    }
     erlcmd_send(nb->resp, nb->resp_index);
 }
 
 int main(int argc, char *argv[])
 {
-    debug("UEvent Main");
     (void) argc;
     (void) argv;
 
     struct netif nb;
     netif_init(&nb);
-
-    struct erlcmd handler;
-    erlcmd_init(&handler, uevent_request_handler, &nb);
 
     for (;;) {
         struct pollfd fdset[3];
@@ -145,7 +192,6 @@ int main(int argc, char *argv[])
         fdset[0].fd = STDIN_FILENO;
         fdset[0].events = POLLIN;
         fdset[0].revents = 0;
-
 
         fdset[1].fd = mnl_socket_get_fd(nb.nl_uevent);
         fdset[1].events = POLLIN;
@@ -160,10 +206,12 @@ int main(int argc, char *argv[])
             err(EXIT_FAILURE, "poll");
         }
 
-        if (fdset[0].revents & (POLLIN | POLLHUP))
-            erlcmd_process(&handler);
         if (fdset[1].revents & (POLLIN | POLLHUP))
             nl_uevent_process(&nb);
+
+        // Any notification from Erlang is to exit
+        if (fdset[0].revents & (POLLIN | POLLHUP))
+            break;
     }
 
     netif_cleanup(&nb);

@@ -72,7 +72,7 @@ all: $(DEFAULT_TARGETS)
 priv:
 	mkdir -p priv
 
-priv/uevent: src/uevent.o src/erlcmd.o
+priv/uevent: src/uevent.o
 	$(CC) $^ $(ERL_LDFLAGS) $(LDFLAGS) -o $@
 	$(call update_perms, $@)
 
