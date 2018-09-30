@@ -37,6 +37,7 @@ defmodule Nerves.Runtime.Helpers do
   @doc """
   Install the helpers so that they're autoloaded on subsequent reboots.
   """
+  @spec install() :: :ok
   def install() do
     case File.exists?(@iex_exs_path) do
       false ->
@@ -54,6 +55,7 @@ defmodule Nerves.Runtime.Helpers do
   Run a command and return the exit code. This function is intended to be run
   interactively.
   """
+  @spec cmd(String.t() | charlist()) :: integer()
   def cmd(str) when is_binary(str) do
     {_collectable, exit_code} = System.cmd("sh", ["-c", str], into: IO.stream(:stdio, :line))
     exit_code
@@ -75,11 +77,13 @@ defmodule Nerves.Runtime.Helpers do
   Shortcut to reboot a board. This is a graceful reboot, so it takes some time
   before the real reboot.
   """
+  @spec reboot() :: no_return()
   defdelegate reboot(), to: Nerves.Runtime
 
   @doc """
   Remote immediately without a graceful shutdown. This is for the impatient.
   """
+  @spec reboot!() :: no_return()
   def reboot!() do
     Nerves.Runtime.reboot()
     :erlang.halt()
@@ -94,6 +98,7 @@ defmodule Nerves.Runtime.Helpers do
 
   The drawback of doing the above is that strings print out as hex binaries.
   """
+  @spec hex(integer()) :: String.t()
   def hex(value) do
     inspect(value, base: :hex)
   end

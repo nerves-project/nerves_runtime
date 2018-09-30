@@ -1,4 +1,8 @@
 defmodule Nerves.Runtime.Log.Parser do
+  @moduledoc """
+  Functions for parsing syslog (RFC 5424) strings
+  """
+
   @doc """
   Parse out the syslog facility, severity, and message (including the timestamp
   and host) from a syslog-formatted string.

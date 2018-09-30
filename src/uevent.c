@@ -114,7 +114,7 @@ static void nl_uevent_process(struct netif *nb)
     char *str = nb->nlbuf;
     char *str_end = str + bytecount;
 
-    debug("UEvent: %s", str);
+    debug("uevent: %s", str);
     nb->resp_index = sizeof(uint16_t); // Skip over payload size
     ei_encode_version(nb->resp, &nb->resp_index);
 

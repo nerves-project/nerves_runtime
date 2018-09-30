@@ -1,6 +1,6 @@
 defmodule Nerves.Runtime.KV do
   @moduledoc """
-  Key Value Storage for firmware vairables provided by fwup
+  Key Value Storage for firmware variables provided by fwup
 
   KV provides access to metadata variables set by fwup.
   It can be used to obtain information such as the active
@@ -25,7 +25,7 @@ defmodule Nerves.Runtime.KV do
   use GenServer
   require Logger
 
-  @callback init(opts :: any) :: inital_state :: map
+  @callback init(opts :: any) :: initial_state :: map
 
   alias __MODULE__
 
@@ -41,6 +41,7 @@ defmodule Nerves.Runtime.KV do
   @doc """
   Start the KV store server
   """
+  @spec start_link(any()) :: GenServer.on_start()
   def start_link(opts) do
     GenServer.start_link(__MODULE__, opts, name: __MODULE__)
   end
@@ -48,6 +49,7 @@ defmodule Nerves.Runtime.KV do
   @doc """
   Get the key for only the active firmware slot
   """
+  @spec get_active(String.t()) :: String.t() | nil
   def get_active(key) do
     GenServer.call(__MODULE__, {:get_active, key})
   end
@@ -55,6 +57,7 @@ defmodule Nerves.Runtime.KV do
   @doc """
   Get the key regardless of firmware slot
   """
+  @spec get(String.t()) :: String.t() | nil
   def get(key) do
     GenServer.call(__MODULE__, {:get, key})
   end
@@ -62,6 +65,7 @@ defmodule Nerves.Runtime.KV do
   @doc """
   Get all key value pairs for only the active firmware slot
   """
+  @spec get_all_active() :: map()
   def get_all_active() do
     GenServer.call(__MODULE__, :get_all_active)
   end
@@ -69,6 +73,7 @@ defmodule Nerves.Runtime.KV do
   @doc """
   Get all keys regardless of firmware slot
   """
+  @spec get_all() :: map()
   def get_all() do
     GenServer.call(__MODULE__, :get_all)
   end

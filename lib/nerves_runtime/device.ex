@@ -2,13 +2,23 @@ defmodule Nerves.Runtime.Device do
   require Logger
   @sysfs "/sys"
 
+  @moduledoc """
+  This is a utility module for triggering UEvents from the Linux kernel. You
+  don't need to use it directly. See the README.md for receiving events when
+  devices are added or removed from the system.
+  """
+
+  @doc """
+  Send an "add" request to all devices to generate UEvents.
+  """
+  @spec discover() :: :ok
   def discover do
     "#{@sysfs}/devices"
     |> expand_uevent
     |> Enum.each(&invoke_uevent_action(&1, "add"))
   end
 
-  def expand_uevent(path) do
+  defp expand_uevent(path) do
     path
     |> Path.expand()
     |> File.ls!()
