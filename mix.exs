@@ -42,7 +42,7 @@ defmodule Nerves.Runtime.MixProject do
 
   defp description do
     """
-    Small, general runtime libraries and utilities for Nerves devices
+    Small, general runtime utilities for Nerves devices
     """
   end
 
