@@ -1,28 +1,49 @@
 defmodule Nerves.Runtime.Log.Parser do
   @moduledoc """
-  Functions for parsing syslog (RFC 5424) strings
+  Functions for parsing syslog and kmsg strings
   """
 
   @doc """
   Parse out the syslog facility, severity, and message (including the timestamp
   and host) from a syslog-formatted string.
+
+  The message is of the form:
+
+  <pri>message
+
+  `pri` is an integer that when broken apart gives you a facility and severity.
+  `message` is everything else.
   """
   @spec parse_syslog(String.t()) ::
           %{facility: atom(), severity: atom(), message: binary()}
           | {:error, :not_syslog_format}
-  def parse_syslog(data) do
-    case Regex.named_captures(~r/^<(?<pri>\d{1,3})>(?<message>.*)$/, data) do
-      %{"pri" => pri, "message" => message} ->
-        {facility, severity} = pri |> String.to_integer() |> divmod(8)
-        %{facility: facility_name(facility), severity: severity_name(severity), message: message}
-
-      _ ->
-        {:error, :not_syslog_format}
-    end
+  def parse_syslog(<<"<", pri, ">", message::binary>>) when pri >= ?0 and pri <= ?9 do
+    do_parse_syslog(<<pri>>, message)
   end
 
-  defp divmod(numerator, denominator),
-    do: {div(numerator, denominator), Integer.mod(numerator, denominator)}
+  def parse_syslog(<<"<", pri0, pri1, ">", message::binary>>)
+      when pri0 >= ?1 and pri0 <= ?9 and pri1 >= ?0 and pri1 <= ?9 do
+    do_parse_syslog(<<pri0, pri1>>, message)
+  end
+
+  def parse_syslog(<<"<", "1", pri0, pri1, ">", message::binary>>)
+      when pri0 >= ?0 and pri0 <= ?9 and pri1 >= ?0 and pri1 <= ?9 do
+    do_parse_syslog(<<"1", pri0, pri1>>, message)
+  end
+
+  def parse_syslog(_) do
+    {:error, :not_syslog_format}
+  end
+
+  defp do_parse_syslog(pri, message) do
+    {facility, severity} = decode_priority(pri)
+    %{facility: facility, severity: severity, message: message}
+  end
+
+  defp decode_priority(str) do
+    <<facility::size(5), severity::size(3)>> = <<String.to_integer(str)>>
+    {facility_name(facility), severity_name(severity)}
+  end
 
   defp facility_name(0), do: :kernel
   defp facility_name(1), do: :user_level
