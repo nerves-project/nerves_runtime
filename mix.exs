@@ -49,7 +49,7 @@ defmodule Nerves.Runtime.MixProject do
   defp package do
     [
       files: ["lib", "LICENSE", "mix.exs", "README.md", "src/*.[ch]", "Makefile"],
-      licenses: ["Apache 2.0"],
+      licenses: ["Apache-2.0"],
       links: %{"Github" => "https://github.com/nerves-project/nerves_runtime"}
     ]
   end
