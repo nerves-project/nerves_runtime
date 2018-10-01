@@ -9,41 +9,39 @@ defmodule Nerves.Runtime.Device do
   """
 
   @doc """
-  Send an "add" request to all devices to generate UEvents.
+  Send an "add" request to all devices to generate uevents.
   """
   @spec discover() :: :ok
-  def discover do
-    "#{@sysfs}/devices"
-    |> expand_uevent
-    |> Enum.each(&invoke_uevent_action(&1, "add"))
+  def discover() do
+    each_uevent("#{@sysfs}/devices", &invoke_uevent_action(&1, "add"))
   end
 
-  defp expand_uevent(path) do
-    path
-    |> Path.expand()
-    |> safe_ls()
-    |> Enum.map(&Path.join(path, &1))
-    |> Enum.reduce([], fn path, acc ->
-      filetype =
-        case File.lstat(path) do
-          {:ok, stat} -> stat.type
-          _ -> :error
-        end
+  defp each_uevent(dir, fun), do: each_uevent(dir, safe_ls(dir), fun)
 
-      basename = Path.basename(path)
+  defp each_uevent(_dir, [], _fun), do: :ok
 
-      cond do
-        basename == "uevent" ->
-          [path | acc]
+  defp each_uevent(dir, ["uevent" | rest], fun) do
+    abs_path = Path.join(dir, "uevent")
+    fun.(abs_path)
+    each_uevent(dir, rest, fun)
+  end
 
-        filetype == :directory ->
-          [expand_uevent(path) | acc]
+  defp each_uevent(dir, [filename | rest], fun) do
+    abs_path = Path.join(dir, filename)
 
-        true ->
-          acc
-      end
-    end)
-    |> List.flatten()
+    if true_dir?(abs_path) do
+      each_uevent(abs_path, safe_ls(abs_path), fun)
+    end
+
+    each_uevent(dir, rest, fun)
+  end
+
+  defp true_dir?(path) do
+    # File.dir?/1 follows symlinks. true_dir?/1 does not.
+    case File.lstat(path) do
+      {:ok, stat} -> stat.type == :directory
+      _ -> false
+    end
   end
 
   defp safe_ls(path) do

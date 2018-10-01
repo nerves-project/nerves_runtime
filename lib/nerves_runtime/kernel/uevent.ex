@@ -30,6 +30,8 @@ defmodule Nerves.Runtime.Kernel.UEvent do
   end
 
   def handle_info(:discover, s) do
+    # Trigger uevent messages to be sent for all devices that have been enumerated
+    # by the Linux kernel before this GenServer started.
     Device.discover()
     {:noreply, s}
   end
