@@ -1,5 +1,24 @@
 # Changelog
 
+## v0.8.0
+
+* Enhancements
+  * Optimized enumeration of devices at boot. You will likely notice devices
+    becoming available more quickly. This may uncover race conditions in
+    application initialization code.
+  * The `syslog` monitoring code has been rewritten in pure Elixir. This
+    component captures log messages sent by C programs using the `syslog` system
+    call so that they can be handled by Elixir Logger backends.
+  * The kmsg log monitor still requires C, but the C code is simpler now that it
+    doesn't process `syslog` messages as well.
+  * The Linux `uevent` processing code was simplified and the C to Elixir
+    communications refactored to minimize processing of events.
+
+* Bug fixes
+  * Fixed a race condition with the Linux kernel and processing `/sys/devices`
+    that could cause an exception during device enumeration.
+  * Syslog messages w/o terminating newlines are logged now.
+
 ## v0.7.0
 
 * Enhancements
