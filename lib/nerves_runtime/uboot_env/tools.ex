@@ -26,7 +26,7 @@ defmodule Nerves.Runtime.UBootEnv.Tools do
           :ok
           | {:error, reason :: String.t()}
   def fw_setenv(key, value) do
-    case exec("fw_printenv", [key, value]) do
+    case exec("fw_setenv", [key, value]) do
       {:ok, _} -> :ok
       error -> error
     end
