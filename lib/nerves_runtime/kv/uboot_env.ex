@@ -3,8 +3,6 @@ defmodule Nerves.Runtime.KV.UBootEnv do
 
   @moduledoc false
 
-  alias Nerves.Runtime.UBootEnv
-
   def init(_opts) do
     case UBootEnv.read() do
       {:ok, kv} -> kv
