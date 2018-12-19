@@ -29,6 +29,7 @@ defmodule Nerves.Runtime.MixProject do
     [
       {:system_registry, "~> 0.5"},
       {:elixir_make, "~> 0.4", runtime: false},
+      {:uboot_env, "~> 0.1"},
       {:ex_doc, "~> 0.18", only: [:dev, :test], runtime: false},
       {:dialyxir, "~> 1.0.0-rc.3", only: [:dev], runtime: false}
     ]
