@@ -18,7 +18,7 @@ defmodule Nerves.Runtime.OutputLogger do
       fn
         :ok, {:cont, logs} ->
           logs
-          |> String.split("\n")
+          |> String.split("\n", trim: true)
           |> Enum.each(&Logger.bare_log(level, fn -> &1 end))
 
         :ok, _ ->
