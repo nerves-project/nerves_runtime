@@ -78,24 +78,29 @@ defmodule Nerves.Runtime.KV do
     GenServer.call(__MODULE__, :get_all)
   end
 
+  @impl true
   def init(opts) do
     {:ok, mod().init(opts)}
   end
 
+  @impl true
   def handle_call({:get_active, key}, _from, s) do
     {:reply, active(key, s), s}
   end
 
+  @impl true
   def handle_call({:get, key}, _from, s) do
     {:reply, Map.get(s, key), s}
   end
 
+  @impl true
   def handle_call(:get_all_active, _from, s) do
     active = active(s) <> "."
     reply = filter_trim_active(s, active)
     {:reply, reply, s}
   end
 
+  @impl true
   def handle_call(:get_all, _from, s) do
     {:reply, s, s}
   end
