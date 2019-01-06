@@ -35,7 +35,7 @@ defmodule Nerves.Runtime.Application do
   end
 
   defp target_children(_target) do
-    kernel_opts = Application.get_env(:nerves_runtime, :kernel)
+    kernel_opts = Application.get_env(:nerves_runtime, :kernel, [])
 
     [
       KmsgTailer,
