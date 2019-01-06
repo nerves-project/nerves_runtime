@@ -12,6 +12,7 @@ defmodule Nerves.Runtime.Kernel.UEvent do
     GenServer.start_link(__MODULE__, opts, name: __MODULE__)
   end
 
+  @impl true
   def init(opts) do
     autoload = if opts[:autoload_modules] != nil, do: opts[:autoload_modules], else: true
     send(self(), :discover)
@@ -29,6 +30,7 @@ defmodule Nerves.Runtime.Kernel.UEvent do
     {:ok, %{port: port, autoload: autoload}}
   end
 
+  @impl true
   def handle_info(:discover, s) do
     # Trigger uevent messages to be sent for all devices that have been enumerated
     # by the Linux kernel before this GenServer started.
@@ -36,6 +38,7 @@ defmodule Nerves.Runtime.Kernel.UEvent do
     {:noreply, s}
   end
 
+  @impl true
   def handle_info({_, {:data, message}}, s) do
     {action, devpath, kvmap} = :erlang.binary_to_term(message)
     registry(action, devpath, kvmap, s)
