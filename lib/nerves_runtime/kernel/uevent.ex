@@ -7,13 +7,13 @@ defmodule Nerves.Runtime.Kernel.UEvent do
   GenServer that captures Linux uevent messages and passes them up to Elixir.
   """
 
-  @spec start_link(any()) :: GenServer.on_start()
+  @spec start_link(keyword()) :: GenServer.on_start()
   def start_link(opts \\ []) do
     GenServer.start_link(__MODULE__, opts, name: __MODULE__)
   end
 
   def init(opts) do
-    autoload = if opts[:autoload_modules] != nil, do: opts[:autoload_modules], else: true
+    autoload = Keyword.get(opts, :autoload_modules, true)
     send(self(), :discover)
     executable = :code.priv_dir(:nerves_runtime) ++ '/uevent'
 
