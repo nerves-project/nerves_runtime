@@ -1,7 +1,4 @@
 defmodule Nerves.Runtime.Device do
-  require Logger
-  @sysfs "/sys"
-
   @moduledoc """
   This is a utility module for triggering UEvents from the Linux kernel. You
   don't need to use it directly. See the README.md for receiving events when
@@ -9,31 +6,36 @@ defmodule Nerves.Runtime.Device do
   """
 
   @doc """
-  Send an "add" request to all devices to generate uevents.
+  Send an "add" request to all existing devices so that the UEvent handler
+  can know about them.
   """
   @spec discover() :: :ok
   def discover() do
-    each_uevent("#{@sysfs}/devices", &invoke_uevent_action(&1, "add"))
+    "/sys/devices"
+    |> find_all_uevent()
+    |> Enum.each(&invoke_uevent_action(&1, "add"))
   end
 
-  defp each_uevent(dir, fun), do: each_uevent(dir, safe_ls(dir), fun)
+  defp find_all_uevent(dir), do: find_all_uevent(dir, safe_ls(dir), [])
 
-  defp each_uevent(_dir, [], _fun), do: :ok
+  defp find_all_uevent(_dir, [], acc), do: acc
 
-  defp each_uevent(dir, ["uevent" | rest], fun) do
+  defp find_all_uevent(dir, ["uevent" | rest], acc) do
     abs_path = Path.join(dir, "uevent")
-    fun.(abs_path)
-    each_uevent(dir, rest, fun)
+    find_all_uevent(dir, rest, [abs_path | acc])
   end
 
-  defp each_uevent(dir, [filename | rest], fun) do
+  defp find_all_uevent(dir, [filename | rest], acc) do
     abs_path = Path.join(dir, filename)
 
-    if true_dir?(abs_path) do
-      each_uevent(abs_path, safe_ls(abs_path), fun)
-    end
+    next_acc =
+      if true_dir?(abs_path) do
+        find_all_uevent(abs_path, safe_ls(abs_path), acc)
+      else
+        acc
+      end
 
-    each_uevent(dir, rest, fun)
+    find_all_uevent(dir, rest, next_acc)
   end
 
   defp true_dir?(path) do
