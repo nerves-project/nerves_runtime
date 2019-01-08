@@ -1,5 +1,23 @@
 # Changelog
 
+## v0.9.0
+
+The Nerves Runtime Helpers have been extracted and are now part of
+[Toolshed](https://hex.pm/packages/toolshed). The helpers included things like
+`cmd/1` and `reboot/0` that you could run at the IEx prompt. Toolshed is not
+included as a dependency. If you would like it, please add `toolshed` to your
+application dependencies. You'll find that Toolshed contains more helpers. It is
+also easier for us to maintain since changes to the helpers no longer affect
+all Nerves projects.
+
+* Enhancements
+  * Further optimize enumeration of devices at boot. This fixes an issue where
+    uniprocessor boards (like the RPi Zero and BBB) would appear to stall
+    momentarily on boot.
+  * The U-Boot environment processing code has been factored out of
+    `nerves_runtime` so that it can be used independently from Nerves. It can be
+    found at [uboot_env](https://hex.pm/packages/uboot_env).
+
 ## v0.8.0
 
 * Enhancements
