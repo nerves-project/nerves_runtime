@@ -105,6 +105,46 @@ static int ei_encode_elixir_string(char *buf, int *index, const char *p)
     return ei_encode_binary(buf, index, p, len);
 }
 
+static int ei_encode_devpath(char * buf, int *index, char *devpath, char **end_devpath)
+{
+    // The devpath is of the form "/devices/something/something_else/etc"
+    //
+    // Encode it as: ["devices", "something", "something_else", "etc"]
+
+    // Skip the root slash
+    devpath++;
+
+#define MAX_SEGMENTS 16
+    char *segments[MAX_SEGMENTS];
+    segments[0] = devpath;
+
+    int segment_ix = 1;
+    char *p = devpath;
+    while (*p != '\0') {
+        if (*p == '/') {
+            *p = '\0';
+            p++;
+            segments[segment_ix] = p;
+            segment_ix++;
+            if (segment_ix > MAX_SEGMENTS) {
+                while (*p != '\0') p++;
+                break;
+            }
+        } else {
+            p++;
+        }
+    }
+
+    *end_devpath = p + 1;
+
+    ei_encode_list_header(buf, index, segment_ix);
+
+    for (int ix = 0; ix < segment_ix; ix++)
+        ei_encode_elixir_string(buf, index, segments[ix]);
+
+    return ei_encode_empty_list(buf, index);
+}
+
 static void nl_uevent_process(struct netif *nb)
 {
     int bytecount = mnl_socket_recvfrom(nb->nl_uevent, nb->nlbuf, sizeof(nb->nlbuf));
@@ -142,9 +182,7 @@ static void nl_uevent_process(struct netif *nb)
     str = atsign + 1;
     if (strncmp("/devices", str, 8) != 0)
         return;
-    ei_encode_elixir_string(nb->resp, &nb->resp_index, str);
-
-    str += strlen(str) + 1;
+    ei_encode_devpath(nb->resp, &nb->resp_index, str, &str);
 
 #define MAX_KV_PAIRS 16
     int kvpairs_count = 0;

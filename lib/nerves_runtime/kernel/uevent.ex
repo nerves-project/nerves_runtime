@@ -41,8 +41,8 @@ defmodule Nerves.Runtime.Kernel.UEvent do
 
   @impl true
   def handle_info({port, {:data, message}}, %State{port: port} = s) do
-    {action, devpath, kvmap} = :erlang.binary_to_term(message)
-    registry(action, devpath, kvmap, s)
+    {action, scope_no_state, kvmap} = :erlang.binary_to_term(message)
+    registry(action, [:state | scope_no_state], kvmap, s)
     {:noreply, s}
   end
 
@@ -58,9 +58,9 @@ defmodule Nerves.Runtime.Kernel.UEvent do
     {:noreply, s}
   end
 
-  def registry("add", devpath, kvmap, s) do
-    scope = scope(devpath)
-    # Logger.debug "uevent add: #{inspect scope}"
+  def registry("add", scope, kvmap, s) do
+    # Logger.debug("uevent add: #{inspect(scope)}")
+
     if subsystem = Map.get(kvmap, "subsystem") do
       SystemRegistry.update_in(subsystem_scope(subsystem), fn v ->
         v = if is_nil(v), do: [], else: v
@@ -72,9 +72,8 @@ defmodule Nerves.Runtime.Kernel.UEvent do
     SystemRegistry.update(scope, kvmap)
   end
 
-  def registry("remove", devpath, kvmap, _s) do
-    scope = scope(devpath)
-    # Logger.debug "uevent remove: #{inspect scope}"
+  def registry("remove", scope, kvmap, _s) do
+    # Logger.debug("uevent remove: #{inspect(scope)}")
     SystemRegistry.delete(scope)
 
     if subsystem = Map.get(kvmap, "subsystem") do
@@ -86,12 +85,12 @@ defmodule Nerves.Runtime.Kernel.UEvent do
     end
   end
 
-  def registry("move", new, %{"devpath_old" => old}, _s) do
-    # Logger.debug "uevent move: #{inspect scope(old)} -> #{inspect scope(new)}"
-    SystemRegistry.move(scope(old), scope(new))
+  def registry("move", new_scope, %{"devpath_old" => devpath_old}, _s) do
+    # Logger.debug("uevent move: #{inspect(scope(devpath_old))} -> #{inspect(new_scope)}")
+    SystemRegistry.move(scope(devpath_old), new_scope)
   end
 
-  def registry(_action, _devpath, _kvmap, _s) do
+  def registry(_action, _scope, _kvmap, _s) do
     # Logger.debug("uevent unhandled: #{inspect(action)}")
   end
 
