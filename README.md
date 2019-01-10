@@ -14,7 +14,6 @@ Here are its features:
 * Device reboot and shutdown
 * A small Linux kernel `uevent` application for capturing hardware change events
   and more
-* IEx helpers to make life better when working from the IEx prompt
 
 The following sections describe the features in more detail. For more
 information, see the [hex docs](https://hexdocs.pm/nerves_runtime).
@@ -220,34 +219,6 @@ protect against kernel and early boot issues, but it can still provide value:
    only called once.
 
 To make this handle hangs, you'll want to enable a hardware watchdog.
-
-## IEx helpers
-
-The `Nerves.Runtime.Helpers` module provides a number of functions that are
-useful when working at the IEx prompt on a target. They include:
-
-* `cmd/1` - runs a shell command and prints the output
-* `dmesg/0` - dump kernel messages
-* `hex/1` - inspects a value in hexadecimal mode
-* `reboot/0` - reboots gracefully
-* `reboot!/0` - reboots immediately
-
-More information is available in the module docs for `Nerves.Runtime.Helpers`
-and through `h/1`.
-
-Prior to Nerves 1.0.0, the IEx helpers weren't loaded by default in the new
-project generator. To use them, run the following:
-
-```elixir
-iex> use Nerves.Runtime.Helpers
-```
-
-If you expect to use them frequently, add them to your `.iex.exs` on the
-target by running:
-
-```elixir
-iex> Nerves.Runtime.Helpers.install
-```
 
 ## Operating system log collection
 
