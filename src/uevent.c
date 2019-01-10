@@ -126,7 +126,7 @@ static void nl_uevent_process(struct netif *nb)
     //   {action, devpath, kv_map}
     //
     // The kv_map contains all of the kv pairs in the uevent except
-    // ACTION, DEVPATH, and SEQNUM.
+    // ACTION, DEVPATH, SEQNUM, SYNTH_UUID.
 
     ei_encode_tuple_header(nb->resp, &nb->resp_index, 3);
 
@@ -152,10 +152,16 @@ static void nl_uevent_process(struct netif *nb)
     char *values[MAX_KV_PAIRS];
 
     for (; str < str_end; str += strlen(str) + 1) {
-        // Don't encode these keys in the map
+        // Don't encode these keys in the map:
+        //
+        // ACTION: already delivered
+        // DEVPATH: already delivered
+        // SEQNUM: unused in Elixir
+        // SYNTH_UUID: unused in Elixir (when Elixir triggers synthetic events, it currently doesn't set a UUID)
         if (strncmp("ACTION=", str, 7) == 0 ||
                 strncmp("DEVPATH=", str, 8) == 0 ||
-                strncmp("SEQNUM=", str, 7) == 0)
+                strncmp("SEQNUM=", str, 7) == 0 ||
+                strncmp("SYNTH_UUID=", str, 11) == 0)
             continue;
 
         char *equalsign = strchr(str, '=');
