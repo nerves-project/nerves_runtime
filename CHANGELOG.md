@@ -1,5 +1,12 @@
 # Changelog
 
+## v0.9.1
+
+* Enhancements
+  * Filter out `synth_uuid` from uevent reports since it's not supported by the
+    current uevent handling code.
+  * Further reduce garbage produced by processing uevent reports
+
 ## v0.9.0
 
 The Nerves Runtime Helpers have been extracted and are now part of

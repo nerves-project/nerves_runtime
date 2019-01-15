@@ -4,7 +4,7 @@ defmodule Nerves.Runtime.MixProject do
   def project do
     [
       app: :nerves_runtime,
-      version: "0.9.0",
+      version: "0.9.1",
       elixir: "~> 1.6",
       start_permanent: Mix.env() == :prod,
       make_clean: ["clean"],
