@@ -49,6 +49,15 @@ config :nerves_runtime, :kernel,
   autoload_modules: false
 ```
 
+`nerves_runtime` can optionally report device insertions and removals through
+[SystemRegistry](https://github.com/nerves-project/system_registry). This is
+currently the default, but you can disable it via configuration:
+
+```elixir
+config :nerves_runtime, :kernel,
+  use_system_registry: false
+```
+
 ## Filesystem Initialization
 
 Nerves systems generally ship with one or more application filesystem

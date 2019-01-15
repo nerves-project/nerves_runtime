@@ -10,7 +10,7 @@ defmodule Nerves.Runtime.Kernel.UEvent do
   defmodule State do
     @moduledoc false
 
-    defstruct [:port, :discover_ref, :autoload]
+    defstruct [:port, :discover_ref, :autoload, :use_system_registry]
   end
 
   @spec start_link(keyword()) :: GenServer.on_start()
@@ -21,6 +21,8 @@ defmodule Nerves.Runtime.Kernel.UEvent do
   @impl true
   def init(opts) do
     autoload = Keyword.get(opts, :autoload_modules, true)
+    use_system_registry = Keyword.get(opts, :use_system_registry, true)
+
     executable = :code.priv_dir(:nerves_runtime) ++ '/uevent'
 
     port =
@@ -36,7 +38,13 @@ defmodule Nerves.Runtime.Kernel.UEvent do
     # by the Linux kernel before this GenServer started.
     discover_task = Task.async(&Device.discover/0)
 
-    {:ok, %State{port: port, discover_ref: discover_task.ref, autoload: autoload}}
+    {:ok,
+     %State{
+       port: port,
+       discover_ref: discover_task.ref,
+       autoload: autoload,
+       use_system_registry: use_system_registry
+     }}
   end
 
   @impl true
@@ -61,18 +69,21 @@ defmodule Nerves.Runtime.Kernel.UEvent do
   def registry("add", scope, kvmap, s) do
     # Logger.debug("uevent add: #{inspect(scope)}")
 
-    if subsystem = Map.get(kvmap, "subsystem") do
-      SystemRegistry.update_in(subsystem_scope(subsystem), fn v ->
-        v = if is_nil(v), do: [], else: v
-        [scope | v]
-      end)
-    end
-
     if s.autoload, do: modprobe(kvmap)
-    SystemRegistry.update(scope, kvmap)
+
+    if s.use_system_registry do
+      if subsystem = Map.get(kvmap, "subsystem") do
+        SystemRegistry.update_in(subsystem_scope(subsystem), fn v ->
+          v = if is_nil(v), do: [], else: v
+          [scope | v]
+        end)
+      end
+
+      SystemRegistry.update(scope, kvmap)
+    end
   end
 
-  def registry("remove", scope, kvmap, _s) do
+  def registry("remove", scope, kvmap, %State{use_system_registry: true}) do
     # Logger.debug("uevent remove: #{inspect(scope)}")
     SystemRegistry.delete(scope)
 
@@ -85,7 +96,9 @@ defmodule Nerves.Runtime.Kernel.UEvent do
     end
   end
 
-  def registry("move", new_scope, %{"devpath_old" => devpath_old}, _s) do
+  def registry("move", new_scope, %{"devpath_old" => devpath_old}, %State{
+        use_system_registry: true
+      }) do
     # Logger.debug("uevent move: #{inspect(scope(devpath_old))} -> #{inspect(new_scope)}")
     SystemRegistry.move(scope(devpath_old), new_scope)
   end
