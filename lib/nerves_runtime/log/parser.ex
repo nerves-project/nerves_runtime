@@ -9,7 +9,9 @@ defmodule Nerves.Runtime.Log.Parser do
 
   The message is of the form:
 
+  ```text
   <pri>message
+  ```
 
   `pri` is an integer that when broken apart gives you a facility and severity.
   `message` is everything else.
