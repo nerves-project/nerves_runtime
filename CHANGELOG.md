@@ -1,5 +1,12 @@
 # Changelog
 
+## v0.9.2
+
+* Enhancements
+  * Support disabling SystemRegistry integration. This is not a recommended
+    setting and should only be used on slow devices that don't need device
+    insertion/removal notifications.
+
 ## v0.9.1
 
 * Enhancements
