@@ -13,8 +13,7 @@ defmodule Nerves.Runtime.MixProject do
       package: package(),
       docs: docs(),
       deps: deps(),
-      aliases: [format: [&format_c/1, "format"]],
-      dialyzer: [plt_add_apps: [:iex]]
+      aliases: [format: [&format_c/1, "format"]]
     ]
   end
 
@@ -31,7 +30,7 @@ defmodule Nerves.Runtime.MixProject do
       {:elixir_make, "~> 0.4", runtime: false},
       {:uboot_env, "~> 0.1"},
       {:ex_doc, "~> 0.18", only: [:dev, :test], runtime: false},
-      {:dialyxir, "~> 1.0.0-rc.3", only: [:dev], runtime: false}
+      {:dialyxir, "~> 1.0.0-rc.4", only: :dev, runtime: false}
     ]
   end
 
@@ -40,9 +39,7 @@ defmodule Nerves.Runtime.MixProject do
   end
 
   defp description do
-    """
-    Small, general runtime utilities for Nerves devices
-    """
+    "Small, general runtime utilities for Nerves devices"
   end
 
   defp package do
