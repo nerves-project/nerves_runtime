@@ -1,4 +1,13 @@
-# Variables to override
+# Makefile for building port binaries
+#
+# Makefile targets:
+#
+# all/install   build and install the NIF
+# clean         clean build products and intermediates
+#
+# Variables to override:
+#
+# MIX_COMPILE_PATH path to the build's ebin directory
 #
 # CC            C compiler
 # CROSSCOMPILE	crosscompiler prefix, if any
@@ -8,6 +17,13 @@
 # ERL_EI_LIBDIR path to libei.a (Required for crosscompile)
 # LDFLAGS	linker flags for linking all binaries
 # ERL_LDFLAGS	additional linker flags for projects referencing Erlang libraries
+
+ifeq ($(MIX_COMPILE_PATH),)
+	$(error MIX_COMPILE_PATH should be set by elixir_make!)
+endif
+
+PREFIX = $(MIX_COMPILE_PATH)/../priv
+BUILD  = $(MIX_COMPILE_PATH)/../obj
 
 # Check that we're on a supported build platform
 ifeq ($(CROSSCOMPILE),)
@@ -19,22 +35,10 @@ ifeq ($(CROSSCOMPILE),)
         $(warning this should be done automatically.)
         $(warning .)
         $(warning Skipping C compilation unless targets explicitly passed to make.)
-	DEFAULT_TARGETS = priv
+	DEFAULT_TARGETS = $(PREFIX)
     endif
 endif
-DEFAULT_TARGETS ?= priv priv/uevent priv/kmsg_tailer
-
-# Look for the EI library and header files
-# For crosscompiled builds, ERL_EI_INCLUDE_DIR and ERL_EI_LIBDIR must be
-# passed into the Makefile.
-ifeq ($(ERL_EI_INCLUDE_DIR),)
-ERL_ROOT_DIR = $(shell erl -eval "io:format(\"~s~n\", [code:root_dir()])" -s init stop -noshell)
-ifeq ($(ERL_ROOT_DIR),)
-   $(error Could not find the Erlang installation. Check to see that 'erl' is in your PATH)
-endif
-ERL_EI_INCLUDE_DIR = "$(ERL_ROOT_DIR)/usr/include"
-ERL_EI_LIBDIR = "$(ERL_ROOT_DIR)/usr/lib"
-endif
+DEFAULT_TARGETS ?= $(PREFIX) $(PREFIX)/uevent $(PREFIX)/kmsg_tailer
 
 # Set Erlang-specific compile and linker flags
 ERL_CFLAGS ?= -I$(ERL_EI_INCLUDE_DIR)
@@ -62,22 +66,30 @@ else
 update_perms =
 endif
 
-.PHONY: all clean
+calling_from_make:
+	mix compile
 
-all: $(DEFAULT_TARGETS)
+all: install
 
-%.o: %.c
+install: $(BUILD) $(DEFAULT_TARGETS)
+
+$(BUILD)/%.o: src/%.c
 	$(CC) -c $(ERL_CFLAGS) $(CFLAGS) -o $@ $<
 
-priv:
-	mkdir -p priv
-
-priv/uevent: src/uevent.o
+$(PREFIX)/uevent: $(BUILD)/uevent.o
 	$(CC) $^ $(ERL_LDFLAGS) $(LDFLAGS) -o $@
 	$(call update_perms, $@)
 
-priv/kmsg_tailer: src/kmsg_tailer.o
+$(PREFIX)/kmsg_tailer: $(BUILD)/kmsg_tailer.o
 	$(CC) $^ $(ERL_LDFLAGS) $(LDFLAGS) -o $@
 
+$(PREFIX):
+	mkdir -p $@
+
+$(BUILD):
+	mkdir -p $@
+
 clean:
-	rm -f priv/uevent priv/kmsg_tailer src/*.o
+	$(RM) $(PREFIX)/uevent $(PREFIX)/kmsg_tailer $(BUILD)/*.o
+
+.PHONY: all clean calling_from_make install
