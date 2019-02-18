@@ -56,7 +56,7 @@ defmodule Nerves.Runtime.Kernel.UEvent do
 
   @impl true
   def handle_info({ref, result}, %State{discover_ref: ref} = s) do
-    Logger.debug("UEvent initial device discovery completed: #{result}")
+    _ = Logger.debug("UEvent initial device discovery completed: #{result}")
     {:noreply, s}
   end
 

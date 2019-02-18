@@ -91,7 +91,7 @@ defmodule Nerves.Runtime do
   @spec logged_shutdown(String.t()) :: no_return()
   defp logged_shutdown(cmd) do
     try do
-      Logger.info("#{__MODULE__} : device told to #{cmd}")
+      _ = Logger.info("#{__MODULE__} : device told to #{cmd}")
 
       # Invoke the appropriate command to tell erlinit that a shutdown of the
       # Erlang VM is imminent. Once this returns, the Erlang has about 10

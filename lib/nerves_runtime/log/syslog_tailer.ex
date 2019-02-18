@@ -49,7 +49,7 @@ defmodule Nerves.Runtime.Log.SyslogTailer do
         # This is unlikely to ever happen, but if a message was somehow
         # malformed and we couldn't parse the syslog priority, we should
         # still do a best-effort to pass along the raw data.
-        Logger.warn("Malformed syslog report: #{inspect(raw_entry)}")
+        _ = Logger.warn("Malformed syslog report: #{inspect(raw_entry)}")
     end
 
     {:noreply, log_port}

@@ -51,19 +51,20 @@ defmodule Nerves.Runtime.Log.KmsgTailer do
   defp handle_message(raw_entry) do
     case Parser.parse_syslog(raw_entry) do
       %{facility: facility, severity: severity, message: message} ->
-        Logger.bare_log(
-          logger_level(severity),
-          message,
-          module: __MODULE__,
-          facility: facility,
-          severity: severity
-        )
+        _ =
+          Logger.bare_log(
+            logger_level(severity),
+            message,
+            module: __MODULE__,
+            facility: facility,
+            severity: severity
+          )
 
       _ ->
         # This is unlikely to ever happen, but if a message was somehow
         # malformed and we couldn't parse the syslog priority, we should
         # still do a best-effort to pass along the raw data.
-        Logger.warn("Malformed kmsg report: #{inspect(raw_entry)}")
+        _ = Logger.warn("Malformed kmsg report: #{inspect(raw_entry)}")
     end
   end
 

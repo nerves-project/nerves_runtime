@@ -124,8 +124,10 @@ defmodule Nerves.Runtime.Init do
   defp unmount_if_error(s), do: s
 
   defp format_if_unmounted(%{mounted: :unmounted, fstype: fstype, devpath: devpath} = s) do
-    "Formatting application partition. If this hangs, it could be waiting on the urandom pool to be initialized"
-    |> Logger.warn()
+    _ =
+      Logger.warn(
+        "Formatting application partition. If this hangs, it could be waiting on the urandom pool to be initialized"
+      )
 
     mkfs(fstype, devpath)
     s
