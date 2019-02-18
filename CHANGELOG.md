@@ -1,5 +1,10 @@
 # Changelog
 
+## v0.9.3
+
+* Enhancements
+  * Move C build products to under `_build`
+
 ## v0.9.2
 
 * Enhancements
