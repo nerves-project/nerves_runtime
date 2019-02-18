@@ -15,6 +15,9 @@ defmodule Nerves.Runtime.MixProject do
       package: package(),
       docs: docs(),
       deps: deps(),
+      dialyzer: [
+        flags: [:race_conditions, :underspecs]
+      ],
       aliases: [format: [&format_c/1, "format"]]
     ]
   end

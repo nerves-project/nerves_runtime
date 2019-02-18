@@ -51,13 +51,18 @@ defmodule Nerves.Runtime do
 
   This requires a specially constructed fw file.
   """
-  @spec revert([revert_options]) :: :ok | {:error, reason :: any}
+  @spec revert([revert_options]) :: :ok | {:error, reason :: any} | no_return()
   def revert(opts \\ []) do
     reboot? = if opts[:reboot] != nil, do: opts[:reboot], else: true
 
     if File.exists?(@revert_fw_path) do
-      cmd("fwup", [@revert_fw_path, "-t", "revert", "-d", "/dev/rootdisk0"], :info)
-      if reboot?, do: reboot()
+      {_, 0} = cmd("fwup", [@revert_fw_path, "-t", "revert", "-d", "/dev/rootdisk0"], :info)
+
+      if reboot? do
+        reboot()
+      else
+        :ok
+      end
     else
       {:error, "Unable to locate revert firmware at path: #{@revert_fw_path}"}
     end
@@ -73,6 +78,10 @@ defmodule Nerves.Runtime do
   def cmd(cmd, params, out),
     do: System.cmd(cmd, params, into: OutputLogger.new(out), stderr_to_stdout: true)
 
+  @doc """
+  Return whether the application was built for either the host or the target
+  """
+  @spec target() :: String.t()
   def target() do
     target = Application.get_env(:nerves_runtime, :target)
     if target == "host", do: "host", else: "target"
