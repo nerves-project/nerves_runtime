@@ -38,7 +38,7 @@ ifeq ($(CROSSCOMPILE),)
 	DEFAULT_TARGETS = $(PREFIX)
     endif
 endif
-DEFAULT_TARGETS ?= $(PREFIX) $(PREFIX)/uevent $(PREFIX)/kmsg_tailer
+DEFAULT_TARGETS ?= $(PREFIX) $(PREFIX)/nerves_runtime
 
 # Set Erlang-specific compile and linker flags
 ERL_CFLAGS ?= -I$(ERL_EI_INCLUDE_DIR)
@@ -76,20 +76,14 @@ install: $(BUILD) $(DEFAULT_TARGETS)
 $(BUILD)/%.o: src/%.c
 	$(CC) -c $(ERL_CFLAGS) $(CFLAGS) -o $@ $<
 
-$(PREFIX)/uevent: $(BUILD)/uevent.o
+$(PREFIX)/nerves_runtime: $(BUILD)/nerves_runtime.o $(BUILD)/uevent.o $(BUILD)/kmsg_tailer.o
 	$(CC) $^ $(ERL_LDFLAGS) $(LDFLAGS) -o $@
 	$(call update_perms, $@)
 
-$(PREFIX)/kmsg_tailer: $(BUILD)/kmsg_tailer.o
-	$(CC) $^ $(ERL_LDFLAGS) $(LDFLAGS) -o $@
-
-$(PREFIX):
-	mkdir -p $@
-
-$(BUILD):
+$(PREFIX) $(BUILD):
 	mkdir -p $@
 
 clean:
-	$(RM) $(PREFIX)/uevent $(PREFIX)/kmsg_tailer $(BUILD)/*.o
+	$(RM) $(PREFIX)/nerves_runtime $(BUILD)/*.o
 
 .PHONY: all clean calling_from_make install

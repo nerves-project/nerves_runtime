@@ -23,11 +23,11 @@ defmodule Nerves.Runtime.Kernel.UEvent do
     autoload = Keyword.get(opts, :autoload_modules, true)
     use_system_registry = Keyword.get(opts, :use_system_registry, true)
 
-    executable = :code.priv_dir(:nerves_runtime) ++ '/uevent'
+    executable = :code.priv_dir(:nerves_runtime) ++ '/nerves_runtime'
 
     port =
       Port.open({:spawn_executable, executable}, [
-        {:args, []},
+        {:arg0, "uevent"},
         {:packet, 2},
         :use_stdio,
         :binary,

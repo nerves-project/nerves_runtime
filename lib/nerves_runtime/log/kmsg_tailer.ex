@@ -37,6 +37,7 @@ defmodule Nerves.Runtime.Log.KmsgTailer do
 
   defp open_port() do
     Port.open({:spawn_executable, executable()}, [
+      {:arg0, "kmsg_tailer"},
       {:line, 1024},
       :use_stdio,
       :binary,
@@ -45,7 +46,7 @@ defmodule Nerves.Runtime.Log.KmsgTailer do
   end
 
   defp executable() do
-    :code.priv_dir(:nerves_runtime) ++ '/kmsg_tailer'
+    :code.priv_dir(:nerves_runtime) ++ '/nerves_runtime'
   end
 
   defp handle_message(raw_entry) do

@@ -8,7 +8,7 @@
 #define KMSG_PATH "/proc/kmsg"
 #define BUFFER_SIZE 4096
 
-int main(int argc, char *argv[])
+int kmsg_tailer_main(int argc, char *argv[])
 {
     int fd = open(KMSG_PATH, O_RDONLY);
     if (fd < 0)

@@ -222,7 +222,7 @@ static void nl_uevent_process(struct netif *nb)
     erlcmd_send(nb->resp, nb->resp_index);
 }
 
-int main(int argc, char *argv[])
+int uevent_main(int argc, char *argv[])
 {
     (void) argc;
     (void) argv;
