@@ -36,6 +36,7 @@ defmodule Nerves.Runtime.Kernel.UEvent do
 
     # Trigger uevent messages to be sent for all devices that have been enumerated
     # by the Linux kernel before this GenServer started.
+    _ = Logger.debug("UEvent initial device discovery started")
     discover_task = Task.async(&Device.discover/0)
 
     {:ok,

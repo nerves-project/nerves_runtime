@@ -80,7 +80,7 @@ install: $(BUILD) $(DEFAULT_TARGETS)
 $(BUILD)/%.o: src/%.c
 	$(CC) -c $(ERL_CFLAGS) $(CFLAGS) -o $@ $<
 
-$(PREFIX)/nerves_runtime: $(BUILD)/nerves_runtime.o $(BUILD)/uevent.o $(BUILD)/kmsg_tailer.o
+$(PREFIX)/nerves_runtime: $(BUILD)/nerves_runtime.o $(BUILD)/uevent.o $(BUILD)/kmsg_tailer.o $(BUILD)/uevent_discover.o
 	$(CC) $^ $(ERL_LDFLAGS) $(LDFLAGS) -o $@
 	$(call update_perms, $@)
 
