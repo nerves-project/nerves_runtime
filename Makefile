@@ -55,11 +55,15 @@ CFLAGS += -std=gnu99
 
 ifeq ($(origin CROSSCOMPILE), undefined)
 SUDO_ASKPASS ?= /usr/bin/ssh-askpass
-SUDO ?= sudo
+SUDO ?= true
 
 # If not cross-compiling, then run sudo and suid the port binary
 # so that it's possible to debug
 update_perms = \
+	echo "Not crosscompiling. To test locally, the port binary needs extra permissions.";\
+	echo "Set SUDO=sudo to set permissions. The default is to skip this step.";\
+	echo "SUDO_ASKPASS=$(SUDO_ASKPASS)";\
+	echo "SUDO=$(SUDO)";\
 	SUDO_ASKPASS=$(SUDO_ASKPASS) $(SUDO) -- sh -c 'chown root:root $(1); chmod +s $(1)'
 else
 # If cross-compiling, then permissions need to be set some build system-dependent way
