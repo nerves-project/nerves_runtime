@@ -121,7 +121,7 @@ defmodule Nerves.Runtime.Kernel.UEvent do
   end
 
   defp modprobe(%{"modalias" => modalias}) do
-    System.cmd("modprobe", [modalias], stderr_to_stdout: true)
+    System.cmd("/sbin/modprobe", [modalias], stderr_to_stdout: true)
   end
 
   defp modprobe(_), do: :noop
