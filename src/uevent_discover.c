@@ -41,12 +41,12 @@ static void scandirs(char *path, int path_end)
     }
     free(namelist);
     path[path_end] = 0;
-
 }
 
 int uevent_discover_main(int argc, char **argv)
 {
     char path[PATH_MAX] = "/sys/devices";
     scandirs(path, strlen(path));
+    return 0;
 }
 
