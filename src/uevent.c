@@ -16,11 +16,16 @@
 
 #include "utils.h"
 #include <ctype.h>
+#include <dirent.h>
 #include <err.h>
+#include <errno.h>
+#include <fcntl.h>
 #include <poll.h>
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
+#include <sys/types.h>
+#include <sys/stat.h>
 #include <unistd.h>
 
 #include <libmnl/libmnl.h>
@@ -227,6 +232,55 @@ static void nl_uevent_process(struct netif *nb)
     erlcmd_send(nb->resp, nb->resp_index);
 }
 
+static int filter(const struct dirent *dirp)
+{
+    return (dirp->d_type == DT_REG && strcmp(dirp->d_name, "uevent") == 0) ||
+           (dirp->d_type == DT_DIR && dirp->d_name[0] != '.');
+}
+
+static void scandirs(char *path, int path_end)
+{
+    struct dirent **namelist;
+    int n;
+
+    n = scandir(path, &namelist, filter, NULL);
+    if (n < 0)
+        return;
+
+    path[path_end] = '/';
+
+    int i;
+    for (i = 0; i < n; i++) {
+        strcpy(&path[path_end + 1], namelist[i]->d_name);
+        if (namelist[i]->d_type == DT_DIR) {
+            scandirs(path, strlen(path));
+        } else {
+            int fd = open(path, O_WRONLY);
+            if (fd >= 0) {
+                int result = write(fd, "add", 3);
+                if (result < 0)
+                    debug("Ignoring error when writing to %s", path);
+                close(fd);
+            }
+        }
+        free(namelist[i]);
+    }
+    free(namelist);
+    path[path_end] = 0;
+}
+
+static void uevent_discover()
+{
+    // Fork the discover work into a separate process so that it can occur in
+    // parallel with sending events back.
+    pid_t pid = fork();
+    if (pid == 0) {
+        char path[PATH_MAX] = "/sys/devices";
+        scandirs(path, strlen(path));
+        exit(EXIT_SUCCESS);
+    }
+}
+
 int uevent_main(int argc, char *argv[])
 {
     (void) argc;
@@ -234,6 +288,12 @@ int uevent_main(int argc, char *argv[])
 
     struct netif nb;
     netif_init(&nb);
+
+    // It's necessary to run the discovery process after every start to avoid
+    // missing device additions. Removals between restarts can still be missed.
+    // This is unhandled, but less of an issue since restarts should be rare
+    // and removed devices usually cause errors against anything using them.
+    uevent_discover();
 
     for (;;) {
         struct pollfd fdset[3];

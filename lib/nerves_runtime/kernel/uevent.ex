@@ -1,7 +1,6 @@
 defmodule Nerves.Runtime.Kernel.UEvent do
   use GenServer
   require Logger
-  alias Nerves.Runtime.Device
 
   @moduledoc """
   GenServer that captures Linux uevent messages and passes them up to Elixir.
@@ -10,7 +9,7 @@ defmodule Nerves.Runtime.Kernel.UEvent do
   defmodule State do
     @moduledoc false
 
-    defstruct [:port, :discover_ref, :autoload, :use_system_registry]
+    defstruct [:port, :autoload, :use_system_registry]
   end
 
   @spec start_link(keyword()) :: GenServer.on_start()
@@ -34,15 +33,9 @@ defmodule Nerves.Runtime.Kernel.UEvent do
         :exit_status
       ])
 
-    # Trigger uevent messages to be sent for all devices that have been enumerated
-    # by the Linux kernel before this GenServer started.
-    _ = Logger.debug("UEvent initial device discovery started")
-    discover_task = Task.async(&Device.discover/0)
-
     {:ok,
      %State{
        port: port,
-       discover_ref: discover_task.ref,
        autoload: autoload,
        use_system_registry: use_system_registry
      }}
@@ -52,18 +45,6 @@ defmodule Nerves.Runtime.Kernel.UEvent do
   def handle_info({port, {:data, message}}, %State{port: port} = s) do
     {action, scope_no_state, kvmap} = :erlang.binary_to_term(message)
     registry(action, [:state | scope_no_state], kvmap, s)
-    {:noreply, s}
-  end
-
-  @impl true
-  def handle_info({ref, result}, %State{discover_ref: ref} = s) do
-    _ = Logger.debug("UEvent initial device discovery completed: #{result}")
-    {:noreply, s}
-  end
-
-  @impl true
-  def handle_info({:DOWN, ref, :process, _pid, :normal}, %State{discover_ref: ref} = s) do
-    # Ignore the discovery task's process ending
     {:noreply, s}
   end
 
