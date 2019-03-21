@@ -148,8 +148,13 @@ static int ei_encode_devpath(char * buf, int *index, char *devpath, char **end_d
 static void nl_uevent_process(struct netif *nb)
 {
     int bytecount = mnl_socket_recvfrom(nb->nl_uevent, nb->nlbuf, sizeof(nb->nlbuf));
-    if (bytecount <= 0)
+    if (bytecount <= 0) {
+        if (errno == ENOBUFS) {
+            warnx("mnl_socket_recvfrom dropped message - possible overload");
+            return;
+        }
         err(EXIT_FAILURE, "mnl_socket_recvfrom");
+    }
 
     char *str = nb->nlbuf;
     char *str_end = str + bytecount;
