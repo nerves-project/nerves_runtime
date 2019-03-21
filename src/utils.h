@@ -27,7 +27,7 @@ FILE *log_location;
 #define debug(...) do { fprintf(stderr, __VA_ARGS__); fprintf(stderr, "\r\n"); fflush(stderr); } while(0)
 #else
 #define LOG_LOCATION stderr
-#define debug(...)
+#define debug(...) do {} while(0)
 #endif
 
 #endif // UTIL_H
