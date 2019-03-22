@@ -3,7 +3,6 @@
 #include <stdlib.h>
 
 int uevent_main(int argc, char *argv[]);
-int uevent_discover_main(int argc, char *argv[]);
 int kmsg_tailer_main(int argc, char *argv[]);
 
 int main(int argc, char *argv[])
