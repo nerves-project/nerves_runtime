@@ -33,31 +33,14 @@
 
 #include <ei.h>
 
-struct netif {
-    // NETLINK_ROUTE socket information
-    struct mnl_socket *nl;
-
-    // NETLINK_KOBJECT_UEVENT socket information
-    struct mnl_socket *nl_uevent;
-
-    // Netlink buffering
-    char nlbuf[8192]; // See MNL_SOCKET_BUFFER_SIZE
-
-    // Erlang response processing
-    char resp[8192];
-    int resp_index;
-};
-
-/**
- * @brief Synchronously send a response back to Erlang
- *
- * @param response what to send back
- */
-static void erlcmd_send(char *response, size_t len)
+static void erlcmd_write_header_len(char *response, size_t len)
 {
     uint16_t be_len = htons(len - sizeof(uint16_t));
     memcpy(response, &be_len, sizeof(be_len));
+}
 
+static void write_all(char *response, size_t len)
+{
     size_t wrote = 0;
     do {
         ssize_t amount_written = write(STDOUT_FILENO, response + wrote, len - wrote);
@@ -72,36 +55,23 @@ static void erlcmd_send(char *response, size_t len)
     } while (wrote < len);
 }
 
-static void netif_init(struct netif *nb)
+static struct mnl_socket *uevent_open()
 {
-    memset(nb, 0, sizeof(*nb));
-    nb->nl = mnl_socket_open(NETLINK_ROUTE);
-    if (!nb->nl)
-        err(EXIT_FAILURE, "mnl_socket_open (NETLINK_ROUTE)");
-
-    if (mnl_socket_bind(nb->nl, RTMGRP_LINK, MNL_SOCKET_AUTOPID) < 0)
-        err(EXIT_FAILURE, "mnl_socket_bind");
-
-    nb->nl_uevent = mnl_socket_open(NETLINK_KOBJECT_UEVENT);
-    if (!nb->nl_uevent)
+    struct mnl_socket *nl_uevent = mnl_socket_open2(NETLINK_KOBJECT_UEVENT, O_NONBLOCK);
+    if (!nl_uevent)
         err(EXIT_FAILURE, "mnl_socket_open (NETLINK_KOBJECT_UEVENT)");
 
     // There is one single group in kobject over netlink
-    if (mnl_socket_bind(nb->nl_uevent, (1 << 0), MNL_SOCKET_AUTOPID) < 0)
+    if (mnl_socket_bind(nl_uevent, (1 << 0), MNL_SOCKET_AUTOPID) < 0)
         err(EXIT_FAILURE, "mnl_socket_bind");
 
     // Turn off ENOBUFS notifications since there's nothing that we can do
     // about them.
     unsigned int val = 1;
-    if (mnl_socket_setsockopt(nb->nl_uevent, NETLINK_NO_ENOBUFS, &val, sizeof(val)) < 0)
+    if (mnl_socket_setsockopt(nl_uevent, NETLINK_NO_ENOBUFS, &val, sizeof(val)) < 0)
         err(EXIT_FAILURE, "mnl_socket_setsockopt(NETLINK_NO_ENOBUFS)");
-}
 
-static void netif_cleanup(struct netif *nb)
-{
-    mnl_socket_close(nb->nl);
-    mnl_socket_close(nb->nl_uevent);
-    nb->nl = NULL;
+    return nl_uevent;
 }
 
 static void str_tolower(char *str)
@@ -156,18 +126,19 @@ static int ei_encode_devpath(char * buf, int *index, char *devpath, char **end_d
     return ei_encode_empty_list(buf, index);
 }
 
-static void nl_uevent_process(struct netif *nb)
+static int nl_uevent_process_one(struct mnl_socket *nl_uevent, char *resp)
 {
-    int bytecount = mnl_socket_recvfrom(nb->nl_uevent, nb->nlbuf, sizeof(nb->nlbuf));
+    char nlbuf[8192]; // See MNL_SOCKET_BUFFER_SIZE
+    int bytecount = mnl_socket_recvfrom(nl_uevent, nlbuf, sizeof(nlbuf));
     if (bytecount <= 0)
         err(EXIT_FAILURE, "mnl_socket_recvfrom");
 
-    char *str = nb->nlbuf;
+    char *str = nlbuf;
     char *str_end = str + bytecount;
 
     debug("uevent: %s", str);
-    nb->resp_index = sizeof(uint16_t); // Skip over payload size
-    ei_encode_version(nb->resp, &nb->resp_index);
+    int resp_index = sizeof(uint16_t); // Skip over payload size
+    ei_encode_version(resp, &resp_index);
 
     // The uevent comes in with the form:
     //
@@ -179,21 +150,21 @@ static void nl_uevent_process(struct netif *nb)
     // The kv_map contains all of the kv pairs in the uevent except
     // ACTION, DEVPATH, SEQNUM, SYNTH_UUID.
 
-    ei_encode_tuple_header(nb->resp, &nb->resp_index, 3);
+    ei_encode_tuple_header(resp, &resp_index, 3);
 
     char *atsign = strchr(str, '@');
     if (!atsign)
-        return;
+        return 0;
     *atsign = '\0';
 
     // action
-    ei_encode_elixir_string(nb->resp, &nb->resp_index, str);
+    ei_encode_elixir_string(resp, &resp_index, str);
 
     // devpath - filter anything that's not under "/devices"
     str = atsign + 1;
     if (strncmp("/devices", str, 8) != 0)
-        return;
-    ei_encode_devpath(nb->resp, &nb->resp_index, str, &str);
+        return 0;
+    ei_encode_devpath(resp, &resp_index, str, &str);
 
 #define MAX_KV_PAIRS 16
     int kvpairs_count = 0;
@@ -225,12 +196,26 @@ static void nl_uevent_process(struct netif *nb)
         kvpairs_count++;
     }
 
-    ei_encode_map_header(nb->resp, &nb->resp_index, kvpairs_count);
+    ei_encode_map_header(resp, &resp_index, kvpairs_count);
     for (int i = 0; i < kvpairs_count; i++) {
-        ei_encode_elixir_string(nb->resp, &nb->resp_index, keys[i]);
-        ei_encode_elixir_string(nb->resp, &nb->resp_index, values[i]);
+        ei_encode_elixir_string(resp, &resp_index, keys[i]);
+        ei_encode_elixir_string(resp, &resp_index, values[i]);
     }
-    erlcmd_send(nb->resp, nb->resp_index);
+    erlcmd_write_header_len(resp, resp_index);
+    return resp_index;
+}
+
+static void nl_uevent_process_all(struct mnl_socket *nl_uevent)
+{
+    // Erlang response processing
+    char resp[8192];
+    int resp_index;
+
+    resp_index = nl_uevent_process_one(nl_uevent, resp);
+    if (resp_index <= 0)
+        return;
+
+    write_all(resp, resp_index);
 }
 
 static int filter(const struct dirent *dirp)
@@ -287,8 +272,7 @@ int uevent_main(int argc, char *argv[])
     (void) argc;
     (void) argv;
 
-    struct netif nb;
-    netif_init(&nb);
+    struct mnl_socket *nl_uevent = uevent_open();
 
     // It's necessary to run the discovery process after every start to avoid
     // missing device additions. Removals between restarts can still be missed.
@@ -299,7 +283,7 @@ int uevent_main(int argc, char *argv[])
     for (;;) {
         struct pollfd fdset[2];
 
-        fdset[0].fd = mnl_socket_get_fd(nb.nl_uevent);
+        fdset[0].fd = mnl_socket_get_fd(nl_uevent);
         fdset[0].events = POLLIN;
         fdset[0].revents = 0;
 
@@ -317,13 +301,13 @@ int uevent_main(int argc, char *argv[])
         }
 
         if (fdset[0].revents & (POLLIN | POLLHUP))
-            nl_uevent_process(&nb);
+            nl_uevent_process_all(nl_uevent);
 
         // Any notification from Erlang is to exit
         if (fdset[1].revents & (POLLIN | POLLHUP))
             break;
     }
 
-    netif_cleanup(&nb);
+    mnl_socket_close(nl_uevent);
     return 0;
 }
