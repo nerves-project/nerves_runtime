@@ -297,13 +297,13 @@ int uevent_main(int argc, char *argv[])
     uevent_discover();
 
     for (;;) {
-        struct pollfd fdset[3];
+        struct pollfd fdset[2];
 
-        fdset[0].fd = STDIN_FILENO;
+        fdset[0].fd = mnl_socket_get_fd(nb.nl_uevent);
         fdset[0].events = POLLIN;
         fdset[0].revents = 0;
 
-        fdset[1].fd = mnl_socket_get_fd(nb.nl_uevent);
+        fdset[1].fd = STDIN_FILENO;
         fdset[1].events = POLLIN;
         fdset[1].revents = 0;
 
@@ -316,11 +316,11 @@ int uevent_main(int argc, char *argv[])
             err(EXIT_FAILURE, "poll");
         }
 
-        if (fdset[1].revents & (POLLIN | POLLHUP))
+        if (fdset[0].revents & (POLLIN | POLLHUP))
             nl_uevent_process(&nb);
 
         // Any notification from Erlang is to exit
-        if (fdset[0].revents & (POLLIN | POLLHUP))
+        if (fdset[1].revents & (POLLIN | POLLHUP))
             break;
     }
 
