@@ -89,6 +89,12 @@ static void netif_init(struct netif *nb)
     // There is one single group in kobject over netlink
     if (mnl_socket_bind(nb->nl_uevent, (1 << 0), MNL_SOCKET_AUTOPID) < 0)
         err(EXIT_FAILURE, "mnl_socket_bind");
+
+    // Turn off ENOBUFS notifications since there's nothing that we can do
+    // about them.
+    unsigned int val = 1;
+    if (mnl_socket_setsockopt(nb->nl_uevent, NETLINK_NO_ENOBUFS, &val, sizeof(val)) < 0)
+        err(EXIT_FAILURE, "mnl_socket_setsockopt(NETLINK_NO_ENOBUFS)");
 }
 
 static void netif_cleanup(struct netif *nb)
@@ -153,13 +159,8 @@ static int ei_encode_devpath(char * buf, int *index, char *devpath, char **end_d
 static void nl_uevent_process(struct netif *nb)
 {
     int bytecount = mnl_socket_recvfrom(nb->nl_uevent, nb->nlbuf, sizeof(nb->nlbuf));
-    if (bytecount <= 0) {
-        if (errno == ENOBUFS) {
-            warnx("mnl_socket_recvfrom dropped message - possible overload");
-            return;
-        }
+    if (bytecount <= 0)
         err(EXIT_FAILURE, "mnl_socket_recvfrom");
-    }
 
     char *str = nb->nlbuf;
     char *str_end = str + bytecount;
