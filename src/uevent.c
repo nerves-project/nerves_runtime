@@ -130,8 +130,12 @@ static int nl_uevent_process_one(struct mnl_socket *nl_uevent, char *resp)
 {
     char nlbuf[8192]; // See MNL_SOCKET_BUFFER_SIZE
     int bytecount = mnl_socket_recvfrom(nl_uevent, nlbuf, sizeof(nlbuf));
-    if (bytecount <= 0)
-        err(EXIT_FAILURE, "mnl_socket_recvfrom");
+    if (bytecount <= 0) {
+        if (errno == EAGAIN)
+            return -1;
+        else
+            err(EXIT_FAILURE, "mnl_socket_recvfrom");
+    }
 
     char *str = nlbuf;
     char *str_end = str + bytecount;
@@ -207,15 +211,23 @@ static int nl_uevent_process_one(struct mnl_socket *nl_uevent, char *resp)
 
 static void nl_uevent_process_all(struct mnl_socket *nl_uevent)
 {
-    // Erlang response processing
+    // Erlang response buffer
     char resp[8192];
-    int resp_index;
+    size_t resp_index;
 
-    resp_index = nl_uevent_process_one(nl_uevent, resp);
-    if (resp_index <= 0)
-        return;
+    // Process uevents until there aren't any more or we're
+    // within 1K of the end. This is pretty conservative since
+    // the Erlang reports looks like they're nearly always < 200 bytes.
+    for (resp_index = 0; resp_index < sizeof(resp) - 1024;) {
+        int bytes_added = nl_uevent_process_one(nl_uevent, &resp[resp_index]);
+        if (bytes_added < 0)
+            break;
 
-    write_all(resp, resp_index);
+        resp_index += bytes_added;
+    }
+
+    if (resp_index > 0)
+        write_all(resp, resp_index);
 }
 
 static int filter(const struct dirent *dirp)
