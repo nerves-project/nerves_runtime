@@ -1,5 +1,16 @@
 # Changelog
 
+## v0.9.4
+
+* Enhancements
+  * Reduced number of syscalls needed for transferring device detection events
+    (uevents) to Elixir by batching them
+  * Improved start up performance by moving initial device enumeration to C
+  * Handle uevent overloads by dropping messages rather than crashing. Uevent
+    bursts are handled better by the new batching, but can be more severe due to
+    faster enumeration. Both dropping and crashing have drawbacks, but dropping
+    made it possible to recover on a 32-processor machine with many peripherals.
+
 ## v0.9.3
 
 * Enhancements
