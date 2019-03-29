@@ -1,5 +1,15 @@
 # Changelog
 
+## v0.10.0
+
+* Enhancements
+  * Combined individual port executables into a single multi-call port executable.
+  * Improved start up performance refactoring uevent discovery and moving it to
+    the C port executable.
+  * Improved kernel logger performance by preventing a message copy through an
+    intermediate buffer.
+  * Turn off ENOBUFS messages.
+
 ## v0.9.3
 
 * Enhancements
