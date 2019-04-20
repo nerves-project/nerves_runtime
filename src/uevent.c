@@ -30,6 +30,7 @@
 
 #include <libmnl/libmnl.h>
 #include <linux/rtnetlink.h>
+#include <linux/limits.h>
 
 #include <ei.h>
 
