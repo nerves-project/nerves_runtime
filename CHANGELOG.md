@@ -1,5 +1,10 @@
 # Changelog
 
+## v0.9.5
+
+* Bug fixes
+  * Fix C compiler error (PATH_MAX undeclared) on x86_64/muslc systems
+
 ## v0.9.4
 
 * Enhancements
