@@ -53,7 +53,7 @@ jobs:
       - run: mix deps.get
       - run: mix test
       - run: mix format --check-formatted
-      - run: mdl --style .circleci/md-style.rb *.md
+      - run: mdl --style .circleci/md-style.rb README.md
       - run: mix docs
       - run: mix hex.build
       - run: mix dialyzer --halt-exit-status

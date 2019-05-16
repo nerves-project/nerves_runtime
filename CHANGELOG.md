@@ -135,7 +135,6 @@ version of `erts` was compiled without it.
     Elixir's `Logger`. If the log volume is too much to the console, consider
     replacing the console logger with `ring_logger` or another logger backend.
 
-
 * Bug Fixes
   * `cmd/1` helper improvements to interactively print output from long running
     commands.
@@ -189,7 +188,8 @@ version of `erts` was compiled without it.
 ## v0.4.2
 
 * Enhancements
-  * Makefile only builds for Linux hosts or cross compile environments. Allows package to compile on other platforms.
+  * Makefile only builds for Linux hosts or cross compile environments. Allows
+    package to compile on other platforms.
 
 ## v0.4.1
 
@@ -204,7 +204,8 @@ version of `erts` was compiled without it.
 ## v0.3.1
 
 * Bug Fixes
-  * Increased erl_cmd buffer size to 2048 to prevent segfaults with uevents for devices with many attributes.
+  * Increased erl_cmd buffer size to 2048 to prevent segfaults with uevents for
+    devices with many attributes.
 
 ## v0.3.0
 
