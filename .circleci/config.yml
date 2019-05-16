@@ -1,3 +1,5 @@
+version: 2
+
 install_elixir: &install_elixir
   run:
     name: Install Elixir
@@ -20,33 +22,40 @@ install_system_deps: &install_system_deps
       apt update
       apt install -y unzip astyle libmnl-dev
 
+install_mdl: &install_mdl
+  run:
+    name: Install Markdown Lint
+    command: |
+      apt install -y ruby
+      gem install mdl
+
 defaults: &defaults
   working_directory: ~/repo
-
-version: 2
 
 jobs:
   build_elixir_1_8_otp_21:
     docker:
-      - image: erlang:21.2
+      - image: erlang:21.3
         environment:
-          ELIXIR_VERSION: 1.8.1-otp-21
+          ELIXIR_VERSION: 1.8.2-otp-21
           LC_ALL: C.UTF-8
           SUDO: true
     <<: *defaults
     steps:
       - checkout
       - <<: *install_system_deps
+      - <<: *install_mdl
       - <<: *install_elixir
       - <<: *install_hex_rebar
       - restore_cache:
           keys:
             - v1-mix-cache-{{ checksum "mix.lock" }}
       - run: mix deps.get
-      - run: mix format --check-formatted
-      - run: mix hex.build
       - run: mix test
+      - run: mix format --check-formatted
+      - run: mdl --style .circleci/md-style.rb *.md
       - run: mix docs
+      - run: mix hex.build
       - run: mix dialyzer --halt-exit-status
       - save_cache:
           key: v1-mix-cache-{{ checksum "mix.lock" }}
@@ -56,7 +65,7 @@ jobs:
 
   build_elixir_1_7_otp_21:
     docker:
-      - image: erlang:21.1
+      - image: erlang:21.3
         environment:
           ELIXIR_VERSION: 1.7.4-otp-21
           LC_ALL: C.UTF-8
@@ -72,7 +81,7 @@ jobs:
 
   build_elixir_1_6_otp_21:
     docker:
-      - image: erlang:21.1
+      - image: erlang:21.3
         environment:
           ELIXIR_VERSION: 1.6.6-otp-21
           LC_ALL: C.UTF-8
