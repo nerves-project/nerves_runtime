@@ -22,7 +22,7 @@ defmodule Nerves.Runtime.Log.SyslogTailer do
   @impl true
   def init(_args) do
     # Blindly try to remove an old file just in case it exists from a previous run
-    File.rm(@syslog_path)
+    _ = File.rm(@syslog_path)
 
     {:ok, log_port} =
       :gen_udp.open(0, [:local, :binary, {:active, true}, {:ip, {:local, @syslog_path}}])
@@ -37,19 +37,23 @@ defmodule Nerves.Runtime.Log.SyslogTailer do
   def handle_info({:udp, log_port, _, 0, raw_entry}, log_port) do
     case Parser.parse_syslog(raw_entry) do
       %{facility: facility, severity: severity, message: message} ->
-        Logger.bare_log(
-          logger_level(severity),
-          message,
-          module: __MODULE__,
-          facility: facility,
-          severity: severity
-        )
+        _ =
+          Logger.bare_log(
+            logger_level(severity),
+            message,
+            module: __MODULE__,
+            facility: facility,
+            severity: severity
+          )
+
+        :ok
 
       _ ->
         # This is unlikely to ever happen, but if a message was somehow
         # malformed and we couldn't parse the syslog priority, we should
         # still do a best-effort to pass along the raw data.
         _ = Logger.warn("Malformed syslog report: #{inspect(raw_entry)}")
+        :ok
     end
 
     {:noreply, log_port}

@@ -55,7 +55,8 @@ defmodule Nerves.Runtime.MixProject do
 
   defp dialyzer() do
     [
-      flags: [:race_conditions, :unmatched_returns, :error_handling]
+      flags: [:race_conditions, :unmatched_returns, :error_handling],
+      ignore_warnings: ".dialyzer_ignore.exs"
     ]
   end
 

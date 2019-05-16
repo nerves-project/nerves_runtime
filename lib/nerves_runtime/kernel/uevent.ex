@@ -44,7 +44,7 @@ defmodule Nerves.Runtime.Kernel.UEvent do
   @impl true
   def handle_info({port, {:data, message}}, %State{port: port} = s) do
     {action, scope_no_state, kvmap} = :erlang.binary_to_term(message)
-    registry(action, [:state | scope_no_state], kvmap, s)
+    _ = registry(action, [:state | scope_no_state], kvmap, s)
     {:noreply, s}
   end
 
@@ -55,10 +55,13 @@ defmodule Nerves.Runtime.Kernel.UEvent do
 
     if s.use_system_registry do
       if subsystem = Map.get(kvmap, "subsystem") do
-        SystemRegistry.update_in(subsystem_scope(subsystem), fn v ->
-          v = if is_nil(v), do: [], else: v
-          [scope | v]
-        end)
+        _ =
+          SystemRegistry.update_in(subsystem_scope(subsystem), fn v ->
+            v = if is_nil(v), do: [], else: v
+            [scope | v]
+          end)
+
+        :ok
       end
 
       SystemRegistry.update(scope, kvmap)
@@ -67,7 +70,7 @@ defmodule Nerves.Runtime.Kernel.UEvent do
 
   def registry("remove", scope, kvmap, %State{use_system_registry: true}) do
     # Logger.debug("uevent remove: #{inspect(scope)}")
-    SystemRegistry.delete(scope)
+    _ = SystemRegistry.delete(scope)
 
     if subsystem = Map.get(kvmap, "subsystem") do
       SystemRegistry.update_in(subsystem_scope(subsystem), fn v ->
@@ -102,7 +105,10 @@ defmodule Nerves.Runtime.Kernel.UEvent do
   end
 
   defp modprobe(%{"modalias" => modalias}) do
-    System.cmd("/sbin/modprobe", [modalias], stderr_to_stdout: true)
+    # There's not necessarily a kernel module to be loaded for many
+    # modalias values. We don't know without trying, though.
+    _ = System.cmd("/sbin/modprobe", [modalias], stderr_to_stdout: true)
+    :ok
   end
 
   defp modprobe(_), do: :noop
