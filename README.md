@@ -31,12 +31,12 @@ assume that the system is already initialized before they start. To set up
 3. Ensure that `:nerves_runtime` is at the beginning of the `init:` list in
    your `config/config.exs`:
 
-    ```elixir
-    config :shoehorn,
-      overlay_path: "",
-      init: [:nerves_runtime, :other_app1, :other_app2],
-      app: :your_app
-    ```
+```elixir
+config :shoehorn,
+  overlay_path: "",
+  init: [:nerves_runtime, :other_app1, :other_app2],
+  app: :your_app
+```
 
 ### Kernel Modules
 
@@ -144,7 +144,7 @@ time. Depending on your project, you may prefer to set them using a customized
 `fwup.conf` configuration file instead.
 
 The `fwup -m` value shows the key that you'll see if you run `fwup -m -i
-<project.fw>` to extract the firmware metadata from the `.fw` file.
+project.fw` to extract the firmware metadata from the `.fw` file.
 
 Key in `Nerves.Runtime`               | Key in `mix.exs`            | Build Environment Variable            | Key in `fwup -m`
 ------------------------------------- | --------------------------- | ------------------------------------- | ----------------
