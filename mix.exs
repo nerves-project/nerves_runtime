@@ -14,10 +14,8 @@ defmodule Nerves.Runtime.MixProject do
       description: description(),
       package: package(),
       docs: docs(),
+      dialyzer: dialyzer(),
       deps: deps(),
-      dialyzer: [
-        flags: [:race_conditions, :underspecs]
-      ],
       aliases: [format: [&format_c/1, "format"]]
     ]
   end
@@ -35,7 +33,7 @@ defmodule Nerves.Runtime.MixProject do
       {:elixir_make, "~> 0.5", runtime: false},
       {:uboot_env, "~> 0.1"},
       {:ex_doc, "~> 0.18", only: [:dev, :test], runtime: false},
-      {:dialyxir, "~> 1.0.0-rc.4", only: :dev, runtime: false}
+      {:dialyxir, "~> 1.0.0-rc.6", only: :dev, runtime: false}
     ]
   end
 
@@ -52,6 +50,12 @@ defmodule Nerves.Runtime.MixProject do
       files: ["lib", "LICENSE", "mix.exs", "README.md", "src/*.[ch]", "Makefile"],
       licenses: ["Apache-2.0"],
       links: %{"Github" => "https://github.com/nerves-project/nerves_runtime"}
+    ]
+  end
+
+  defp dialyzer() do
+    [
+      flags: [:race_conditions, :unmatched_returns, :error_handling]
     ]
   end
 
