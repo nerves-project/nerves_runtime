@@ -112,12 +112,12 @@ defmodule Nerves.Runtime.Init do
   defp mount(%{mounted: :mounted} = s), do: s
 
   defp mount(s) do
-    Runtime.cmd("mount", ["-t", s.fstype, "-o", "rw", s.devpath, s.target], :info)
+    check_cmd("mount", ["-t", s.fstype, "-o", "rw", s.devpath, s.target], :info)
     mounted_state(s)
   end
 
   defp unmount_if_error(%{mounted: :mounted_with_error} = s) do
-    Runtime.cmd("umount", [s.target], :info)
+    check_cmd("umount", [s.target], :info)
     mounted_state(s)
   end
 
@@ -136,11 +136,22 @@ defmodule Nerves.Runtime.Init do
   defp format_if_unmounted(s), do: s
 
   defp mkfs("f2fs", devpath) do
-    Runtime.cmd("mkfs.f2fs", ["#{devpath}"], :info)
+    check_cmd("mkfs.f2fs", ["#{devpath}"], :info)
   end
 
   defp mkfs(fstype, devpath) do
-    Runtime.cmd("mkfs.#{fstype}", ["-U", @app_partition_uuid, "-F", "#{devpath}"], :info)
+    check_cmd("mkfs.#{fstype}", ["-U", @app_partition_uuid, "-F", "#{devpath}"], :info)
+  end
+
+  defp check_cmd(cmd, args, out) do
+    case Runtime.cmd(cmd, args, out) do
+      {0, _} ->
+        :ok
+
+      {status, _} ->
+        _ = Logger.warn("Ignoring non-zero exit status (#{status}) from #{cmd} #{inspect(args)}")
+        :ok
+    end
   end
 
   defp validate_mount(s), do: s.mounted

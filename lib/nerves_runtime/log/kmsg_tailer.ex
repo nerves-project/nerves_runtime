@@ -31,7 +31,7 @@ defmodule Nerves.Runtime.Log.KmsgTailer do
         {port, {:data, {:eol, fragment}}},
         %{port: port, buffer: buffer} = state
       ) do
-    handle_message(buffer <> fragment)
+    _ = handle_message(buffer <> fragment)
     {:noreply, %{state | buffer: ""}}
   end
 

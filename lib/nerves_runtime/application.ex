@@ -2,15 +2,14 @@ defmodule Nerves.Runtime.Application do
   @moduledoc false
 
   use Application
+  require Logger
 
-  alias Nerves.Runtime.{
-    Init,
-    Kernel,
-    KV
-  }
-
+  alias Nerves.Runtime.{Init, Kernel, KV}
   alias Nerves.Runtime.Log.{KmsgTailer, SyslogTailer}
 
+  @rngd_path "/usr/sbin/rngd"
+
+  @impl true
   def start(_type, _args) do
     # On systems with hardware random number generation, it is important that
     # "rngd" gets started as soon as possible to start adding entropy to the
@@ -46,11 +45,18 @@ defmodule Nerves.Runtime.Application do
   end
 
   defp try_rngd() do
-    rngd_path = "/usr/sbin/rngd"
-
-    if File.exists?(rngd_path) do
+    if File.exists?(@rngd_path) do
       # Launch rngd. It daemonizes itself so this should return quickly.
-      System.cmd(rngd_path, [])
+      case System.cmd(@rngd_path, []) do
+        {0, _} ->
+          :ok
+
+        {_non_zero, reason} ->
+          _ = Logger.warn("Failed to start rngd: #{reason}")
+          :ok
+      end
+    else
+      :ok
     end
   end
 end
