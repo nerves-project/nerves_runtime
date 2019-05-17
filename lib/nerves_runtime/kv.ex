@@ -1,25 +1,88 @@
 defmodule Nerves.Runtime.KV do
   @moduledoc """
-  Key Value Storage for firmware variables provided by fwup
+  Key Value storage for firmware variables provided by fwup.
 
-  KV provides access to metadata variables set by fwup.
-  It can be used to obtain information such as the active
-  firmware slot, where the application data partition
-  is located, etc.
+  KV provides functionality to read and modify firmware metadata set up fwup.
+  The firmware metadata contains information such as the active firmware
+  slot, where the application data partition is located, etc. The firmware
+  metadata store is a simple key-value store where both keys and values are
+  stored as strings.
 
-  Values are stored in two ways.
-  * Values that do not pertain to a specific firmware slot
-  For example:
-    `"nerves_fw_active" => "a"`
+  The firmware metadata is stored in the U-boot environment block stored at
+  the beginning of the disk outside of actual partitions. It is not stored
+  redundantly, and it can be susceptible to corruption in case of power
+  failure during writes. For this reason, it is recommended to use the
+  firmware metadata with caution. The access patterns in this module lower
+  the risk of corruption, and risk can be lowered further by storing as
+  little data as possible in the firmware metadata.
 
-  * Values that pertain to a specific firmware slot
-  For Example:
-    `"a.nerves_fw_author" => "The Nerves Team"`
+  `UBootEnv` can alternatively be used for more direct access to the firmware
+  metadata. However, since KV utilizes caching of the firmware metadata, you
+  should use either KV or UBootEnv, not both.
 
-  You can find values for just the active firmware slot by
-  using get_active and get_all_active. The result of these
-  functions will trim the firmware slot (`"a."` or `"b."`)
-  from the leading characters of the keys returned.
+  ## Examples
+
+  Getting all firmware metadata:
+
+      iex> KV.get_all()
+      %{
+        "nerves_fw_active" => "a",
+        "nerves_serial_number" => "SKF-1001-12",
+        "a.nerves_fw_uuid" => "4e08ad59-fa3c-5498-4a58-179b43cc1a25",
+        "b.nerves_fw_uuid" => "d9492bdb-94de-5288-425e-2de6928ef99c",
+      }
+
+  Parts of the firmware metadata are global, while others pertain to a
+  specific firmware slot. This is indicated by the key - data which describes
+  firmware of a specific slot have keys prefixed with the name of the
+  firmware slot. In the above example, `"nerves_fw_active"` and
+  `"nerves_serial_number"` are global, while `"a.nerves_fw_version"` and
+  `"b.nerves_fw_version"` apply to the "a" and "b" firmware slots,
+  respectively.
+
+  It is also possible to get firmware metadata that only pertains to the
+  currently active firmware slot:
+
+      iex> KV.get_all_active()
+      %{
+        "nerves_fw_uuid" => "4e08ad59-fa3c-5498-4a58-179b43cc1a25",
+        "nerves_fw_architecture" => "arm"
+      }
+
+  Note that `get_all_active/0` strips out the `a.` and `b.` prefixes.
+
+  Further, the two functions `get/1` and `get_active/1` allow you to get a
+  specific key from the firmware metadata. `get/1` requires specifying the
+  entire key name, while `get_active/1` will prepend the slot prefix for you:
+
+      iex> KV.get("nerves_fw_active")
+      "a"
+      iex> KV.get("a.nerves_fw_uuid")
+      "4e08ad59-fa3c-5498-4a58-179b43cc1a25"
+      iex> KV.get_active("nerves_fw_uuid")
+      "4e08ad59-fa3c-5498-4a58-179b43cc1a25"
+
+  Aside from reading values from the KV store, it is also possible to write
+  new values to the firmware metadata. New values may either have unique keys,
+  in which case they will be added to the firmware metadata, or re-use a key,
+  in which case they will overwrite the current value with that key:
+
+      iex> KV.put("my_firmware_key", "my_value")
+      :ok
+      iex> KV.put("nerves_serial_number", "my_new_serial_number")
+      :ok
+      iex> KV.get_all()
+      %{
+        "nerves_fw_active" => "a",
+        "nerves_serial_number" => "my_new_serial_number",
+        "my_firmware_key" => "my_value"
+      }
+
+  Lastly, it is possible to write a collection of values at once, in order
+  to minimize number of writes:
+
+      iex> KV.put(%{one_key" => "one_val", "two_key" => "two_val"})
+      :ok
   """
 
   use GenServer
@@ -78,6 +141,22 @@ defmodule Nerves.Runtime.KV do
     GenServer.call(__MODULE__, :get_all)
   end
 
+  @doc """
+  Write a key-value pair to the firmware metadata
+  """
+  @spec put(String.t(), String.t()) :: :ok
+  def put(key, value) do
+    GenServer.call(__MODULE__, {:put, %{key => value}})
+  end
+
+  @doc """
+  Write a collection of key-value pairs to the firmware metadata
+  """
+  @spec put(Map.t()) :: :ok
+  def put(kv) do
+    GenServer.call(__MODULE__, {:put, kv})
+  end
+
   @impl true
   def init(opts) do
     {:ok, mod().init(opts)}
@@ -103,6 +182,14 @@ defmodule Nerves.Runtime.KV do
   @impl true
   def handle_call(:get_all, _from, s) do
     {:reply, s, s}
+  end
+
+  @impl true
+  def handle_call({:put, kv}, _from, s) do
+    case mod().put(kv) do
+      :ok -> {:reply, :ok, Map.merge(s, kv)}
+      error -> {:reply, error, s}
+    end
   end
 
   defp active(s), do: Map.get(s, "nerves_fw_active", "")
