@@ -11,10 +11,14 @@ defmodule Nerves.Runtime.KV.UBootEnv do
   end
 
   def put(key, value) do
+    put(%{key => value})
+  end
+
+  def put(%{} = kv) do
     case UBootEnv.read() do
-      {:ok, kv} ->
-        kv
-        |> Map.put(key, value)
+      {:ok, current_kv} ->
+        current_kv
+        |> Map.merge(kv)
         |> UBootEnv.write()
 
       error ->
