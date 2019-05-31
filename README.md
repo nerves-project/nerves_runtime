@@ -188,7 +188,7 @@ more work to protect against faulty upgrades.
 
 Nerves firmware updates protect against update corruption and powerloss
 midway into the update procedure. However, what happens if the firmware update
-contains bad code that hangs the device or makes breaks something important like
+contains bad code that hangs the device or breaks something important like
 networking? Some Nerves systems support tentative runs of new firmware and if
 something goes wrong, they'll revert back.
 
@@ -199,16 +199,16 @@ the firmware update server within 5 minutes of boot?"
 Here's the process:
 
 1. New firmware is installed in the normal manner. The `Nerves.Runtime.KV`
-   variable, `nerves_validated` is set to 0.
+   variable, `nerves_fw_validated` is set to 0.
 2. The system reboots like normal.
 3. The device starts a five minute reboot timer (your code needs to do this)
 4. The application attempts to make a connection to the firmware update server.
-5. On a good connection, the application sets `nerves_validated` to 1 and
+5. On a good connection, the application sets `nerves_fw_validated` to 1 and
    cancels the reboot timer.
 6. On error, the reboot timer failing, or a hardware watchdog timeout, the
    system reboots. The bootloader reverts to the previous firmware.
 
-To use this feature, the `nerves_autovalidate` variable must be set to 0. This
+To use this feature, the `nerves_fw_autovalidate` variable must be set to 0. This
 can be done at device provisioning time (like when the serial number is set) or
 inside a custom `fwup.conf`.
 
