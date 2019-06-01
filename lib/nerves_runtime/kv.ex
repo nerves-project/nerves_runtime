@@ -2,7 +2,7 @@ defmodule Nerves.Runtime.KV do
   @moduledoc """
   Key Value storage for firmware variables provided by fwup.
 
-  KV provides functionality to read and modify firmware metadata set up fwup.
+  KV provides functionality to read and modify firmware metadata set by fwup.
   The firmware metadata contains information such as the active firmware
   slot, where the application data partition is located, etc. The firmware
   metadata store is a simple key-value store where both keys and values are
@@ -24,12 +24,35 @@ defmodule Nerves.Runtime.KV do
 
   Getting all firmware metadata:
 
-      iex> KV.get_all()
+      iex> Nerves.Runtime.KV.get_all()
       %{
-        "nerves_fw_active" => "a",
-        "nerves_serial_number" => "SKF-1001-12",
-        "a.nerves_fw_uuid" => "4e08ad59-fa3c-5498-4a58-179b43cc1a25",
-        "b.nerves_fw_uuid" => "d9492bdb-94de-5288-425e-2de6928ef99c",
+        "a.nerves_fw_application_part0_devpath" => "/dev/mmcblk0p3",
+        "a.nerves_fw_application_part0_fstype" => "ext4",
+        "a.nerves_fw_application_part0_target" => "/root",
+        "a.nerves_fw_architecture" => "arm",
+        "a.nerves_fw_author" => "The Nerves Team",
+        "a.nerves_fw_description" => "",
+        "a.nerves_fw_misc" => "",
+        "a.nerves_fw_platform" => "rpi0",
+        "a.nerves_fw_product" => "test_app",
+        "a.nerves_fw_uuid" => "d9492bdb-94de-5288-425e-2de6928ef99c",
+        "a.nerves_fw_vcs_identifier" => "",
+        "a.nerves_fw_version" => "0.1.0",
+        "b.nerves_fw_application_part0_devpath" => "/dev/mmcblk0p3",
+        "b.nerves_fw_application_part0_fstype" => "ext4",
+        "b.nerves_fw_application_part0_target" => "/root",
+        "b.nerves_fw_architecture" => "arm",
+        "b.nerves_fw_author" => "The Nerves Team",
+        "b.nerves_fw_description" => "",
+        "b.nerves_fw_misc" => "",
+        "b.nerves_fw_platform" => "rpi0",
+        "b.nerves_fw_product" => "test_app",
+        "b.nerves_fw_uuid" => "4e08ad59-fa3c-5498-4a58-179b43cc1a25",
+        "b.nerves_fw_vcs_identifier" => "",
+        "b.nerves_fw_version" => "0.1.1",
+        "nerves_fw_active" => "b",
+        "nerves_fw_devpath" => "/dev/mmcblk0",
+        "nerves_serial_number" => ""
       }
 
   Parts of the firmware metadata are global, while others pertain to a
@@ -43,10 +66,20 @@ defmodule Nerves.Runtime.KV do
   It is also possible to get firmware metadata that only pertains to the
   currently active firmware slot:
 
-      iex> KV.get_all_active()
+      iex> Nerves.Runtime.KV.get_all_active()
       %{
+        "nerves_fw_application_part0_devpath" => "/dev/mmcblk0p3",
+        "nerves_fw_application_part0_fstype" => "ext4",
+        "nerves_fw_application_part0_target" => "/root",
+        "nerves_fw_architecture" => "arm",
+        "nerves_fw_author" => "The Nerves Team",
+        "nerves_fw_description" => "",
+        "nerves_fw_misc" => "",
+        "nerves_fw_platform" => "rpi0",
+        "nerves_fw_product" => "test_app",
         "nerves_fw_uuid" => "4e08ad59-fa3c-5498-4a58-179b43cc1a25",
-        "nerves_fw_architecture" => "arm"
+        "nerves_fw_vcs_identifier" => "",
+        "nerves_fw_version" => "0.1.1"
       }
 
   Note that `get_all_active/0` strips out the `a.` and `b.` prefixes.
@@ -55,11 +88,11 @@ defmodule Nerves.Runtime.KV do
   specific key from the firmware metadata. `get/1` requires specifying the
   entire key name, while `get_active/1` will prepend the slot prefix for you:
 
-      iex> KV.get("nerves_fw_active")
-      "a"
-      iex> KV.get("a.nerves_fw_uuid")
+      iex> Nerves.Runtime.KV.get("nerves_fw_active")
+      "b"
+      iex> Nerves.Runtime.KV.get("b.nerves_fw_uuid")
       "4e08ad59-fa3c-5498-4a58-179b43cc1a25"
-      iex> KV.get_active("nerves_fw_uuid")
+      iex> Nerves.Runtime.KV.get_active("nerves_fw_uuid")
       "4e08ad59-fa3c-5498-4a58-179b43cc1a25"
 
   Aside from reading values from the KV store, it is also possible to write
@@ -67,22 +100,26 @@ defmodule Nerves.Runtime.KV do
   in which case they will be added to the firmware metadata, or re-use a key,
   in which case they will overwrite the current value with that key:
 
-      iex> KV.put("my_firmware_key", "my_value")
-      :ok
-      iex> KV.put("nerves_serial_number", "my_new_serial_number")
-      :ok
-      iex> KV.get_all()
-      %{
-        "nerves_fw_active" => "a",
-        "nerves_serial_number" => "my_new_serial_number",
-        "my_firmware_key" => "my_value"
-      }
+      iex> :ok = Nerves.Runtime.KV.put("my_firmware_key", "my_value")
+      iex> :ok = Nerves.Runtime.KV.put("nerves_serial_number", "my_new_serial_number")
+      iex> Nerves.Runtime.KV.get("my_firmware_key")
+      "my_value"
+      iex> Nerves.Runtime.KV.get("nerves_serial_number")
+      "my_new_serial_number"
 
-  Lastly, it is possible to write a collection of values at once, in order
-  to minimize number of writes:
+  It is possible to write a collection of values at once, in order to
+  minimize number of writes:
 
-      iex> KV.put(%{one_key" => "one_val", "two_key" => "two_val"})
-      :ok
+      iex> :ok = Nerves.Runtime.KV.put(%{"one_key" => "one_val", "two_key" => "two_val"})
+      iex> Nerves.Runtime.KV.get("one_key")
+      "one_val"
+
+  Lastly, `put_active/1` and `put_active/2` allow you to write firmware metadata to the
+  currently active firmware slot without specifying the slot prefix yourself:
+
+      iex> :ok = Nerves.Runtime.KV.put_active("nerves_fw_misc", "Nerves is awesome")
+      iex> Nerves.Runtime.KV.get_active("nerves_fw_misc")
+      "Nerves is awesome"
   """
 
   use GenServer
@@ -157,6 +194,22 @@ defmodule Nerves.Runtime.KV do
     GenServer.call(__MODULE__, {:put, kv})
   end
 
+  @doc """
+  Write a key-value pair to the active firmware slot
+  """
+  @spec put_active(String.t(), String.t()) :: :ok
+  def put_active(key, value) do
+    GenServer.call(__MODULE__, {:put_active, %{key => value}})
+  end
+
+  @doc """
+  Write a collection of key-value pairs to the active firmware slot
+  """
+  @spec put_active(Map.t()) :: :ok
+  def put_active(kv) do
+    GenServer.call(__MODULE__, {:put_active, kv})
+  end
+
   @impl true
   def init(opts) do
     {:ok, mod().init(opts)}
@@ -186,10 +239,17 @@ defmodule Nerves.Runtime.KV do
 
   @impl true
   def handle_call({:put, kv}, _from, s) do
-    case mod().put(kv) do
-      :ok -> {:reply, :ok, Map.merge(s, kv)}
-      error -> {:reply, error, s}
-    end
+    {reply, s} = do_put(kv, s)
+    {:reply, reply, s}
+  end
+
+  @impl true
+  def handle_call({:put_active, kv}, _from, s) do
+    {reply, s} =
+      Map.new(kv, fn {key, value} -> {"#{active(s)}.#{key}", value} end)
+      |> do_put(s)
+
+    {:reply, reply, s}
   end
 
   defp active(s), do: Map.get(s, "nerves_fw_active", "")
@@ -204,6 +264,13 @@ defmodule Nerves.Runtime.KV do
     end)
     |> Enum.map(fn {k, v} -> {String.replace_leading(k, active, ""), v} end)
     |> Enum.into(%{})
+  end
+
+  defp do_put(kv, s) do
+    case mod().put(kv) do
+      :ok -> {:ok, Map.merge(s, kv)}
+      error -> {error, s}
+    end
   end
 
   defp mod() do
