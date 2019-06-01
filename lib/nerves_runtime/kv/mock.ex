@@ -18,4 +18,6 @@ defmodule Nerves.Runtime.KV.Mock do
 
   def init_state(state) when is_map(state), do: state
   def init_state(_state), do: %{}
+
+  def put(_), do: :ok
 end
