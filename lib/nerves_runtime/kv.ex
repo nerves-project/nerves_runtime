@@ -126,6 +126,7 @@ defmodule Nerves.Runtime.KV do
   require Logger
 
   @callback init(opts :: any) :: initial_state :: map
+  @callback put(state :: map) :: :ok | {:error, reason :: any()}
 
   alias __MODULE__
 
