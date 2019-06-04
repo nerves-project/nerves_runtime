@@ -1,5 +1,13 @@
 # Changelog
 
+## v0.10.0
+
+* New feature
+  * Added `Nerves.Runtime.KV.put` and `Nerves.Runtime.KV.put_active` to support
+    setting environment. This removes the need to run `fw_setenv` and also
+    updates the cached key/value pairs. Thanks to Troels Brødsgaard for
+    implementing.
+
 ## v0.9.5
 
 * Bug fixes
