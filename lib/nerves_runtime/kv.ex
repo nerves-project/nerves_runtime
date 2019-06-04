@@ -189,7 +189,7 @@ defmodule Nerves.Runtime.KV do
   @doc """
   Write a collection of key-value pairs to the firmware metadata
   """
-  @spec put(Map.t()) :: :ok
+  @spec put(map()) :: :ok
   def put(kv) do
     GenServer.call(__MODULE__, {:put, kv})
   end
@@ -205,7 +205,7 @@ defmodule Nerves.Runtime.KV do
   @doc """
   Write a collection of key-value pairs to the active firmware slot
   """
-  @spec put_active(Map.t()) :: :ok
+  @spec put_active(map()) :: :ok
   def put_active(kv) do
     GenServer.call(__MODULE__, {:put_active, kv})
   end
