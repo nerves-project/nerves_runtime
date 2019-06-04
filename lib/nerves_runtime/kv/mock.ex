@@ -7,11 +7,10 @@ defmodule Nerves.Runtime.KV.Mock do
   Application config.
 
   ```elixir
-  config :nerves_runtime, :modules, [
-    {Nerves.Runtime.KV.Mock, %{"key" => "value"}}
-  ]
+  config :nerves_runtime, Nerves.Runtime.KV.Mock, %{"key" => "value"}
   ```
   """
+  @impl true
   def init(state) do
     Application.get_env(:nerves_runtime, __MODULE__) || init_state(state)
   end
@@ -19,5 +18,6 @@ defmodule Nerves.Runtime.KV.Mock do
   def init_state(state) when is_map(state), do: state
   def init_state(_state), do: %{}
 
+  @impl true
   def put(_), do: :ok
 end

@@ -252,11 +252,38 @@ for how to assign serial numbers to devices.
 ## Using nerves_runtime in tests
 
 Applications that depend on `nerves_runtime` for accessing provisioning
-information from the `Nerves.Runtime.KV` can mock the contents through the
-Application config.
+information from the `Nerves.Runtime.KV` can mock the contents with the
+included `Nerves.Runtime.KV.Mock` module through the Application config:
 
 ```elixir
+config :nerves_runtime, Nerves.Runtime.KV.Mock, %{"key" => "value"}
+```
+
+You can also create your own module based on the `Nerves.Runtime.KV` behavior
+and set it to be used in the Application config. In most situations, the
+provided `Nerves.Runtime.KV.Mock` should be sufficient, though this would be
+helpful in cases where you might need to generate the inital state at
+runtime instead:
+
+```elixir
+defmodule MyApp.KV.Mock do
+  @behaviour Nerves.Runtime.KV
+
+  @impl true
+  def init(_opts) do
+    # initial state
+    %{
+      "howdy" => "partner",
+      "dynamic" => some_runtime_calc_function()
+    }
+  end
+
+  @impl true
+  def put(_map), do: :ok
+end
+
+# Then in config.exs
 config :nerves_runtime, :modules, [
-  {Nerves.Runtime.KV.Mock, %{"key" => "value"}}
+  {Nerves.Runtime.KV, MyApp.KV.Mock}
 ]
 ```
