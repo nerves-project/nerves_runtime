@@ -2,7 +2,7 @@ defmodule Nerves.Runtime.Init do
   use GenServer
   require Logger
   alias Nerves.Runtime
-  alias Nerves.Runtime.{KV, OutputLogger}
+  alias Nerves.Runtime.KV
 
   @moduledoc """
   GenServer that handles device initialization.
@@ -145,14 +145,11 @@ defmodule Nerves.Runtime.Init do
 
   defp check_cmd(cmd, args, out) do
     case Runtime.cmd(cmd, args, out) do
-      {0, _} ->
+      {_, 0} ->
         :ok
 
-      {%OutputLogger{}, _} ->
-        :ok
-
-      {status, _} ->
-        _ = Logger.warn("Ignoring non-zero exit status (#{status}) from #{cmd} #{inspect(args)}")
+      _ ->
+        _ = Logger.warn("Ignoring non-zero exit status from #{cmd} #{inspect(args)}")
         :ok
     end
   end
