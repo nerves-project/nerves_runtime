@@ -1,5 +1,12 @@
 # Changelog
 
+## v0.10.1
+
+* Bug fixes
+  * Fix exception on init when mounting the application data partition.
+    This addresses an issue where `:nerves_runtime` would exit due to an
+    unmatched call to `System.cmd/3`.
+
 ## v0.10.0
 
 * New feature
