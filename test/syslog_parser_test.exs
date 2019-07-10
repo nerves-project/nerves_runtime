@@ -1,50 +1,52 @@
 defmodule SyslogParserTest do
   use ExUnit.Case
-  doctest Nerves.Runtime.Log.Parser
+  doctest Nerves.Runtime.Log.SyslogParser
 
-  alias Nerves.Runtime.Log.Parser
+  alias Nerves.Runtime.Log.SyslogParser
 
-  test "parses syslog codes" do
-    assert :kernel ==
-             "<0>Test Message"
-             |> Parser.parse_syslog()
-             |> Map.get(:facility)
+  test "parses syslog messages" do
+    assert {:ok, %{facility: :kernel, severity: :emergency, message: "Test Message"}} ==
+             SyslogParser.parse("<0>Test Message")
 
-    assert :emergency ==
-             "<0>Test Message"
-             |> Parser.parse_syslog()
-             |> Map.get(:severity)
+    assert {:ok, %{facility: :user_level, severity: :notice, message: "Test Message"}} ==
+             SyslogParser.parse("<13>Test Message")
 
-    assert :user_level ==
-             "<13>Test Message"
-             |> Parser.parse_syslog()
-             |> Map.get(:facility)
+    assert {:ok, %{facility: :local2, severity: :informational, message: "Test Message"}} ==
+             SyslogParser.parse("<150>Test Message")
 
-    assert :notice ==
-             "<13>Test Message"
-             |> Parser.parse_syslog()
-             |> Map.get(:severity)
+    assert {:ok, %{facility: :local7, severity: :debug, message: "Test Message"}} ==
+             SyslogParser.parse("<191>Test Message")
 
-    assert :local2 ==
-             "<150>Test Message"
-             |> Parser.parse_syslog()
-             |> Map.get(:facility)
-
-    assert :informational ==
-             "<150>Test Message"
-             |> Parser.parse_syslog()
-             |> Map.get(:severity)
+    assert {:ok, %{facility: :kernel, severity: :emergency, message: ""}} ==
+             SyslogParser.parse("<0>")
   end
 
   test "returns an error tuple if it can't parse" do
-    assert {:error, :not_syslog_format} == Parser.parse_syslog("<beef>Test Message")
+    assert {:error, :parse_error} == SyslogParser.parse("<beef>non-integer code")
+    assert {:error, :parse_error} == SyslogParser.parse("<200>too large code")
+    assert {:error, :parse_error} == SyslogParser.parse("<192>too large code")
+    assert {:error, :parse_error} == SyslogParser.parse("<-1>negative code")
+    assert {:error, :parse_error} == SyslogParser.parse("No syslog code")
   end
 
-  test "parses the message without the syslog priority code" do
-    assert %{message: "[    0.000000] Booting Linux on physical CPU 0x0"} =
-             Parser.parse_syslog("<6>[    0.000000] Booting Linux on physical CPU 0x0")
+  test "decodes priority" do
+    assert {:ok, :kernel, :emergency} == SyslogParser.decode_priority(0)
+    assert {:ok, :user_level, :notice} == SyslogParser.decode_priority(13)
+    assert {:ok, :local2, :informational} == SyslogParser.decode_priority(150)
+    assert {:ok, :local7, :debug} == SyslogParser.decode_priority(191)
+  end
 
-    assert %{message: "Jan  1 00:25:42 root: Test Message"} =
-             Parser.parse_syslog("<13>Jan  1 00:25:42 root: Test Message")
+  test "converts severity to logger levels" do
+    assert :error == SyslogParser.severity_to_logger(:emergency)
+    assert :error == SyslogParser.severity_to_logger(:alert)
+    assert :error == SyslogParser.severity_to_logger(:critical)
+    assert :error == SyslogParser.severity_to_logger(:error)
+
+    assert :warn == SyslogParser.severity_to_logger(:warning)
+
+    assert :info == SyslogParser.severity_to_logger(:notice)
+    assert :info == SyslogParser.severity_to_logger(:informational)
+
+    assert :debug == SyslogParser.severity_to_logger(:debug)
   end
 end
