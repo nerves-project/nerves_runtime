@@ -7,7 +7,7 @@ defmodule Nerves.Runtime.Log.SyslogTailer do
   the Elixir Logger for collection.
   """
 
-  alias Nerves.Runtime.Log.Parser
+  alias Nerves.Runtime.Log.SyslogParser
 
   @syslog_path "/dev/log"
 
@@ -35,11 +35,13 @@ defmodule Nerves.Runtime.Log.SyslogTailer do
 
   @impl true
   def handle_info({:udp, log_port, _, 0, raw_entry}, log_port) do
-    case Parser.parse_syslog(raw_entry) do
-      %{facility: facility, severity: severity, message: message} ->
+    case SyslogParser.parse(raw_entry) do
+      {:ok, %{facility: facility, severity: severity, message: message}} ->
+        level = SyslogParser.severity_to_logger(severity)
+
         _ =
           Logger.bare_log(
-            logger_level(severity),
+            level,
             message,
             module: __MODULE__,
             facility: facility,
@@ -58,9 +60,4 @@ defmodule Nerves.Runtime.Log.SyslogTailer do
 
     {:noreply, log_port}
   end
-
-  defp logger_level(severity) when severity in [:Emergency, :Alert, :Critical, :Error], do: :error
-  defp logger_level(severity) when severity == :Warning, do: :warn
-  defp logger_level(severity) when severity in [:Notice, :Informational], do: :info
-  defp logger_level(severity) when severity == :Debug, do: :debug
 end

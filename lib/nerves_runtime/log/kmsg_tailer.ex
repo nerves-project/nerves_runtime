@@ -8,7 +8,7 @@ defmodule Nerves.Runtime.Log.KmsgTailer do
   use GenServer
 
   require Logger
-  alias Nerves.Runtime.Log.Parser
+  alias Nerves.Runtime.Log.{KmsgParser, SyslogParser}
 
   @doc """
   Start the kmsg monitoring GenServer.
@@ -50,11 +50,13 @@ defmodule Nerves.Runtime.Log.KmsgTailer do
   end
 
   defp handle_message(raw_entry) do
-    case Parser.parse_syslog(raw_entry) do
-      %{facility: facility, severity: severity, message: message} ->
+    case KmsgParser.parse(raw_entry) do
+      {:ok, %{facility: facility, severity: severity, message: message}} ->
+        level = SyslogParser.severity_to_logger(severity)
+
         _ =
           Logger.bare_log(
-            logger_level(severity),
+            level,
             message,
             module: __MODULE__,
             facility: facility,
@@ -62,15 +64,13 @@ defmodule Nerves.Runtime.Log.KmsgTailer do
           )
 
       _ ->
-        # This is unlikely to ever happen, but if a message was somehow
-        # malformed and we couldn't parse the syslog priority, we should
-        # still do a best-effort to pass along the raw data.
-        _ = Logger.warn("Malformed kmsg report: #{inspect(raw_entry)}")
+        # We don't handle continuations and multi-line kmsg logs.
+
+        # It's painful to ignore log messages, but these don't seem
+        # to be reported by dmesg and the ones I've seen so far contain
+        # redundant information that's primary value is that it's
+        # machine parsable (i.e. key=value listings)
+        :ok
     end
   end
-
-  defp logger_level(severity) when severity in [:emergency, :alert, :critical, :error], do: :error
-  defp logger_level(severity) when severity == :warning, do: :warn
-  defp logger_level(severity) when severity in [:notice, :informational], do: :info
-  defp logger_level(severity) when severity == :debug, do: :debug
 end
