@@ -69,8 +69,8 @@ defmodule Nerves.Runtime.Log.KmsgTailer do
     end
   end
 
-  defp logger_level(severity) when severity in [:Emergency, :Alert, :Critical, :Error], do: :error
-  defp logger_level(severity) when severity == :Warning, do: :warn
-  defp logger_level(severity) when severity in [:Notice, :Informational], do: :info
-  defp logger_level(severity) when severity == :Debug, do: :debug
+  defp logger_level(severity) when severity in [:emergency, :alert, :critical, :error], do: :error
+  defp logger_level(severity) when severity == :warning, do: :warn
+  defp logger_level(severity) when severity in [:notice, :informational], do: :info
+  defp logger_level(severity) when severity == :debug, do: :debug
 end

@@ -72,12 +72,12 @@ defmodule Nerves.Runtime.Log.Parser do
   defp facility_name(22), do: :local6
   defp facility_name(23), do: :local7
 
-  defp severity_name(0), do: :Emergency
-  defp severity_name(1), do: :Alert
-  defp severity_name(2), do: :Critical
-  defp severity_name(3), do: :Error
-  defp severity_name(4), do: :Warning
-  defp severity_name(5), do: :Notice
-  defp severity_name(6), do: :Informational
-  defp severity_name(7), do: :Debug
+  defp severity_name(0), do: :emergency
+  defp severity_name(1), do: :alert
+  defp severity_name(2), do: :critical
+  defp severity_name(3), do: :error
+  defp severity_name(4), do: :warning
+  defp severity_name(5), do: :notice
+  defp severity_name(6), do: :informational
+  defp severity_name(7), do: :debug
 end
