@@ -17,6 +17,6 @@ int kmsg_tailer_main(int argc, char *argv[])
     for (;;) {
         ssize_t amt = sendfile(STDOUT_FILENO, fd, NULL, BUFFER_SIZE);
         if (amt < 0)
-            err(EXIT_FAILURE, "%s: sendfile", argv[1]);
+            err(EXIT_FAILURE, "sendfile %s->stdout", KMSG_PATH);
     }
 }
