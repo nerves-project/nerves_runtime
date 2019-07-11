@@ -48,11 +48,11 @@ defmodule Nerves.Runtime.Application do
     if File.exists?(@rngd_path) do
       # Launch rngd. It daemonizes itself so this should return quickly.
       case System.cmd(@rngd_path, []) do
-        {0, _} ->
+        {_, 0} ->
           :ok
 
-        {_non_zero, reason} ->
-          _ = Logger.warn("Failed to start rngd: #{reason}")
+        {reason, _non_zero_exit} ->
+          _ = Logger.warn("Failed to start rngd: #{inspect(reason)}")
           :ok
       end
     else
