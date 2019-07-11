@@ -70,12 +70,29 @@ defmodule Nerves.Runtime do
 
   @doc """
   Run system command and log output into logger.
+
+  NOTE: Unlike System.cmd/3, this does not raise if the executable isn't found
   """
   @spec cmd(binary(), [binary()], :debug | :info | :warn | :error | :return) ::
           {Collectable.t(), exit_status :: non_neg_integer()}
-  def cmd(cmd, params, :return), do: System.cmd(cmd, params, stderr_to_stdout: true)
+  def cmd(cmd, params, log_level_or_return) do
+    case System.find_executable(cmd) do
+      nil ->
+        _ =
+          Logger.error(
+            "Executable #{cmd} was not found. The Nerves System must be fixed to include it!"
+          )
 
-  def cmd(cmd, params, out),
+        {"", 255}
+
+      cmd_path ->
+        run_cmd(cmd_path, params, log_level_or_return)
+    end
+  end
+
+  defp run_cmd(cmd, params, :return), do: System.cmd(cmd, params, stderr_to_stdout: true)
+
+  defp run_cmd(cmd, params, out),
     do: System.cmd(cmd, params, into: OutputLogger.new(out), stderr_to_stdout: true)
 
   @doc """
