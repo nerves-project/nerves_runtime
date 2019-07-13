@@ -19,7 +19,7 @@
 # ERL_LDFLAGS	additional linker flags for projects referencing Erlang libraries
 
 ifeq ($(MIX_COMPILE_PATH),)
-	$(error MIX_COMPILE_PATH should be set by elixir_make!)
+    $(error MIX_COMPILE_PATH should be set by elixir_make!)
 endif
 
 PREFIX = $(MIX_COMPILE_PATH)/../priv
