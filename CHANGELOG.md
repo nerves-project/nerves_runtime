@@ -1,5 +1,22 @@
 # Changelog
 
+## v0.10.2
+
+* Bug fixes
+  * Fix off-by-one error when processing uevent messages with device paths
+    longer than 16 segments. This also bumps the max number of segments to 32.
+  * Fix logger message about `rngd` failing when it was successful
+  * Log errors when required commands aren't available rather than raising. It
+    turned out that raising was disabling logging and that was making it hard to
+    figure out the root cause.
+
+* Enhancements
+  * Switch from parsing `/proc/kmsg` to `/dev/kmsg` for kernel messages. The
+    device interface supplies a little more information and is unaffected by
+    other programs reading from it. This change refactored syslog/kmsg parsing
+    to improve test coverage. This is considered to be an internal API. If you
+    were using it, you will need to update your code.
+
 ## v0.10.1
 
 * Bug fixes
