@@ -108,7 +108,7 @@ static int ei_encode_devpath(char * buf, int *index, char *devpath, char **end_d
             p++;
             segments[segment_ix] = p;
             segment_ix++;
-            if (segment_ix > MAX_SEGMENTS) {
+            if (segment_ix >= MAX_SEGMENTS) {
                 while (*p != '\0') p++;
                 break;
             }
