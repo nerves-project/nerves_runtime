@@ -96,7 +96,7 @@ static int ei_encode_devpath(char * buf, int *index, char *devpath, char **end_d
     // Skip the root slash
     devpath++;
 
-#define MAX_SEGMENTS 16
+#define MAX_SEGMENTS 32
     char *segments[MAX_SEGMENTS];
     segments[0] = devpath;
 
