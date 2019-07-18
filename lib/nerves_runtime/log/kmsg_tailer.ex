@@ -22,6 +22,9 @@ defmodule Nerves.Runtime.Log.KmsgTailer do
   def init(_args), do: {:ok, %{port: open_port(), buffer: ""}}
 
   @impl true
+  def terminate(_, %{port: port}), do: Port.close(port)
+
+  @impl true
   def handle_info({port, {:data, {:noeol, fragment}}}, %{port: port, buffer: buffer} = state) do
     {:noreply, %{state | buffer: buffer <> fragment}}
   end
