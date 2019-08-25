@@ -21,17 +21,7 @@ defmodule Nerves.Runtime.Kernel.UEvent do
   def init(opts) do
     autoload = Keyword.get(opts, :autoload_modules, true)
     use_system_registry = Keyword.get(opts, :use_system_registry, true)
-
-    executable = :code.priv_dir(:nerves_runtime) ++ '/nerves_runtime'
-
-    port =
-      Port.open({:spawn_executable, executable}, [
-        {:arg0, "uevent"},
-        {:packet, 2},
-        :use_stdio,
-        :binary,
-        :exit_status
-      ])
+    port = start_uevent_port()
 
     {:ok,
      %State{
@@ -112,4 +102,26 @@ defmodule Nerves.Runtime.Kernel.UEvent do
   end
 
   defp modprobe(_), do: :noop
+
+  case Mix.env do
+    :test ->
+      defp start_uevent_port() do
+        nil
+      end
+    _ ->
+      defp start_uevent_port() do
+        executable = :code.priv_dir(:nerves_runtime) ++ '/nerves_runtime'
+        Port.open(
+          {:spawn_executable, executable},
+          [
+            {:arg0, "uevent"},
+            {:packet, 2},
+            :use_stdio,
+            :binary,
+            :exit_status
+          ]
+        )
+      end
+  end
+
 end
