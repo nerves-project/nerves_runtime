@@ -118,7 +118,7 @@ Firmware-specific Nerves metadata includes the following:
 
 Key                                   | Example Value     | Description
 :------------------------------------ | :---------------- | :----------
-`nerves_fw_application_part0_devpath` | `"/dev/mmcblkp3"` | The block device that contains the application partition
+`nerves_fw_application_part0_devpath` | `"/dev/mmcblk0p3"` | The block device that contains the application partition
 `nerves_fw_application_part0_fstype`  | `"ext4"`          | The application partition's filesystem type
 `nerves_fw_application_part0_target`  | `"/root"`         | Where to mount the application partition
 `nerves_fw_architecture`              | `"arm"`           | The processor architecture (Not currently used)
@@ -235,7 +235,6 @@ Operating system-level messages from `/dev/log` and `/proc/kmsg`, forwarding
 them to `Logger` with an appropriate level to match the syslog priority parsed
 out of the message.
 
-
 ## uevent/udev events
 
 `nerves_runtime`receives and processes UEvents from the Linux kernel. The processed
@@ -279,12 +278,12 @@ iex> sr[:state]["subsystems"]["mem"]
 ]
 ```
 
-> **WARNING:** Compared to the original device paths used by Linux the device path lists
-> contain an additional `:state` prefix. This allows for a direct usage as keypath into `SystemRegistry`
-> to access their properties.
+> **WARNING:** Compared to the original device paths used by Linux the device
+> path lists contain an additional `:state` prefix. This allows for a direct
+> usage as keypath into `SystemRegistry` to access their properties.
 
-To access the properties of one of the devices above simply use it's device path with `get_in` on
-`SystemRegistry`:
+To access the properties of one of the devices above simply use it's device path
+with `get_in` on `SystemRegistry`:
 
 ```elixir
 iex> get_in(sr, [:state, "devices", "virtual", "mem", "zero"])
@@ -297,7 +296,8 @@ iex> get_in(sr, [:state, "devices", "virtual", "mem", "zero"])
 }
 ```
 
-> **WARNING:** Please note that the returned map might contain non-binary values for non-leaf devices!
+> **WARNING:** Please note that the returned map might contain non-binary values
+> for non-leaf devices!
 
 ```elixir
 iex> get_in(sr,  [:state, "devices", "platform", "ocp", "481d8000.mmc", "mmc_host", "mmc1", "mmc1:0001", "block", "mmcblk1"])
@@ -324,8 +324,9 @@ iex> get_in(sr,  [:state, "devices", "platform", "ocp", "481d8000.mmc", "mmc_hos
 }
 ```
 
-The non-binary values are actually the child devices of the device accessed. If you only
-need the actual device properties you need to filter out non-binary elements.
+The non-binary values are actually the child devices of the device accessed. If
+you only need the actual device properties you need to filter out non-binary
+elements.
 
 ```elixir
 iex> get_in(sr,  [:state, "devices", "platform", "ocp", "481d8000.mmc", "mmc_host", "mmc1", "mmc1:0001", "block", "mmcblk1"])
@@ -345,10 +346,11 @@ iex> get_in(sr,  [:state, "devices", "platform", "ocp", "481d8000.mmc", "mmc_hos
 Nerves systems support several methods for assigning serial numbers to devices.
 By default serial numbers are derived using board-specific identifiers.
 Currently, no one place exists that can be queried for the serial number.
-However, many people are using the `nerves_serial_number` key in the U-Boot environment
-block to store a serial number for their device. This location is not "secure"
-against a determined person who wants to clone a device. However, it is good
-enough for many use cases and is available on all platforms supported by Nerves.
+However, many people are using the `nerves_serial_number` key in the U-Boot
+environment block to store a serial number for their device. This location is
+not "secure" against a determined person who wants to clone a device. However,
+it is good enough for many use cases and is available on all platforms supported
+by Nerves.
 
 See
 [embedded-elixir](https://embedded-elixir.com/post/2018-06-15-serial_number/)
@@ -357,8 +359,8 @@ for how to assign serial numbers to devices.
 ## Using nerves_runtime in tests
 
 Applications that depend on `nerves_runtime` for accessing provisioning
-information from the `Nerves.Runtime.KV` can mock the contents with the
-included `Nerves.Runtime.KV.Mock` module through the Application config:
+information from the `Nerves.Runtime.KV` can mock the contents with the included
+`Nerves.Runtime.KV.Mock` module through the Application config:
 
 ```elixir
 config :nerves_runtime, Nerves.Runtime.KV.Mock, %{"key" => "value"}
@@ -367,8 +369,8 @@ config :nerves_runtime, Nerves.Runtime.KV.Mock, %{"key" => "value"}
 You can also create your own module based on the `Nerves.Runtime.KV` behavior
 and set it to be used in the Application config. In most situations, the
 provided `Nerves.Runtime.KV.Mock` should be sufficient, though this would be
-helpful in cases where you might need to generate the inital state at
-runtime instead:
+helpful in cases where you might need to generate the initial state at runtime
+instead:
 
 ```elixir
 defmodule MyApp.KV.Mock do
