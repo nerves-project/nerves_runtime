@@ -7,7 +7,7 @@
 #
 # Variables to override:
 #
-# MIX_COMPILE_PATH path to the build's ebin directory
+# MIX_APP_PATH  path to the build directory
 #
 # CC            C compiler
 # CROSSCOMPILE	crosscompiler prefix, if any
@@ -18,12 +18,8 @@
 # LDFLAGS	linker flags for linking all binaries
 # ERL_LDFLAGS	additional linker flags for projects referencing Erlang libraries
 
-ifeq ($(MIX_COMPILE_PATH),)
-    $(error MIX_COMPILE_PATH should be set by elixir_make!)
-endif
-
-PREFIX = $(MIX_COMPILE_PATH)/../priv
-BUILD  = $(MIX_COMPILE_PATH)/../obj
+PREFIX = $(MIX_APP_PATH)/priv
+BUILD  = $(MIX_APP_PATH)/obj
 
 # Check that we're on a supported build platform
 ifeq ($(CROSSCOMPILE),)
