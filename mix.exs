@@ -1,10 +1,13 @@
 defmodule Nerves.Runtime.MixProject do
   use Mix.Project
 
+  @version "0.10.2"
+  @source_url "https://github.com/nerves-project/nerves_runtime"
+
   def project do
     [
       app: :nerves_runtime,
-      version: "0.10.2",
+      version: @version,
       elixir: "~> 1.6",
       start_permanent: Mix.env() == :prod,
       build_embedded: true,
@@ -38,7 +41,7 @@ defmodule Nerves.Runtime.MixProject do
   end
 
   defp docs do
-    [extras: ["README.md"], main: "readme"]
+    [extras: ["README.md"], main: "readme", source_ref: "v#{@version}", source_url: @source_url]
   end
 
   defp description do
@@ -49,7 +52,7 @@ defmodule Nerves.Runtime.MixProject do
     [
       files: ["lib", "LICENSE", "mix.exs", "README.md", "src/*.[ch]", "Makefile"],
       licenses: ["Apache-2.0"],
-      links: %{"Github" => "https://github.com/nerves-project/nerves_runtime"}
+      links: %{"Github" => @source_url}
     ]
   end
 
