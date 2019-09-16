@@ -1,5 +1,12 @@
 # Changelog
 
+## v0.10.3
+
+* Bug fixes
+  * Fix potential process accumulation from the kmsg_tailer process ignoring
+    stdin being closed on it.
+  * Tightened deps to avoid combinations that would be difficult to support
+
 ## v0.10.2
 
 * Bug fixes
