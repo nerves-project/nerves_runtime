@@ -21,10 +21,10 @@ information, see the [hex docs](https://hexdocs.pm/nerves_runtime).
 ## System Initialization
 
 `nerves_runtime` provides an OTP application (`nerves_runtime`) that can
-initialize the system when it is started. For this to be useful,
-`nerves_runtime` must be started before other OTP applications, since most will
-assume that the system is already initialized before they start. To set up
-`nerves_runtime` to work with `shoehorn`, you will need to do the following:
+initialize the system on boot. For this to be useful, `nerves_runtime` must be
+started before other OTP applications, since most will assume that the system is
+already initialized before they start. To set up `nerves_runtime` to work with
+`shoehorn`, you will need to do the following:
 
 1. Include `shoehorn` in `mix.exs`
 2. Include `shoehorn` in your `rel/config.exs`
@@ -40,9 +40,9 @@ config :shoehorn,
 
 ### Kernel Modules
 
-`nerves_runtime` will attempt to auto-load kernel modules by calling `modprobe`
-using the `modalias` supplied by the device's `uevent` message. You can disable
-this feature by configuring `autoload: false` in your application configuration:
+`nerves_runtime` loads kernel modules from the `/etc/modules` file and on
+demand as devices are discovered by `uevent` messages. You can disable this
+feature by configuring `autoload: false` in your application configuration:
 
 ```elixir
 config :nerves_runtime, :kernel,
