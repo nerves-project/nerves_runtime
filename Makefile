@@ -18,8 +18,10 @@
 # LDFLAGS	linker flags for linking all binaries
 # ERL_LDFLAGS	additional linker flags for projects referencing Erlang libraries
 
-PREFIX = $(MIX_APP_PATH)/priv
-BUILD  = $(MIX_APP_PATH)/obj
+MIX_PATH = $(shell echo $(MIX_APP_PATH) | sed -e 's/ /\\/g' )
+
+PREFIX = $(MIX_PATH)/priv
+BUILD  = $(MIX_PATH)/obj
 
 # Check that we're on a supported build platform
 ifeq ($(CROSSCOMPILE),)
