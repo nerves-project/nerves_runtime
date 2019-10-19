@@ -7,8 +7,6 @@ defmodule Nerves.Runtime.Application do
   alias Nerves.Runtime.{Init, Kernel, KV}
   alias Nerves.Runtime.Log.{KmsgTailer, SyslogTailer}
 
-  @rngd_path "/usr/sbin/rngd"
-
   @impl true
   def start(_type, _args) do
     # On systems with hardware random number generation, it is important that
@@ -16,7 +14,9 @@ defmodule Nerves.Runtime.Application do
     # system. So much code directly or indirectly uses random numbers that it's
     # very easy to block on the random number generator or get low entropy
     # numbers.
-    try_rngd()
+    # On systems with no hardware random number generation, or where rngd is
+    # not installed, haveged is tried as an alternative.
+    try_entropy_generator("rngd") || try_entropy_generator("haveged")
 
     target = Nerves.Runtime.target()
 
@@ -44,19 +44,21 @@ defmodule Nerves.Runtime.Application do
     ]
   end
 
-  defp try_rngd() do
-    if File.exists?(@rngd_path) do
-      # Launch rngd. It daemonizes itself so this should return quickly.
-      case System.cmd(@rngd_path, []) do
+  defp try_entropy_generator(name) do
+    path = "/usr/sbin/#{name}"
+
+    if File.exists?(path) do
+      # Launch rngd/haveged. They daemonize themselves so this should return quickly.
+      case System.cmd(path, []) do
         {_, 0} ->
-          :ok
+          true
 
         {reason, _non_zero_exit} ->
-          _ = Logger.warn("Failed to start rngd: #{inspect(reason)}")
-          :ok
+          _ = Logger.warn("Failed to start #{name}: #{inspect(reason)}")
+          false
       end
     else
-      :ok
+      false
     end
   end
 end
