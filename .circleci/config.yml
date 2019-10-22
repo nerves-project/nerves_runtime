@@ -22,13 +22,6 @@ install_system_deps: &install_system_deps
       apt update
       apt install -y unzip astyle libmnl-dev
 
-install_mdl: &install_mdl
-  run:
-    name: Install Markdown Lint
-    command: |
-      apt install -y ruby
-      gem install mdl
-
 defaults: &defaults
   working_directory: ~/repo
 
@@ -44,7 +37,6 @@ jobs:
     steps:
       - checkout
       - <<: *install_system_deps
-      - <<: *install_mdl
       - <<: *install_elixir
       - <<: *install_hex_rebar
       - restore_cache:
@@ -53,7 +45,6 @@ jobs:
       - run: mix deps.get
       - run: mix test
       - run: mix format --check-formatted
-      - run: mdl --style .circleci/md-style.rb README.md
       - run: mix docs
       - run: mix hex.build
       - run: mix dialyzer --halt-exit-status
