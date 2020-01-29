@@ -3,8 +3,9 @@ defmodule Nerves.Runtime do
 
   alias Nerves.Runtime.OutputLogger
 
-  # This is provided by all of the official Nerves system images
+  # These is provided by all of the official Nerves system images
   @revert_fw_path "/usr/share/fwup/revert.fw"
+  @boardid_path "/usr/bin/boardid"
 
   @typedoc """
   Options for `Nerves.Runtime.revert/1`.
@@ -66,6 +67,20 @@ defmodule Nerves.Runtime do
     else
       {:error, "Unable to locate revert firmware at path: #{@revert_fw_path}"}
     end
+  end
+
+  @doc """
+  Returns a unique serial number.
+
+  NOTE: see `/etc/boardid.config` for configuration 
+  """
+  @spec serial_number() :: String.t()
+  def serial_number() do
+    {serial, 0} = System.cmd(@boardid_path, [])
+    String.trim(serial)
+  catch
+    _, _ ->
+      "unconfigured"
   end
 
   @doc """
