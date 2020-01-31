@@ -3,7 +3,7 @@ defmodule Nerves.Runtime do
 
   alias Nerves.Runtime.OutputLogger
 
-  # These is provided by all of the official Nerves system images
+  # These are provided by all official Nerves system images
   @revert_fw_path "/usr/share/fwup/revert.fw"
   @boardid_path "/usr/bin/boardid"
 
@@ -70,9 +70,22 @@ defmodule Nerves.Runtime do
   end
 
   @doc """
-  Returns a unique serial number.
+  Return the device's serial number
 
-  NOTE: see `/etc/boardid.config` for configuration
+  Serial number storage is device-specific and configurable. Serial numbers can
+  be programmed in one-time programmable locations like in CPU ROM or
+  cryptographic elements. They can also be in rewritable locations like a
+  U-Boot environment block.
+
+  Nerves uses the [`boardid`](https://github.com/nerves-project/boardid/) by
+  default (set `:boardid_path` key in the application environment to another
+  program to override). Boardid uses the `/etc/boardid.config` file to
+  determine how to read the serial number. Official Nerves systems provide
+  reasonable default mechanisms for getting started. Override this file in your
+  application's `rootfs_overlay` to customize it.
+
+  This function never raises. If a serial number isn't available for any
+  reason, it will return a serial number of `"unconfigured"`.
   """
   @spec serial_number() :: String.t()
   def serial_number() do

@@ -14,6 +14,7 @@ Here are its features:
 * Device reboot and shutdown
 * A small Linux kernel `uevent` application for capturing hardware change events
   and more
+* Device serial numbers
 
 The following sections describe the features in more detail. For more
 information, see the [hex docs](https://hexdocs.pm/nerves_runtime).
@@ -343,18 +344,31 @@ iex> get_in(sr,  [:state, "devices", "platform", "ocp", "481d8000.mmc", "mmc_hos
 
 ## Serial numbers
 
-Nerves systems support several methods for assigning serial numbers to devices.
-By default serial numbers are derived using board-specific identifiers.
-Currently, no one place exists that can be queried for the serial number.
-However, many people are using the `nerves_serial_number` key in the U-Boot
-environment block to store a serial number for their device. This location is
-not "secure" against a determined person who wants to clone a device. However,
-it is good enough for many use cases and is available on all platforms supported
-by Nerves.
+Finding the serial number of a device is both hardware specific and influenced
+by you and your organization's choices for assigning them (or not). Programs
+should call `Nerves.Runtime.serial_number/0` to get the serial number.
+
+Nerves systems all come with some default way of getting a serial number for a
+device. This strategy will likely work for a while, but may not meet your needs
+when it comes to production. Nerves uses
+[`boardid`](https://github.com/nerves-project/boardid/) to read serial numbers
+and it can be customized via its `/etc/boardid.config` file. See `boardid` for
+the mechanisms available. If none of `boardid`'s mechanisms work for you, please
+consider filing an issue or making a PR, since our history has been that
+organizations tend to use similar mechanisms and it's likely someone else will
+use it too.
+
+As a word of caution, many Nerves users write serial numbers in the U-Boot
+environment block under the key `nerves_serial_number`. This is supported and
+documentation exists for it in many places. While it's very convenient, it has
+drawbacks - like it's easily modified. It's definitely not the only mechanism.
+The `boardid.config` file supports trying multiple ways of getting a serial
+number to handle hardware changing over the course of development.
 
 See
 [embedded-elixir](https://embedded-elixir.com/post/2018-06-15-serial_number/)
-for how to assign serial numbers to devices.
+for how to assign serial numbers to devices using the U-Boot environment block
+way.
 
 ## Using nerves_runtime in tests
 
