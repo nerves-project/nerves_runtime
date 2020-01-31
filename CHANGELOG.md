@@ -1,5 +1,13 @@
 # Changelog
 
+## v0.11.0
+
+* New features
+  * Add `Nerves.Runtime.serial_number/0`. It will call out to the underlying
+    system to return the device's serial number however it's stored.
+  * Add a fallback to `haveged` for systems that don't have hardware random
+    number generators or otherwise can't use `rngd`.
+
 ## v0.10.3
 
 * Bug fixes
