@@ -72,11 +72,12 @@ defmodule Nerves.Runtime do
   @doc """
   Returns a unique serial number.
 
-  NOTE: see `/etc/boardid.config` for configuration 
+  NOTE: see `/etc/boardid.config` for configuration
   """
   @spec serial_number() :: String.t()
   def serial_number() do
-    {serial, 0} = System.cmd(@boardid_path, [])
+    boardid_path = Application.get_env(:nerves_runtime, :boardid_path, @boardid_path)
+    {serial, 0} = System.cmd(boardid_path, [])
     String.trim(serial)
   catch
     _, _ ->
