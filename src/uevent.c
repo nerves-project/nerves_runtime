@@ -21,11 +21,13 @@
 #include <errno.h>
 #include <fcntl.h>
 #include <poll.h>
+#include <signal.h>
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
 #include <sys/types.h>
 #include <sys/stat.h>
+#include <sys/wait.h>
 #include <unistd.h>
 
 #include <libmnl/libmnl.h>
@@ -268,6 +270,14 @@ static void scandirs(char *path, int path_end)
     path[path_end] = 0;
 }
 
+static void discovery_exit_handler(int signum)
+{
+    // Call wait on the child so that it's not a zombie, but ignore whether
+    // it exited successfully.
+    int status;
+    wait(&status);
+}
+
 static void uevent_discover()
 {
     // Fork the discover work into a separate process so that it can occur in
@@ -284,6 +294,12 @@ int uevent_main(int argc, char *argv[])
 {
     (void) argc;
     (void) argv;
+
+    struct sigaction act;
+    act.sa_handler = discovery_exit_handler;
+    sigemptyset (&act.sa_mask);
+    act.sa_flags = 0;
+    sigaction (SIGCHLD, &act, NULL);
 
     struct mnl_socket *nl_uevent = uevent_open();
 
