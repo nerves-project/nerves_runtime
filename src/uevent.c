@@ -60,7 +60,7 @@ static void write_all(char *response, size_t len)
 
 static struct mnl_socket *uevent_open()
 {
-    struct mnl_socket *nl_uevent = mnl_socket_open2(NETLINK_KOBJECT_UEVENT, O_NONBLOCK);
+    struct mnl_socket *nl_uevent = mnl_socket_open2(NETLINK_KOBJECT_UEVENT, O_NONBLOCK | O_CLOEXEC);
     if (!nl_uevent)
         err(EXIT_FAILURE, "mnl_socket_open (NETLINK_KOBJECT_UEVENT)");
 

@@ -29,7 +29,7 @@ int kmsg_tailer_main(int argc, char *argv[])
     (void) argc;
     (void) argv;
 
-    int fd = open(KMSG_PATH, O_RDONLY);
+    int fd = open(KMSG_PATH, O_RDONLY | O_CLOEXEC);
     if (fd < 0)
         err(EXIT_FAILURE, "open %s", KMSG_PATH);
 
