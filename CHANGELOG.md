@@ -1,5 +1,12 @@
 # Changelog
 
+## v0.11.1
+
+* Bug fixes
+  * Reap zombie process that was created by the uevent port helper.
+  * Support `uboot_env` v0.2.0 to reduce memory garbage that's created when
+    reading and writing U-Boot environment blocks
+
 ## v0.11.0
 
 * New features
