@@ -11,6 +11,7 @@ defmodule Nerves.Runtime.Init do
 
   1. Mounting the application partition
   2. If the application partition can't be mounted, format it, and then mount it.
+  3. Validates the firmware
 
   Device initialization is usually a first boot only operation. It's possible
   that device filesystems get corrupt enough to cause them to be reinitialized.
@@ -24,6 +25,17 @@ defmodule Nerves.Runtime.Init do
   have also had stalls when formatting while waiting for enough entropy to
   generate a UUID. Look into hardcoding UUIDs or enabling a hw random number
   generator to increase entropy.
+
+  Nerves considers the firmware valid if it gets to this point and so
+  `nerves_fw_validated` UBoot env variable gets set by default so it can be used
+  in revert logic on subsequent reboots. If you wish to handle the logic
+  of firmware validity with your own conditions (i.e. requiring internet connectivity,
+  sensors to be detected, etc), you can disable this auto-validation to allow
+  your application checks later on:
+
+  ```
+  config :nerves_runtime, validate_firmware: false
+  ```
   """
 
   # Use a fixed UUID for the application partition. This has two
@@ -46,6 +58,7 @@ defmodule Nerves.Runtime.Init do
   @impl true
   def init(_args) do
     init_application_partition()
+    maybe_validate_fw()
     {:ok, %{}}
   end
 
@@ -155,4 +168,12 @@ defmodule Nerves.Runtime.Init do
   end
 
   defp validate_mount(s), do: s.mounted
+
+  defp maybe_validate_fw() do
+    validated? = KV.get("nerves_fw_validated") == "1"
+
+    if Application.get_env(:nerves_runtime, :validate_firmware, true) && not validated? do
+      KV.put("nerves_fw_validated", "1")
+    end
+  end
 end
