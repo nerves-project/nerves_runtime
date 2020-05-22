@@ -137,10 +137,9 @@ defmodule Nerves.Runtime.Init do
   defp unmount_if_error(s), do: s
 
   defp format_if_unmounted(%{mounted: :unmounted, fstype: fstype, devpath: devpath} = s) do
-    _ =
-      Logger.warn(
-        "Formatting application partition. If this hangs, it could be waiting on the urandom pool to be initialized"
-      )
+    Logger.warn(
+      "Formatting application partition. If this hangs, it could be waiting on the urandom pool to be initialized"
+    )
 
     mkfs(fstype, devpath)
     s
@@ -162,7 +161,7 @@ defmodule Nerves.Runtime.Init do
         :ok
 
       _ ->
-        _ = Logger.warn("Ignoring non-zero exit status from #{cmd} #{inspect(args)}")
+        Logger.warn("Ignoring non-zero exit status from #{cmd} #{inspect(args)}")
         :ok
     end
   end

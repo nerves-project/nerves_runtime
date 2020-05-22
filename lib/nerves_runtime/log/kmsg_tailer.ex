@@ -54,14 +54,13 @@ defmodule Nerves.Runtime.Log.KmsgTailer do
       {:ok, %{facility: facility, severity: severity, message: message}} ->
         level = SyslogParser.severity_to_logger(severity)
 
-        _ =
-          Logger.bare_log(
-            level,
-            message,
-            module: __MODULE__,
-            facility: facility,
-            severity: severity
-          )
+        Logger.bare_log(
+          level,
+          message,
+          module: __MODULE__,
+          facility: facility,
+          severity: severity
+        )
 
       _ ->
         # We don't handle continuations and multi-line kmsg logs.

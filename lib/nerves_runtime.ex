@@ -107,10 +107,9 @@ defmodule Nerves.Runtime do
   def cmd(cmd, params, log_level_or_return) do
     case System.find_executable(cmd) do
       nil ->
-        _ =
-          Logger.error(
-            "Executable #{cmd} was not found. The Nerves System must be fixed to include it!"
-          )
+        Logger.error(
+          "Executable #{cmd} was not found. The Nerves System must be fixed to include it!"
+        )
 
         {"", 255}
 
@@ -137,7 +136,7 @@ defmodule Nerves.Runtime do
   @spec logged_shutdown(String.t()) :: no_return()
   defp logged_shutdown(cmd) do
     try do
-      _ = Logger.info("#{__MODULE__} : device told to #{cmd}")
+      Logger.info("#{__MODULE__} : device told to #{cmd}")
 
       # Invoke the appropriate command to tell erlinit that a shutdown of the
       # Erlang VM is imminent. Once this returns, the Erlang has about 10

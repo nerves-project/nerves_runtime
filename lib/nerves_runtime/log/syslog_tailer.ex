@@ -39,23 +39,19 @@ defmodule Nerves.Runtime.Log.SyslogTailer do
       {:ok, %{facility: facility, severity: severity, message: message}} ->
         level = SyslogParser.severity_to_logger(severity)
 
-        _ =
-          Logger.bare_log(
-            level,
-            message,
-            module: __MODULE__,
-            facility: facility,
-            severity: severity
-          )
-
-        :ok
+        Logger.bare_log(
+          level,
+          message,
+          module: __MODULE__,
+          facility: facility,
+          severity: severity
+        )
 
       _ ->
         # This is unlikely to ever happen, but if a message was somehow
         # malformed and we couldn't parse the syslog priority, we should
         # still do a best-effort to pass along the raw data.
-        _ = Logger.warn("Malformed syslog report: #{inspect(raw_entry)}")
-        :ok
+        Logger.warn("Malformed syslog report: #{inspect(raw_entry)}")
     end
 
     {:noreply, log_port}

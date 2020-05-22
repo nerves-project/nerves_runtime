@@ -54,7 +54,7 @@ defmodule Nerves.Runtime.Application do
           true
 
         {reason, _non_zero_exit} ->
-          _ = Logger.warn("Failed to start #{name}: #{inspect(reason)}")
+          Logger.warn("Failed to start #{name}: #{inspect(reason)}")
           false
       end
     else
