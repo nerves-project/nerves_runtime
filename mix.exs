@@ -41,7 +41,12 @@ defmodule Nerves.Runtime.MixProject do
   end
 
   defp docs do
-    [extras: ["README.md"], main: "readme", source_ref: "v#{@version}", source_url: @source_url]
+    [
+      extras: ["README.md", "CHANGELOG.md"],
+      main: "readme",
+      source_ref: "v#{@version}",
+      source_url: @source_url
+    ]
   end
 
   defp description do
