@@ -1,5 +1,15 @@
 # Changelog
 
+## v0.11.2
+
+* New features
+  * Added `Nerves.Runtime.validate_firmware/0` for validating firmware on
+    systems that auto-rollback. This *only* abstracts the setting of the
+    `nerves_fw_validated` key. It doesn't add any new functionality. However, it
+    will enable auto-rollback to be added to Nerves systems in a consistent
+    manner in the future and allow for platform-specific variations without
+    impacting application code.
+
 ## v0.11.1
 
 * Bug fixes
