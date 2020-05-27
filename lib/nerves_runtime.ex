@@ -1,7 +1,7 @@
 defmodule Nerves.Runtime do
   require Logger
 
-  alias Nerves.Runtime.OutputLogger
+  alias Nerves.Runtime.{KV, OutputLogger}
 
   # These are provided by all official Nerves system images
   @revert_fw_path "/usr/share/fwup/revert.fw"
@@ -95,6 +95,22 @@ defmodule Nerves.Runtime do
   catch
     _, _ ->
       "unconfigured"
+  end
+
+  @doc """
+  Mark the running firmware as valid
+
+  A device cannot receive a new firmware if the current one has not been validated.
+  In the official Nerves systems, this typically happens automatically. If you are
+  handling the firmware validation in your app, then this function can be used as
+  a helper to mark firmware as valid.
+
+  For systems that support automatic reverting, if the firmware is not marked as
+  valid, then the next reboot will cause a revert to the old firmware
+  """
+  @spec validate_firmware() :: :ok
+  def validate_firmware() do
+    KV.put("nerves_fw_validated", "1")
   end
 
   @doc """
