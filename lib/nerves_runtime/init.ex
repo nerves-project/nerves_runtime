@@ -169,9 +169,8 @@ defmodule Nerves.Runtime.Init do
   defp validate_mount(s), do: s.mounted
 
   defp maybe_validate_fw() do
-    validated? = KV.get("nerves_fw_validated") == "1"
-
-    if Application.get_env(:nerves_runtime, :validate_firmware, true) && not validated? do
+    if Application.get_env(:nerves_runtime, :validate_firmware, false) &&
+         KV.get("nerves_fw_validated") == "0" do
       KV.put("nerves_fw_validated", "1")
     end
   end

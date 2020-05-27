@@ -208,13 +208,17 @@ Here's the process:
 6. On error, the reboot timer failing, or a hardware watchdog timeout, the
    system reboots. The bootloader reverts to the previous firmware.
 
-By default, `Nerves.Runtime` sets `nerves_fw_validated` on first boot. However,
-you can disable this in order to allow your application logic to do something
-like the example above for determining if the firmware is valid or not.
-To disable, change your configuration to:
+The automatic revert feature's implementation is split across a Nerves System
+and your application. The system, which contains your device's bootloader and
+Linux kernel, needs to decide which firmware to boot (new or old one). Your
+application is responsible for setting the `nerves_fw_validated` flag
+appropriately. This makes reusing "automatic revert"-enabled Nerves systems
+inconvenient to use for small projects. `NervesRuntime` can assist by validating
+your firmware after it initializes itself. To enable, add the following line to
+your configuration:
 
 ```elixir
-config :nerves_runtime, validate_firmware: false
+config :nerves_runtime, validate_firmware: true
 ```
 
 ### Best effort automatic revert
