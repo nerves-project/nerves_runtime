@@ -113,6 +113,7 @@ Key                 | Build Environment Variable   | Example Value    | Descript
 `nerves_fw_devpath` | `NERVES_FW_DEVPATH`          | `"/dev/mmcblk0"` | This is the primary storage device for the firmware.
 `nerves_serial_number` | N/A                       | `"12345abc"`     | This is a text serial number. See [Serial numbers](#serial_numbers) for details.
 `nerves_fw_validated` | N/A                        | `0`              | Set to "1" to indicate that the currently running firmware is valid. (Only supported on some platforms)
+`nerves_fw_autovalidate` | N/A                     | `1`              | Set to "1" to indicate that firmware updates are valid without any additional checks.  (Only supported on some platforms)
 
 Firmware-specific Nerves metadata includes the following:
 
@@ -208,14 +209,9 @@ Here's the process:
 6. On error, the reboot timer failing, or a hardware watchdog timeout, the
    system reboots. The bootloader reverts to the previous firmware.
 
-By default, `Nerves.Runtime` sets `nerves_fw_validated` on first boot. However,
-you can disable this in order to allow your application logic to do something
-like the example above for determining if the firmware is valid or not.
-To disable, change your configuration to:
-
-```elixir
-config :nerves_runtime, validate_firmware: false
-```
+To use this feature, the `nerves_fw_autovalidate` variable must be set to 0. This
+can be done at device provisioning time (like when the serial number is set) or
+inside a custom `fwup.conf`.
 
 ### Best effort automatic revert
 
