@@ -200,18 +200,25 @@ the firmware update server within 5 minutes of boot?"
 Here's the process:
 
 1. New firmware is installed in the normal manner. The `Nerves.Runtime.KV`
-   variable, `nerves_fw_validated` is set to 0.
+   variable, `nerves_fw_validated` is set to 0. (The systems `fwup.conf` does
+   this)
 2. The system reboots like normal.
-3. The device starts a five minute reboot timer (your code needs to do this)
+3. The device starts a five minute reboot timer (your code needs to do this if
+   you want to catch hangs or super-slow boots)
 4. The application attempts to make a connection to the firmware update server.
-5. On a good connection, the application sets `nerves_fw_validated` to 1 and
-   cancels the reboot timer.
+5. On a good connection, the application sets `nerves_fw_validated` to 1 by
+   calling `Nerves.Runtime.validate_firmware/0` and cancels the reboot timer.
 6. On error, the reboot timer failing, or a hardware watchdog timeout, the
    system reboots. The bootloader reverts to the previous firmware.
 
-To use this feature, the `nerves_fw_autovalidate` variable must be set to 0. This
-can be done at device provisioning time (like when the serial number is set) or
-inside a custom `fwup.conf`.
+Some Nerves systems support a KV variable called `nerves_fw_autovalidate`. The
+intention of this variable was to make that system support scenarios that
+require validate and ones that don't. If the system supports this variable then
+you should make sure that it is set to 0 (either via a custom fwup.conf or via
+the provisioning hooks for writing serial numbers to MicroSD cards). Support for
+the `nerves_fw_autovalidate` variable will likely go away in the future as steps
+are made to make automatic revert on bad firmware a default feature of Nerves
+rather than an add-on.
 
 ### Best effort automatic revert
 
