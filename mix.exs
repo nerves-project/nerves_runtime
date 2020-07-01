@@ -19,7 +19,8 @@ defmodule Nerves.Runtime.MixProject do
       docs: docs(),
       dialyzer: dialyzer(),
       deps: deps(),
-      aliases: [format: [&format_c/1, "format"]]
+      aliases: [format: [&format_c/1, "format"]],
+      preferred_cli_env: %{docs: :docs, "hex.build": :docs, "hex.publish": :docs}
     ]
   end
 
@@ -35,7 +36,7 @@ defmodule Nerves.Runtime.MixProject do
       {:system_registry, "~> 0.8.0"},
       {:uboot_env, "~> 0.1.1 or ~> 0.2.0"},
       {:elixir_make, "~> 0.6", runtime: false},
-      {:ex_doc, "~> 0.18", only: [:dev, :test], runtime: false},
+      {:ex_doc, "~> 0.18", only: :docs, runtime: false},
       {:dialyxir, "~> 1.0.0", only: :dev, runtime: false}
     ]
   end
