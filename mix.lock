@@ -9,5 +9,5 @@
   "makeup_elixir": {:hex, :makeup_elixir, "0.14.1", "4f0e96847c63c17841d42c08107405a005a2680eb9c7ccadfd757bd31dabccfb", [:mix], [{:makeup, "~> 1.0", [hex: :makeup, repo: "hexpm", optional: false]}], "hexpm", "f2438b1a80eaec9ede832b5c41cd4f373b38fd7aa33e3b22d9db79e640cbde11"},
   "nimble_parsec": {:hex, :nimble_parsec, "0.6.0", "32111b3bf39137144abd7ba1cce0914533b2d16ef35e8abc5ec8be6122944263", [:mix], [], "hexpm", "27eac315a94909d4dc68bc07a4a83e06c8379237c5ea528a9acff4ca1c873c52"},
   "system_registry": {:hex, :system_registry, "0.8.2", "df791dc276652fcfb53be4dab823e05f8269b96ac57c26f86a67838dbc0eefe7", [:mix], [], "hexpm", "f7acdede22c73ab0b3735eead7f2095efb2a7a6198366564205274db2ca2a8f8"},
-  "uboot_env": {:hex, :uboot_env, "0.2.0", "003a8e7688b59a072fc0a849963622f45bb9efedce9af6ae3a52ba7c6a06149a", [:mix], [], "hexpm", "891d30fbd4795c242418f2430460f52e2c050bbf3e31c64f22ab87b6f10287ee"},
+  "uboot_env": {:hex, :uboot_env, "0.3.0", "8afbcc8e5b65e5d0d5660ded2f5835a959d2326fa8683183f380cd6464e75174", [:mix], [], "hexpm", "d8fe5d2b4d52a14398ace02bd604ff7a0fa8960550bb7254f75dcbd438ddc6a1"},
 }
