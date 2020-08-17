@@ -43,7 +43,7 @@ defmodule Nerves.Runtime.Init do
     GenServer.start_link(__MODULE__, [], name: __MODULE__)
   end
 
-  @impl true
+  @impl GenServer
   def init(_args) do
     init_application_partition()
     {:ok, %{}}

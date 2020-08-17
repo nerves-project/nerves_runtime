@@ -18,15 +18,14 @@ defmodule Nerves.Runtime.Log.KmsgTailer do
     GenServer.start_link(__MODULE__, [], name: __MODULE__)
   end
 
-  @impl true
+  @impl GenServer
   def init(_args), do: {:ok, %{port: open_port(), buffer: ""}}
 
-  @impl true
+  @impl GenServer
   def handle_info({port, {:data, {:noeol, fragment}}}, %{port: port, buffer: buffer} = state) do
     {:noreply, %{state | buffer: buffer <> fragment}}
   end
 
-  @impl true
   def handle_info(
         {port, {:data, {:eol, fragment}}},
         %{port: port, buffer: buffer} = state

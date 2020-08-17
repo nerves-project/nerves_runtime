@@ -7,7 +7,7 @@ defmodule Nerves.Runtime.Application do
   alias Nerves.Runtime.{Init, Kernel, KV}
   alias Nerves.Runtime.Log.{KmsgTailer, SyslogTailer}
 
-  @impl true
+  @impl Application
   def start(_type, _args) do
     # On systems with hardware random number generation, it is important that
     # "rngd" gets started as soon as possible to start adding entropy to the

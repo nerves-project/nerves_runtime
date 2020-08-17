@@ -397,7 +397,7 @@ instead:
 defmodule MyApp.KV.Mock do
   @behaviour Nerves.Runtime.KV
 
-  @impl true
+  @impl Nerves.Runtime.KV
   def init(_opts) do
     # initial state
     %{
@@ -406,7 +406,7 @@ defmodule MyApp.KV.Mock do
     }
   end
 
-  @impl true
+  @impl Nerves.Runtime.KV
   def put(_map), do: :ok
 end
 

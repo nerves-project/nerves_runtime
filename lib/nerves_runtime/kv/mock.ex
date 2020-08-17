@@ -10,7 +10,7 @@ defmodule Nerves.Runtime.KV.Mock do
   config :nerves_runtime, Nerves.Runtime.KV.Mock, %{"key" => "value"}
   ```
   """
-  @impl true
+  @impl Nerves.Runtime.KV
   def init(state) do
     Application.get_env(:nerves_runtime, __MODULE__) || init_state(state)
   end
@@ -18,6 +18,6 @@ defmodule Nerves.Runtime.KV.Mock do
   def init_state(state) when is_map(state), do: state
   def init_state(_state), do: %{}
 
-  @impl true
+  @impl Nerves.Runtime.KV
   def put(_), do: :ok
 end

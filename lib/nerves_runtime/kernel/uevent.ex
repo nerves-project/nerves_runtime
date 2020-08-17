@@ -17,7 +17,7 @@ defmodule Nerves.Runtime.Kernel.UEvent do
     GenServer.start_link(__MODULE__, opts, name: __MODULE__)
   end
 
-  @impl true
+  @impl GenServer
   def init(opts) do
     autoload = Keyword.get(opts, :autoload_modules, true)
     use_system_registry = Keyword.get(opts, :use_system_registry, true)
@@ -41,7 +41,7 @@ defmodule Nerves.Runtime.Kernel.UEvent do
      }}
   end
 
-  @impl true
+  @impl GenServer
   def handle_info({port, {:data, message}}, %State{port: port} = s) do
     {action, scope_no_state, kvmap} = :erlang.binary_to_term(message)
     _ = registry(action, [:state | scope_no_state], kvmap, s)

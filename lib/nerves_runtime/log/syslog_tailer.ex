@@ -19,7 +19,7 @@ defmodule Nerves.Runtime.Log.SyslogTailer do
     GenServer.start_link(__MODULE__, [], name: __MODULE__)
   end
 
-  @impl true
+  @impl GenServer
   def init(_args) do
     # Blindly try to remove an old file just in case it exists from a previous run
     _ = File.rm(@syslog_path)
@@ -33,7 +33,7 @@ defmodule Nerves.Runtime.Log.SyslogTailer do
     {:ok, log_port}
   end
 
-  @impl true
+  @impl GenServer
   def handle_info({:udp, log_port, _, 0, raw_entry}, log_port) do
     case SyslogParser.parse(raw_entry) do
       {:ok, %{facility: facility, severity: severity, message: message}} ->
