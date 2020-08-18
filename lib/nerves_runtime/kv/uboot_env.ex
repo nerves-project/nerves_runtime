@@ -3,6 +3,7 @@ defmodule Nerves.Runtime.KV.UBootEnv do
 
   @moduledoc false
 
+  @impl Nerves.Runtime.KV
   def init(_opts) do
     case UBootEnv.read() do
       {:ok, kv} -> kv
@@ -10,10 +11,7 @@ defmodule Nerves.Runtime.KV.UBootEnv do
     end
   end
 
-  def put(key, value) do
-    put(%{key => value})
-  end
-
+  @impl Nerves.Runtime.KV
   def put(%{} = kv) do
     case UBootEnv.read() do
       {:ok, current_kv} ->
