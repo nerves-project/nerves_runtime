@@ -187,7 +187,7 @@ more work to protect against faulty upgrades.
 
 ### Assisted firmware validation and automatic revert
 
-Nerves firmware updates protect against update corruption and powerloss
+Nerves firmware updates protect against update corruption and power loss
 midway into the update procedure. However, what happens if the firmware update
 contains bad code that hangs the device or breaks something important like
 networking? Some Nerves systems support tentative runs of new firmware and if
