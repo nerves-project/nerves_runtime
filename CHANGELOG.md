@@ -1,5 +1,17 @@
 # Changelog
 
+## v0.11.3
+
+* Updates
+  * Support `uboot_env` v0.3.0. This version of `uboot_env` has backwards
+    incompatible changes, but they don't affect `nerves_runtime`, so the
+    `mix.exs` deps spec allows it now.
+  * Tightened up the specs on `Nerves.Runtime.KV` functions.
+
+Support for OTP 20 was removed. `uboot_env` v0.3.0 requires OTP 21 and later. If
+you still are using OTP 20, lock the version of `uboot_env` to `~> 0.2.0` in
+your `mix.exs`.
+
 ## v0.11.2
 
 * New features
