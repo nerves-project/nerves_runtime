@@ -15,9 +15,9 @@ defmodule Nerves.Runtime.KV.Mock do
     Application.get_env(:nerves_runtime, __MODULE__) || init_state(state)
   end
 
-  def init_state(state) when is_map(state), do: state
-  def init_state(_state), do: %{}
+  defp init_state(state) when is_map(state), do: state
+  defp init_state(_state), do: %{}
 
   @impl Nerves.Runtime.KV
-  def put(_), do: :ok
+  def put(_new_state), do: :ok
 end

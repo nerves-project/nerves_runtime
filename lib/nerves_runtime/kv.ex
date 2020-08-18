@@ -125,8 +125,37 @@ defmodule Nerves.Runtime.KV do
   use GenServer
   require Logger
 
-  @callback init(opts :: any) :: initial_state :: map
-  @callback put(state :: map) :: :ok | {:error, reason :: any()}
+  @typedoc """
+  The KV store is a string -> string map
+
+  Since the KV store is backed by things like the U-Boot environment blocks,
+  the keys and values can't be just any string. For example, characters with
+  the value `0` (i.e., `NULL`) are disallowed. The `=` sign is also disallowed
+  in keys. Values may have embedded new lines. In general, it's recommended to
+  stick with ASCII values to avoid causing trouble when working with C programs
+  and U-Boot which also access the variables.
+  """
+  @type string_map :: %{String.t() => String.t()}
+
+  @doc """
+  Initialize the KV store and return its contents
+
+  This will be called on boot and should return all persisted key/value pairs.
+  The results will be cached and if a change should be persisted, `c:put/1` will
+  be called with the update.
+
+  The `opts` parameter is currently unused, but may supply configuration
+  options in the future.
+  """
+  @callback init(opts :: any) :: initial_state :: string_map()
+
+  @doc """
+  Persist the updated KV pairs
+
+  The KV map contains the KV pairs returned by `c:init/1` with any changes made
+  by users of `Nerves.Runtime.KV`.
+  """
+  @callback put(state :: string_map()) :: :ok | {:error, reason :: any()}
 
   alias __MODULE__
 
@@ -166,7 +195,7 @@ defmodule Nerves.Runtime.KV do
   @doc """
   Get all key value pairs for only the active firmware slot
   """
-  @spec get_all_active() :: map()
+  @spec get_all_active() :: string_map()
   def get_all_active() do
     GenServer.call(__MODULE__, :get_all_active)
   end
@@ -174,7 +203,7 @@ defmodule Nerves.Runtime.KV do
   @doc """
   Get all keys regardless of firmware slot
   """
-  @spec get_all() :: map()
+  @spec get_all() :: string_map()
   def get_all() do
     GenServer.call(__MODULE__, :get_all)
   end
@@ -190,7 +219,7 @@ defmodule Nerves.Runtime.KV do
   @doc """
   Write a collection of key-value pairs to the firmware metadata
   """
-  @spec put(map()) :: :ok
+  @spec put(string_map()) :: :ok
   def put(kv) do
     GenServer.call(__MODULE__, {:put, kv})
   end
@@ -206,7 +235,7 @@ defmodule Nerves.Runtime.KV do
   @doc """
   Write a collection of key-value pairs to the active firmware slot
   """
-  @spec put_active(map()) :: :ok
+  @spec put_active(string_map()) :: :ok
   def put_active(kv) do
     GenServer.call(__MODULE__, {:put_active, kv})
   end
