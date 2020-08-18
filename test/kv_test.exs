@@ -43,7 +43,7 @@ defmodule KVTest do
   end
 
   setup do
-    {:ok, _pid} = Nerves.Runtime.KV.start_link(@kv)
+    {:ok, _pid} = KV.start_link(@kv)
     :ok
   end
 
