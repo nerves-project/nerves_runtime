@@ -17,6 +17,14 @@ defmodule NervesRuntimeTest do
     assert Nerves.Runtime.serial_number() == "unconfigured"
   end
 
+  test "firmware can be validated" do
+    refute Nerves.Runtime.firmware_valid?()
+
+    Nerves.Runtime.validate_firmware()
+
+    assert Nerves.Runtime.firmware_valid?()
+  end
+
   defp fixture_path() do
     Path.expand("test/fixture")
   end

@@ -114,6 +114,16 @@ defmodule Nerves.Runtime do
   end
 
   @doc """
+  Return whether the firmware has been marked as valid
+
+  See `validate_firmware/0` for more information.
+  """
+  @spec firmware_valid?() :: boolean()
+  def firmware_valid?() do
+    KV.get("nerves_fw_validated") == "1"
+  end
+
+  @doc """
   Run system command and log output into logger.
 
   NOTE: Unlike System.cmd/3, this does not raise if the executable isn't found
@@ -151,6 +161,7 @@ defmodule Nerves.Runtime do
   # private helpers
   @spec logged_shutdown(String.t()) :: no_return()
   defp logged_shutdown(cmd) do
+    # If you get a dialyzer warning here, update the line number in .dialyzer_ignore.exs
     try do
       Logger.info("#{__MODULE__} : device told to #{cmd}")
 
