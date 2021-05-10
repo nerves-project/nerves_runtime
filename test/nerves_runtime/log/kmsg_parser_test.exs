@@ -1,4 +1,4 @@
-defmodule KmsgParserTest do
+defmodule Nerves.Runtime.Log.KmsgParserTest do
   use ExUnit.Case
 
   alias Nerves.Runtime.Log.KmsgParser

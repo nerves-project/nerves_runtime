@@ -1,4 +1,4 @@
-defmodule SyslogParserTest do
+defmodule Nerves.Runtime.Log.SyslogParserTest do
   use ExUnit.Case
   doctest Nerves.Runtime.Log.SyslogParser
 

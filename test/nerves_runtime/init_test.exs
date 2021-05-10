@@ -1,4 +1,4 @@
-defmodule InitTest do
+defmodule Nerves.Runtime.InitTest do
   use ExUnit.Case
   doctest Nerves.Runtime.Init
 
