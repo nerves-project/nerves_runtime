@@ -74,39 +74,43 @@ defmodule Nerves.Runtime.Init do
     |> validate_mount()
   end
 
-  def mounted_state(s) do
+  defp mounted_state(s) do
     {mounts, 0} = Runtime.cmd("mount", [], :return)
 
+    %{s | mounted: parse_mount_state(s.devpath, s.target, mounts)}
+  end
+
+  @doc false
+  @spec parse_mount_state(String.t(), String.t(), String.t()) ::
+          :mounted | :mounted_with_error | :unmounted
+  def parse_mount_state(devpath, target, mounts) do
     mount =
       String.split(mounts, "\n")
       |> Enum.find(fn mount ->
-        String.starts_with?(mount, "#{s.devpath} on #{s.target}")
+        String.starts_with?(mount, "#{devpath} on #{target}")
       end)
 
-    mounted_state =
-      case mount do
-        nil ->
-          :unmounted
+    case mount do
+      nil ->
+        :unmounted
 
-        mount ->
-          opts =
-            mount
-            |> String.split(" ")
-            |> List.last()
-            |> String.slice(1..-2)
-            |> String.split(",")
+      mount ->
+        opts =
+          mount
+          |> String.split(" ")
+          |> List.last()
+          |> String.slice(1..-2)
+          |> String.split(",")
 
-          cond do
-            "rw" in opts ->
-              :mounted
+        cond do
+          "rw" in opts ->
+            :mounted
 
-            true ->
-              # Mount was read only or any other type
-              :mounted_with_error
-          end
-      end
-
-    %{s | mounted: mounted_state}
+          true ->
+            # Mount was read only or any other type
+            :mounted_with_error
+        end
+    end
   end
 
   defp mount(%{mounted: :mounted} = s), do: s
