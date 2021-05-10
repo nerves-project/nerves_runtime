@@ -1,5 +1,11 @@
 # Changelog
 
+## v0.11.4
+
+* Updates
+  * Added `Nerves.Runtime.firmware_valid?/0` to easily check whether the
+    firmware has been marked valid for systems that auto-rollback.
+
 ## v0.11.3
 
 * Updates
