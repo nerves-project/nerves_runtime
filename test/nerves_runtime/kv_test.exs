@@ -1,4 +1,4 @@
-defmodule KVTest do
+defmodule Nerves.Runtime.KVTest do
   use ExUnit.Case, async: false
   doctest Nerves.Runtime.KV
 
