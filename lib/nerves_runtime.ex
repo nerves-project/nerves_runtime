@@ -159,9 +159,8 @@ defmodule Nerves.Runtime do
   end
 
   # private helpers
-  @spec logged_shutdown(String.t()) :: no_return()
+  @dialyzer {:nowarn_function, logged_shutdown: 1}
   defp logged_shutdown(cmd) do
-    # If you get a dialyzer warning here, update the line number in .dialyzer_ignore.exs
     try do
       Logger.info("#{__MODULE__} : device told to #{cmd}")
 
