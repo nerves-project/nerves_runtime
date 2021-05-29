@@ -8,12 +8,11 @@ install_elixir: &install_elixir
       unzip -d /usr/local/elixir v$ELIXIR_VERSION.zip
       echo 'export PATH=/usr/local/elixir/bin:$PATH' >> $BASH_ENV
 
-install_hex_rebar: &install_hex_rebar
+install_hex: &install_hex
   run:
-    name: Install hex and rebar
+    name: Install hex
     command: |
       mix local.hex --force
-      mix local.rebar --force
 
 install_system_deps: &install_system_deps
   run:
@@ -38,7 +37,7 @@ jobs:
       - checkout
       - <<: *install_system_deps
       - <<: *install_elixir
-      - <<: *install_hex_rebar
+      - <<: *install_hex
       - restore_cache:
           keys:
             - v1-mix-cache-{{ checksum "mix.lock" }}
@@ -67,7 +66,7 @@ jobs:
       - checkout
       - <<: *install_system_deps
       - <<: *install_elixir
-      - <<: *install_hex_rebar
+      - <<: *install_hex
       - run: mix deps.get
       - run: mix test
 
@@ -83,7 +82,7 @@ jobs:
       - checkout
       - <<: *install_system_deps
       - <<: *install_elixir
-      - <<: *install_hex_rebar
+      - <<: *install_hex
       - run: mix deps.get
       - run: mix test
 
@@ -99,7 +98,7 @@ jobs:
       - checkout
       - <<: *install_system_deps
       - <<: *install_elixir
-      - <<: *install_hex_rebar
+      - <<: *install_hex
       - run: mix deps.get
       - run: mix test
 
@@ -115,7 +114,7 @@ jobs:
       - checkout
       - <<: *install_system_deps
       - <<: *install_elixir
-      - <<: *install_hex_rebar
+      - <<: *install_hex
       - run: mix deps.get
       - run: mix test
 
@@ -131,7 +130,7 @@ jobs:
       - checkout
       - <<: *install_system_deps
       - <<: *install_elixir
-      - <<: *install_hex_rebar
+      - <<: *install_hex
       - run: mix deps.get
       - run: mix test
 
@@ -147,7 +146,7 @@ jobs:
       - checkout
       - <<: *install_system_deps
       - <<: *install_elixir
-      - <<: *install_hex_rebar
+      - <<: *install_hex
       - run: mix deps.get
       - run: mix test
 
