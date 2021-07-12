@@ -13,7 +13,7 @@ defmodule Nerves.Runtime.MixProject do
       build_embedded: true,
       compilers: [:elixir_make | Mix.compilers()],
       make_targets: ["all"],
-      make_clean: ["clean"],
+      make_clean: ["mix_clean"],
       make_error_message: """
       If the error message above says that libmnl.h can't be found, then the
       fix is to install libmnl. For example, run `apt install libmnl-dev` on
