@@ -2,7 +2,7 @@
 #
 # Makefile targets:
 #
-# all/install   build and install the NIF
+# all/install   build and install the port binaries
 # clean         clean build products and intermediates
 #
 # Variables to override:
@@ -74,9 +74,11 @@ all: install
 install: $(BUILD) $(DEFAULT_TARGETS)
 
 $(BUILD)/%.o: src/%.c
+	@echo " CC $(notdir $@)"
 	$(CC) -c $(ERL_CFLAGS) $(CFLAGS) -o $@ $<
 
 $(PREFIX)/nerves_runtime: $(BUILD)/nerves_runtime.o $(BUILD)/uevent.o $(BUILD)/kmsg_tailer.o
+	@echo " LD $(notdir $@)"
 	$(CC) $^ $(ERL_LDFLAGS) $(LDFLAGS) -o $@
 	$(call update_perms, $@)
 
@@ -87,3 +89,6 @@ clean:
 	$(RM) $(PREFIX)/nerves_runtime $(BUILD)/*.o
 
 .PHONY: all clean calling_from_make install
+
+# Don't echo commands unless the caller exports "V=1"
+${V}.SILENT:
