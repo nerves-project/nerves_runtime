@@ -20,6 +20,8 @@ defmodule Nerves.Runtime.Application do
 
     target = Nerves.Runtime.target()
 
+    _ = try_load_sysctl_conf(target)
+
     children =
       [
         KV
@@ -59,6 +61,26 @@ defmodule Nerves.Runtime.Application do
       end
     else
       false
+    end
+  end
+
+  defp try_load_sysctl_conf("host"), do: :ok
+
+  defp try_load_sysctl_conf(_target) do
+    conf_path = "/etc/sysctl.conf"
+
+    if File.exists?(conf_path) do
+      case System.cmd("/sbin/sysctl", ["-p", conf_path]) do
+        {_, 0} ->
+          :ok
+
+        {reason, _non_zero_exit} ->
+          Logger.warn("Failed to run sysctl on #{conf_path}: #{inspect(reason)}")
+          {:error, reason}
+      end
+    else
+      Logger.warn("Failed to run sysctl: #{conf_path} not found")
+      {:error, :not_found}
     end
   end
 end
