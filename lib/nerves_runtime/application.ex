@@ -9,23 +9,11 @@ defmodule Nerves.Runtime.Application do
 
   @impl Application
   def start(_type, _args) do
-    # On systems with hardware random number generation, it is important that
-    # "rngd" gets started as soon as possible to start adding entropy to the
-    # system. So much code directly or indirectly uses random numbers that it's
-    # very easy to block on the random number generator or get low entropy
-    # numbers.
-    # On systems with no hardware random number generation, or where rngd is
-    # not installed, haveged is tried as an alternative.
-    try_entropy_generator("rngd") || try_entropy_generator("haveged")
-
     target = Nerves.Runtime.target()
 
-    _ = try_load_sysctl_conf(target)
+    load_services(target)
 
-    children =
-      [
-        KV
-      ] ++ target_children(target)
+    children = [KV | target_children(target)]
 
     opts = [strategy: :one_for_one, name: Nerves.Runtime.Supervisor]
     Supervisor.start_link(children, opts)
@@ -46,6 +34,23 @@ defmodule Nerves.Runtime.Application do
     ]
   end
 
+  defp load_services("host"), do: :ok
+
+  defp load_services(_target) do
+    # On systems with hardware random number generation, it is important that
+    # "rngd" gets started as soon as possible to start adding entropy to the
+    # system. So much code directly or indirectly uses random numbers that it's
+    # very easy to block on the random number generator or get low entropy
+    # numbers.
+    # On systems with no hardware random number generation, or where rngd is
+    # not installed, haveged is tried as an alternative.
+    try_entropy_generator("rngd") || try_entropy_generator("haveged")
+
+    _ = try_load_sysctl_conf()
+
+    :ok
+  end
+
   defp try_entropy_generator(name) do
     path = "/usr/sbin/#{name}"
 
@@ -64,9 +69,7 @@ defmodule Nerves.Runtime.Application do
     end
   end
 
-  defp try_load_sysctl_conf("host"), do: :ok
-
-  defp try_load_sysctl_conf(_target) do
+  defp try_load_sysctl_conf() do
     conf_path = "/etc/sysctl.conf"
 
     if File.exists?(conf_path) do
@@ -79,7 +82,6 @@ defmodule Nerves.Runtime.Application do
           {:error, reason}
       end
     else
-      Logger.warn("Failed to run sysctl: #{conf_path} not found")
       {:error, :not_found}
     end
   end
