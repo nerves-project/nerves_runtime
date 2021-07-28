@@ -1,5 +1,12 @@
 # Changelog
 
+## v0.11.5
+
+* Updates
+  * If `/etc/sysctl.conf` is present, run `sysctl` to load and set the kernel
+    configuration parameters in it.
+  * Improve C compilation messages and error help
+
 ## v0.11.4
 
 * Updates
