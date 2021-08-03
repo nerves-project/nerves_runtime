@@ -139,7 +139,7 @@ defmodule Nerves.Runtime.Init do
   defp format_if_unmounted(s), do: s
 
   defp mkfs("f2fs", devpath) do
-    check_cmd("mkfs.f2fs", ["#{devpath}"], :info)
+    check_cmd("mkfs.f2fs", ["-f", "#{devpath}"], :info)
   end
 
   defp mkfs(fstype, devpath) do
