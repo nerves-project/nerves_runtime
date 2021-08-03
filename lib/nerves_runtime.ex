@@ -110,7 +110,12 @@ defmodule Nerves.Runtime do
   """
   @spec validate_firmware() :: :ok
   def validate_firmware() do
-    KV.put("nerves_fw_validated", "1")
+    # If using U-Boot's bootcount feature, set those variables as well
+    if KV.get("upgrade_available") do
+      KV.put(%{"upgrade_available" => "0", "bootcount" => "0", "nerves_fw_validated" => "1"})
+    else
+      KV.put("nerves_fw_validated", "1")
+    end
   end
 
   @doc """

@@ -114,6 +114,9 @@ Key                 | Build Environment Variable   | Example Value    | Descript
 `nerves_serial_number` | N/A                       | `"12345abc"`     | This is a text serial number. See [Serial numbers](#serial_numbers) for details.
 `nerves_fw_validated` | N/A                        | `0`              | Set to "1" to indicate that the currently running firmware is valid. (Only supported on some platforms)
 `nerves_fw_autovalidate` | N/A                     | `1`              | Set to "1" to indicate that firmware updates are valid without any additional checks.  (Only supported on some platforms)
+`upgrade_available` | N/A                          | `0`              | If using the U-Boot bootloader AND U-Boot's `bootcount` feature, then the `upgrade_available` variable is used instead of `nerves_fw_validated` (it has the opposite meaning)
+`bootcount`         | N/A                          | `1`              | If using the U-Boot bootloader AND U-Boot's `bootcount` feature, then this is the number of times an unvalidated firmware has been booted.
+`bootlimit`         | N/A                          | `1`              | If using the U-Boot bootloader AND U-Boot's `bootcount` feature, then this is the max number of tries for unvalidated firmware.
 
 Firmware-specific Nerves metadata includes the following:
 
@@ -219,6 +222,29 @@ the provisioning hooks for writing serial numbers to MicroSD cards). Support for
 the `nerves_fw_autovalidate` variable will likely go away in the future as steps
 are made to make automatic revert on bad firmware a default feature of Nerves
 rather than an add-on.
+
+### U-Boot assisted automatic revert
+
+U-Boot provides a `bootcount` feature that can be used to try out new firmware
+and revert it if it fails. At a high level, it works similar to logic just
+described except that it can attempt a new firmware more than once if desired. This
+can help if validating a firmware image depends on factors out of your control and
+you want a few tries to happen before giving up.
+
+To use this, you need to enable the following U-Boot configuration items:
+
+```
+CONFIG_BOOTCOUNT_LIMIT=y
+CONFIG_BOOTCOUNT_ENV=y
+```
+
+See the U-Boot documentation for more information. The gist is to have your
+`bootcmd` handle normal booting and then add an `altbootcmd` to revert the
+firmware. The firmware update should set the `upgrade_available` U-Boot
+environment variable to `"1"` to indicate that boot counting should start.
+`Nerves.Runtime.validate_fw/0` knows about `upgrade_available`, so when you call
+it to indicate that the firmware is ok, it will set `upgrade_available` back to
+`"0"` and reset `"bootcount"`.
 
 ### Best effort automatic revert
 
