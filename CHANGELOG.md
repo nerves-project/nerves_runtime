@@ -1,5 +1,16 @@
 # Changelog
 
+## v0.11.6
+
+* New features
+  * Added support for implementing auto-revert logic using U-Boot's
+    bootcount/upgrade_available feature. This can simplify U-Boot scripts. See
+    the README.md for details.
+
+* Bug fixes
+  * Specify "-f" to force f2fs filesystem formats like those of other
+    filesystems. Thank to Eric Rauer for catching this oversight.
+
 ## v0.11.5
 
 * Updates
