@@ -102,13 +102,11 @@ defmodule Nerves.Runtime.Init do
           |> String.slice(1..-2)
           |> String.split(",")
 
-        cond do
-          "rw" in opts ->
-            :mounted
-
-          true ->
-            # Mount was read only or any other type
-            :mounted_with_error
+        if "rw" in opts do
+          :mounted
+        else
+          # Mount was read only or any other type
+          :mounted_with_error
         end
     end
   end
