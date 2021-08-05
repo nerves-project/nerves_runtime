@@ -242,9 +242,9 @@ See the U-Boot documentation for more information. The gist is to have your
 `bootcmd` handle normal booting and then add an `altbootcmd` to revert the
 firmware. The firmware update should set the `upgrade_available` U-Boot
 environment variable to `"1"` to indicate that boot counting should start.
-`Nerves.Runtime.validate_fw/0` knows about `upgrade_available`, so when you call
-it to indicate that the firmware is ok, it will set `upgrade_available` back to
-`"0"` and reset `"bootcount"`.
+`Nerves.Runtime.validate_firmware/0` knows about `upgrade_available`, so when
+you call it to indicate that the firmware is ok, it will set `upgrade_available`
+back to `"0"` and reset `"bootcount"`.
 
 ### Best effort automatic revert
 
