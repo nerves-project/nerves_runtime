@@ -47,6 +47,11 @@ defmodule NervesRuntimeTest do
     assert KV.get("nerves_fw_validated") == "1"
   end
 
+  test "firmware valid when not using firmware validity" do
+    KV.put(%{"nerves_fw_validated" => nil})
+    assert Nerves.Runtime.firmware_valid?()
+  end
+
   defp fixture_path() do
     Path.expand("test/fixture")
   end

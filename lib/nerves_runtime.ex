@@ -121,11 +121,40 @@ defmodule Nerves.Runtime do
   @doc """
   Return whether the firmware has been marked as valid
 
+  Since "valid" means that the next boot will run the same firmware, this also
+  returns `true` if firmware validation isn't in use.
+
   See `validate_firmware/0` for more information.
   """
   @spec firmware_valid?() :: boolean()
   def firmware_valid?() do
-    KV.get("nerves_fw_validated") == "1"
+    case validation_status() do
+      :validated -> true
+      :unvalidated -> false
+      :unknown -> true
+    end
+  end
+
+  defp validation_status() do
+    with :unknown <- u_boot_bootcount_status() do
+      nerves_validated_status()
+    end
+  end
+
+  defp u_boot_bootcount_status() do
+    case KV.get("upgrade_available") do
+      "0" -> :validated
+      "1" -> :unvalidated
+      _ -> :unknown
+    end
+  end
+
+  defp nerves_validated_status() do
+    case KV.get("nerves_fw_validated") do
+      "1" -> :validated
+      "0" -> :unvalidated
+      _ -> :unknown
+    end
   end
 
   @doc """
