@@ -180,7 +180,7 @@ defmodule Nerves.Runtime.KV do
   Get the key for only the active firmware slot
   """
   @spec get_active(String.t()) :: String.t() | nil
-  def get_active(key) do
+  def get_active(key) when is_binary(key) do
     GenServer.call(__MODULE__, {:get_active, key})
   end
 
@@ -188,7 +188,7 @@ defmodule Nerves.Runtime.KV do
   Get the key regardless of firmware slot
   """
   @spec get(String.t()) :: String.t() | nil
-  def get(key) do
+  def get(key) when is_binary(key) do
     GenServer.call(__MODULE__, {:get, key})
   end
 
@@ -212,7 +212,7 @@ defmodule Nerves.Runtime.KV do
   Write a key-value pair to the firmware metadata
   """
   @spec put(String.t(), String.t()) :: :ok
-  def put(key, value) do
+  def put(key, value) when is_binary(key) and is_binary(value) do
     GenServer.call(__MODULE__, {:put, %{key => value}})
   end
 
@@ -220,7 +220,7 @@ defmodule Nerves.Runtime.KV do
   Write a collection of key-value pairs to the firmware metadata
   """
   @spec put(string_map()) :: :ok
-  def put(kv) do
+  def put(kv) when is_map(kv) do
     GenServer.call(__MODULE__, {:put, kv})
   end
 
@@ -228,7 +228,7 @@ defmodule Nerves.Runtime.KV do
   Write a key-value pair to the active firmware slot
   """
   @spec put_active(String.t(), String.t()) :: :ok
-  def put_active(key, value) do
+  def put_active(key, value) when is_binary(key) and is_binary(value) do
     GenServer.call(__MODULE__, {:put_active, %{key => value}})
   end
 
@@ -236,7 +236,7 @@ defmodule Nerves.Runtime.KV do
   Write a collection of key-value pairs to the active firmware slot
   """
   @spec put_active(string_map()) :: :ok
-  def put_active(kv) do
+  def put_active(kv) when is_map(kv) do
     GenServer.call(__MODULE__, {:put_active, kv})
   end
 
