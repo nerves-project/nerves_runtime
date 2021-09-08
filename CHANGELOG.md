@@ -1,5 +1,12 @@
 # Changelog
 
+## v0.11.7
+
+* Bug fixes
+  * `Nerves.Runtime.firmware_valid?/0` would return that the firmware wasn't
+    validated when the validation feature wasn't in use. This was confusing
+    since firmware is assumed valid when the feature is off.
+
 ## v0.11.6
 
 * New features
