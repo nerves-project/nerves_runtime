@@ -13,5 +13,5 @@
   "makeup_erlang": {:hex, :makeup_erlang, "0.1.1", "3fcb7f09eb9d98dc4d208f49cc955a34218fc41ff6b84df7c75b3e6e533cc65f", [:mix], [{:makeup, "~> 1.0", [hex: :makeup, repo: "hexpm", optional: false]}], "hexpm", "174d0809e98a4ef0b3309256cbf97101c6ec01c4ab0b23e926a9e17df2077cbb"},
   "nimble_parsec": {:hex, :nimble_parsec, "1.1.0", "3a6fca1550363552e54c216debb6a9e95bd8d32348938e13de5eda962c0d7f89", [:mix], [], "hexpm", "08eb32d66b706e913ff748f11694b17981c0b04a33ef470e33e11b3d3ac8f54b"},
   "system_registry": {:hex, :system_registry, "0.8.2", "df791dc276652fcfb53be4dab823e05f8269b96ac57c26f86a67838dbc0eefe7", [:mix], [], "hexpm", "f7acdede22c73ab0b3735eead7f2095efb2a7a6198366564205274db2ca2a8f8"},
-  "uboot_env": {:hex, :uboot_env, "0.3.0", "8afbcc8e5b65e5d0d5660ded2f5835a959d2326fa8683183f380cd6464e75174", [:mix], [], "hexpm", "d8fe5d2b4d52a14398ace02bd604ff7a0fa8960550bb7254f75dcbd438ddc6a1"},
+  "uboot_env": {:hex, :uboot_env, "1.0.0", "fdbe0afe65436f760cd372b16a58ccf7c76bbad1538f1766826e0ddbcaf80980", [:mix], [], "hexpm", "86754d5eae9643ca3094ee1d749b808f9d6f0d41b990e1191709b5a66c2b0757"},
 }
