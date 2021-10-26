@@ -1,5 +1,10 @@
 # Changelog
 
+## v0.11.8 - 2021-10-25
+
+* Changes
+  * Update the mix dependencies to allow `uboot_env v1.0.0` to be used.
+
 ## v0.11.7
 
 * Bug fixes
