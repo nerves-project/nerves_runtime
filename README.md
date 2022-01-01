@@ -233,7 +233,7 @@ you want a few tries to happen before giving up.
 
 To use this, you need to enable the following U-Boot configuration items:
 
-```
+```text
 CONFIG_BOOTCOUNT_LIMIT=y
 CONFIG_BOOTCOUNT_ENV=y
 ```
