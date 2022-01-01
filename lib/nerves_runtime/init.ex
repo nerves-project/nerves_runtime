@@ -1,8 +1,10 @@
 defmodule Nerves.Runtime.Init do
   use GenServer
   require Logger
+
   alias Nerves.Runtime
   alias Nerves.Runtime.KV
+  alias Nerves.Runtime.MountParser
 
   @moduledoc """
   GenServer that handles device initialization.
@@ -75,39 +77,28 @@ defmodule Nerves.Runtime.Init do
   end
 
   defp mounted_state(s) do
-    {mounts, 0} = Runtime.cmd("mount", [], :return)
+    {mount_output, 0} = Runtime.cmd("mount", [], :return)
 
-    %{s | mounted: parse_mount_state(s.devpath, s.target, mounts)}
+    %{s | mounted: parse_mount_state(s.devpath, s.target, mount_output)}
   end
 
   @doc false
   @spec parse_mount_state(String.t(), String.t(), String.t()) ::
           :mounted | :mounted_with_error | :unmounted
-  def parse_mount_state(devpath, target, mounts) do
-    mount =
-      String.split(mounts, "\n")
-      |> Enum.find(fn mount ->
-        String.starts_with?(mount, "#{devpath} on #{target}")
-      end)
+  def parse_mount_state(devpath, target, mount_output) do
+    mounts = MountParser.parse(mount_output)
 
-    case mount do
-      nil ->
-        :unmounted
-
-      mount ->
-        opts =
-          mount
-          |> String.split(" ")
-          |> List.last()
-          |> String.slice(1..-2)
-          |> String.split(",")
-
-        if "rw" in opts do
+    case Map.get(mounts, target) do
+      %{device: ^devpath, flags: flags} ->
+        if "rw" in flags do
           :mounted
         else
-          # Mount was read only or any other type
+          # Mounted as read only
           :mounted_with_error
         end
+
+      _ ->
+        :unmounted
     end
   end
 
