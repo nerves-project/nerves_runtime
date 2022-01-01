@@ -10,18 +10,27 @@ defmodule Nerves.Runtime.OutputLogger do
   end
 
   defimpl Collectable do
+    @spec into(Nerves.Runtime.OutputLogger.t()) ::
+            {nil,
+             (nil, :done | :halt | {:cont, binary} ->
+                nil | Nerves.Runtime.OutputLogger.t())}
     def into(%{level: level} = stream) do
-      {:ok, log(stream, level)}
+      {nil, log_fn(stream, level)}
     end
 
-    def log(stream, level) do
+    defp log_fn(stream, level) do
       fn
-        :ok, {:cont, logs} ->
+        nil, {:cont, logs} ->
           logs
-          |> String.split("\n", trim: true)
-          |> Enum.each(&Logger.bare_log(level, fn -> &1 end))
+          |> String.split("\n")
+          |> Enum.each(&Logger.bare_log(level, fn -> String.trim(&1) end))
 
-        :ok, _ ->
+          nil
+
+        nil, :halt ->
+          nil
+
+        nil, :done ->
           stream
       end
     end
