@@ -1,4 +1,4 @@
-use Mix.Config
+import Config
 
 config :nerves_runtime,
   target: "host"
