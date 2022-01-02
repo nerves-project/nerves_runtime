@@ -48,7 +48,11 @@ defmodule Nerves.Runtime.Init do
   @impl GenServer
   def init(_args) do
     init_application_partition()
-    {:ok, %{}}
+
+    # This GenServer is only used as a hook to initialize the application data
+    # partition after the logging GenServers get started. It doesn't do
+    # anything afterwards, so exit the process.
+    :ignore
   end
 
   @spec init_application_partition :: :mounted | :mounted_with_error | :noop | :unmounted
