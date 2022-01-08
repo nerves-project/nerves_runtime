@@ -62,7 +62,7 @@ defmodule Nerves.Runtime.Init do
     target = KV.get_active("#{prefix}_target")
     devpath = KV.get_active("#{prefix}_devpath")
 
-    %{mounted: nil, fstype: fstype, target: target, devpath: devpath}
+    %{mounted: nil, fstype: fstype, target: target, devpath: devpath, format_performed: false}
     |> do_format()
   end
 
@@ -78,6 +78,7 @@ defmodule Nerves.Runtime.Init do
     |> unmount_if_error()
     |> format_if_unmounted()
     |> mount()
+    |> maybe_set_shell_history()
     |> validate_mount()
   end
 
@@ -127,7 +128,7 @@ defmodule Nerves.Runtime.Init do
     )
 
     mkfs(fstype, devpath)
-    s
+    %{s | format_performed: true}
   end
 
   defp format_if_unmounted(s), do: s
@@ -152,4 +153,36 @@ defmodule Nerves.Runtime.Init do
   end
 
   defp validate_mount(s), do: s.mounted
+
+  defp maybe_set_shell_history(%{mounted: :mounted, format_performed: true} = s) do
+    # If we formatted and it successfully mounted, we need to
+    # set the shell history again since it would have failed to
+    # start previously
+    Logger.info("Application data partition successfully formatted")
+    Application.put_env(:kernel, :shell_history, shell_history_arg())
+    s
+  end
+
+  defp maybe_set_shell_history(s), do: s
+
+  defp shell_history_arg() do
+    case :init.get_argument(:kernel) do
+      {:ok, [args]} ->
+        find_shell_history_arg(args)
+
+      _ ->
+        :enabled
+    end
+  end
+
+  defp find_shell_history_arg([]), do: :enabled
+
+  defp find_shell_history_arg(['shell_history', arg | _rem]) do
+    # :disabled, :enabled, or user defined module
+    List.to_atom(arg)
+  end
+
+  defp find_shell_history_arg([_ | rem]) do
+    find_shell_history_arg(rem)
+  end
 end
