@@ -220,7 +220,7 @@ static void nl_uevent_process_all(struct mnl_socket *nl_uevent)
 
     // Process uevents until there aren't any more or we're
     // within 1K of the end. This is pretty conservative since
-    // the Erlang reports looks like they're nearly always < 200 bytes.
+    // the Erlang reports look like they're nearly always < 200 bytes.
     for (resp_index = 0; resp_index < sizeof(resp) - 1024;) {
         int bytes_added = nl_uevent_process_one(nl_uevent, &resp[resp_index]);
         if (bytes_added < 0)
