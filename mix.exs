@@ -38,7 +38,6 @@ defmodule Nerves.Runtime.MixProject do
 
   defp deps do
     [
-      {:system_registry, "~> 0.8.0"},
       {:uboot_env, "~> 1.0 or ~> 0.3.0"},
       {:elixir_make, "~> 0.6", runtime: false},
       {:ex_doc, "~> 0.22", only: :docs, runtime: false},

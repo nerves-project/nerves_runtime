@@ -50,15 +50,6 @@ config :nerves_runtime, :kernel,
   autoload_modules: false
 ```
 
-`nerves_runtime` can optionally report device insertions and removals through
-[SystemRegistry](https://github.com/nerves-project/system_registry). This is
-currently the default, but you can disable it via configuration:
-
-```elixir
-config :nerves_runtime, :kernel,
-  use_system_registry: false
-```
-
 ## Filesystem Initialization
 
 Nerves systems generally ship with one or more application filesystem
@@ -268,112 +259,6 @@ To make this handle hangs, you'll want to enable a hardware watchdog.
 Operating system-level messages from `/dev/log` and `/proc/kmsg`, forwarding
 them to `Logger` with an appropriate level to match the syslog priority parsed
 out of the message.
-
-## uevent/udev events
-
-`nerves_runtime`receives and processes UEvents from the Linux kernel. The processed
-events' data is stored in the `SystemRegistry`. So you need to obtain a current
-`SystemRegistry` map before querying the data. E.g.:
-
-```elixir
-sr = SystemRegistry.match(:_)
-```
-
-### Accessing uevent data
-
-`nerves_runtime` stores all device data categorized by subsystem under
-`[:state, "subsystems"]`: This map uses the subsystem name as key. It's value
-is a list of device paths.
-
-The list of currently known subsystems can be obtained using:
-
-```elixir
-iex> Map.keys(sr[:state]["subsystems"])
-["mdio_bus", "remoteproc", "regulator", "iio", "mem", "soc", "queues",
- "scsi_host", "clocksource", "mmc", "scsi_device", "mmc_host", "i2c", "bsg",
- "dma", "workqueue", "misc", "platform", "leds", "spi_master", "gpio", "scsi",
- "vc", "usb", "vtconsole", "watchdog", "scsi_disk", "uio", "bdi", "hidg", "udc",
- "mbox", "cpu", "nvmem", "net", "spi", "clockevents", "block", "mmc_rpmb",
- "tty", "i2c-dev", "spidev", "pwm"]
-```
-
-The list of devices paths for a specific subsystem can be obtained as follows:
-
-```elixir
-iex> sr[:state]["subsystems"]["mem"]
-[
-  [:state, "devices", "virtual", "mem", "random"],
-  [:state, "devices", "virtual", "mem", "null"],
-  [:state, "devices", "virtual", "mem", "urandom"],
-  [:state, "devices", "virtual", "mem", "full"],
-  [:state, "devices", "virtual", "mem", "kmsg"],
-  [:state, "devices", "virtual", "mem", "zero"],
-  [:state, "devices", "virtual", "mem", "mem"]
-]
-```
-
-> **WARNING:** Compared to the original device paths used by Linux the device
-> path lists contain an additional `:state` prefix. This allows for a direct
-> usage as keypath into `SystemRegistry` to access their properties.
-
-To access the properties of one of the devices above simply use it's device path
-with `get_in` on `SystemRegistry`:
-
-```elixir
-iex> get_in(sr, [:state, "devices", "virtual", "mem", "zero"])
-%{
-  "devmode" => "0666",
-  "devname" => "zero",
-  "major" => "1",
-  "minor" => "5",
-  "subsystem" => "mem"
-}
-```
-
-> **WARNING:** Please note that the returned map might contain non-binary values
-> for non-leaf devices!
-
-```elixir
-iex> get_in(sr,  [:state, "devices", "platform", "ocp", "481d8000.mmc", "mmc_host", "mmc1", "mmc1:0001", "block", "mmcblk1"])
-%{
-  "devname" => "mmcblk1",
-  "devtype" => "disk",
-  "major" => "179",
-  "minor" => "8",
-  "mmcblk1boot0" => %{
-    "devname" => "mmcblk1boot0",
-    "devtype" => "disk",
-    "major" => "179",
-    "minor" => "16",
-    "subsystem" => "block"
-  },
-  "mmcblk1boot1" => %{
-    "devname" => "mmcblk1boot1",
-    "devtype" => "disk",
-    "major" => "179",
-    "minor" => "24",
-    "subsystem" => "block"
-  },
-  "subsystem" => "block"
-}
-```
-
-The non-binary values are actually the child devices of the device accessed. If
-you only need the actual device properties you need to filter out non-binary
-elements.
-
-```elixir
-iex> get_in(sr,  [:state, "devices", "platform", "ocp", "481d8000.mmc", "mmc_host", "mmc1", "mmc1:0001", "block", "mmcblk1"])
-  |> Enum.filter(fn {key, value} -> is_binary(value) end)
-  |> Map.new()
-%{
-  "devname" => "mmcblk1",
-  "devtype" => "disk",
-  "major" => "179",
-  "minor" => "8",
-  "subsystem" => "block"
-}
-```
 
 ## Serial numbers
 
