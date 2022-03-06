@@ -36,6 +36,8 @@
 
 #include <ei.h>
 
+static int run_modprobe = 0;
+
 static void erlcmd_write_header_len(char *response, size_t len)
 {
     uint16_t be_len = htons(len - sizeof(uint16_t));
@@ -129,6 +131,45 @@ static int ei_encode_devpath(char * buf, int *index, char *devpath, char **end_d
     return ei_encode_empty_list(buf, index);
 }
 
+static void modprobe(char *modalias)
+{
+    pid_t pid = fork();
+    if (pid == 0) {
+        // child
+        char *exec_argv[3];
+
+        int fd = open("/dev/null", O_RDWR);
+        if (fd >= 0) {
+            close(STDIN_FILENO);
+            close(STDOUT_FILENO);
+            close(STDERR_FILENO);
+            dup2(fd, STDIN_FILENO);
+            dup2(fd, STDOUT_FILENO);
+            dup2(fd, STDERR_FILENO);
+        }
+
+        exec_argv[0] = "/sbin/modprobe";
+        exec_argv[1] = modalias;
+        exec_argv[2] = 0;
+        execvp(exec_argv[0], exec_argv);
+
+        // Not supposed to reach here.
+        exit(EXIT_FAILURE);
+    } else {
+        // parent
+        int status = -1;
+        int rc;
+        do {
+            rc = waitpid(pid, &status, 0);
+        } while (rc < 0 && errno == EINTR);
+
+        if ((rc < 0 && errno != ECHILD) || rc != pid) {
+//            warn("unexpected return from waitpid: rc=%d, errno=%d", rc, errno);
+            return;
+        }
+    }
+}
+
 static int nl_uevent_process_one(struct mnl_socket *nl_uevent, char *resp)
 {
     char nlbuf[8192]; // See MNL_SOCKET_BUFFER_SIZE
@@ -165,6 +206,7 @@ static int nl_uevent_process_one(struct mnl_socket *nl_uevent, char *resp)
     *atsign = '\0';
 
     // action
+    const char *action = str;
     ei_encode_elixir_string(resp, &resp_index, str);
 
     // devpath - filter anything that's not under "/devices"
@@ -200,6 +242,12 @@ static int nl_uevent_process_one(struct mnl_socket *nl_uevent, char *resp)
         str_tolower(str);
         keys[kvpairs_count] = str;
         values[kvpairs_count] = equalsign + 1;
+
+        // Optionally run modprobe on newly added devices that have a modalias
+        if (run_modprobe && strcmp(str, "modalias") == 0 && strcmp(action, "add") == 0) {
+            modprobe(equalsign + 1);
+        }
+
         kvpairs_count++;
     }
 
@@ -292,8 +340,9 @@ static void uevent_discover()
 
 int uevent_main(int argc, char *argv[])
 {
-    (void) argc;
-    (void) argv;
+    if (argc == 2 && strcmp(argv[1], "modprobe") == 0) {
+        run_modprobe = 1;
+    }
 
     struct sigaction act;
     act.sa_handler = discovery_exit_handler;
