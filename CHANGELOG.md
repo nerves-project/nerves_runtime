@@ -1,5 +1,13 @@
 # Changelog
 
+## v0.11.9 - 2022-3-6
+
+* Changes
+  * Save shell history on first boot. Previously, Erlang would open up the shell
+    history file before the data partition was formatted and wouldn't retry.
+    Nerves.Runtime now resets shell history so that it retries.
+  * Call modprobe to load kernel modules to C to reduce boot time.
+
 ## v0.11.8 - 2021-10-25
 
 * Changes
