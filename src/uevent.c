@@ -37,6 +37,71 @@
 #include <ei.h>
 
 static int run_modprobe = 0;
+static int modprobe_queue_n;
+static int modprobe_queue_index;
+// Experimentation showed that batches max out around 18 modprobe calls and
+// require a max ~700 bytes of buffer. These shouldn't overflow in practice,
+// but are still checked below.
+static char modprobe_queue_buffer[1024];
+static char *modprobe_queue_argv[32];
+
+static void reset_modprobe_queue()
+{
+    modprobe_queue_argv[0] = "/sbin/modprobe";
+    modprobe_queue_argv[1] = "-a";
+    modprobe_queue_n = 2;
+    modprobe_queue_index = 0;
+}
+
+static void run_modprobes()
+{
+    if (modprobe_queue_index == 0)
+        return;
+
+    pid_t pid = fork();
+    if (pid == 0) {
+        // child
+        int fd = open("/dev/null", O_RDWR);
+        if (fd >= 0) {
+            close(STDIN_FILENO);
+            close(STDOUT_FILENO);
+            close(STDERR_FILENO);
+            dup2(fd, STDIN_FILENO);
+            dup2(fd, STDOUT_FILENO);
+            dup2(fd, STDERR_FILENO);
+        }
+        modprobe_queue_argv[modprobe_queue_n] = 0;
+        execvp(modprobe_queue_argv[0], modprobe_queue_argv);
+
+        // Not supposed to reach here.
+        exit(EXIT_FAILURE);
+    } else {
+        // parent
+        int status = -1;
+        int rc;
+        do {
+            rc = waitpid(pid, &status, 0);
+        } while (rc < 0 && errno == EINTR);
+
+        // Ignore errors.
+        reset_modprobe_queue();
+    }
+}
+
+static void queue_modprobe(char *modalias)
+{
+    size_t modalias_len = strlen(modalias) + 1;
+    if (modprobe_queue_index + modalias_len > sizeof(modprobe_queue_buffer)) {
+        run_modprobes();
+    }
+
+    char *p = &modprobe_queue_buffer[modprobe_queue_index];
+
+    modprobe_queue_argv[modprobe_queue_n] = p;
+    strcpy(p, modalias);
+    modprobe_queue_index += modalias_len;
+    modprobe_queue_n++;
+}
 
 static void erlcmd_write_header_len(char *response, size_t len)
 {
@@ -131,45 +196,6 @@ static int ei_encode_devpath(char * buf, int *index, char *devpath, char **end_d
     return ei_encode_empty_list(buf, index);
 }
 
-static void modprobe(char *modalias)
-{
-    pid_t pid = fork();
-    if (pid == 0) {
-        // child
-        char *exec_argv[3];
-
-        int fd = open("/dev/null", O_RDWR);
-        if (fd >= 0) {
-            close(STDIN_FILENO);
-            close(STDOUT_FILENO);
-            close(STDERR_FILENO);
-            dup2(fd, STDIN_FILENO);
-            dup2(fd, STDOUT_FILENO);
-            dup2(fd, STDERR_FILENO);
-        }
-
-        exec_argv[0] = "/sbin/modprobe";
-        exec_argv[1] = modalias;
-        exec_argv[2] = 0;
-        execvp(exec_argv[0], exec_argv);
-
-        // Not supposed to reach here.
-        exit(EXIT_FAILURE);
-    } else {
-        // parent
-        int status = -1;
-        int rc;
-        do {
-            rc = waitpid(pid, &status, 0);
-        } while (rc < 0 && errno == EINTR);
-
-        if ((rc < 0 && errno != ECHILD) || rc != pid) {
-//            warn("unexpected return from waitpid: rc=%d, errno=%d", rc, errno);
-            return;
-        }
-    }
-}
-
 static int nl_uevent_process_one(struct mnl_socket *nl_uevent, char *resp)
 {
     char nlbuf[8192]; // See MNL_SOCKET_BUFFER_SIZE
@@ -245,7 +271,7 @@ static int nl_uevent_process_one(struct mnl_socket *nl_uevent, char *resp)
 
         // Optionally run modprobe on newly added devices that have a modalias
         if (run_modprobe && strcmp(str, "modalias") == 0 && strcmp(action, "add") == 0) {
-            modprobe(equalsign + 1);
+            queue_modprobe(equalsign + 1);
         }
 
         kvpairs_count++;
@@ -277,8 +303,10 @@ static void nl_uevent_process_all(struct mnl_socket *nl_uevent)
         resp_index += bytes_added;
     }
 
-    if (resp_index > 0)
+    if (resp_index > 0) {
+        run_modprobes();
         write_all(resp, resp_index);
+    }
 }
 
 static int filter(const struct dirent *dirp)
@@ -369,6 +397,8 @@ int uevent_main(int argc, char *argv[])
     sigemptyset (&act.sa_mask);
     act.sa_flags = 0;
     sigaction (SIGCHLD, &act, NULL);
+
+    reset_modprobe_queue();
 
     struct mnl_socket *nl_uevent = uevent_open();
 
