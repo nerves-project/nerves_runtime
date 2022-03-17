@@ -287,12 +287,32 @@ static int filter(const struct dirent *dirp)
            (dirp->d_type == DT_DIR && dirp->d_name[0] != '.');
 }
 
+static int uevent_compare(const struct dirent **first, const struct dirent **second)
+{
+    // Sorting rules
+    //
+    // 1. uevent files always come first. This tries to trigger events from
+    //    most general to least. I.e., it's nice to get the events for the USB bus
+    //    before the devices on the bus.
+    // 2. Everything else in alphabetical order so that things are somewhat deterministic.
+    //
+    const char *first_name = (*first)->d_name;
+    const char *second_name = (*second)->d_name;
+
+    if (strcmp(first_name, "uevent") == 0)
+        return -1;
+    else if (strcmp(second_name, "uevent") == 0)
+        return 1;
+    else
+        return strcmp(first_name, second_name);
+}
+
 static void scandirs(char *path, int path_end)
 {
     struct dirent **namelist;
     int n;
 
-    n = scandir(path, &namelist, filter, NULL);
+    n = scandir(path, &namelist, filter, uevent_compare);
     if (n < 0)
         return;
 
