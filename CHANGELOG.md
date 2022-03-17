@@ -1,5 +1,13 @@
 # Changelog
 
+## v0.11.10 - 2022-3-17
+
+* Bug fixes
+  * Update the initial device scan to be deterministic and to trigger events for
+    containers before the devices they contain. This fixes a subtle issue that
+    prevented RT5379 WiFi module drivers from automatically being loaded.
+  * Batch up modprobe invocations
+
 ## v0.11.9 - 2022-3-6
 
 * Changes
