@@ -4,8 +4,7 @@ defmodule Nerves.Runtime.Application do
   use Application
   require Logger
 
-  alias Nerves.Runtime.{Init, Kernel, KV, Power}
-  alias Nerves.Runtime.Log.{KmsgTailer, SyslogTailer}
+  alias Nerves.Runtime.{Init, KV, Power}
 
   @impl Application
   def start(_type, _args) do
@@ -24,15 +23,7 @@ defmodule Nerves.Runtime.Application do
   end
 
   defp target_children(_target) do
-    kernel_opts = Application.get_env(:nerves_runtime, :kernel, [])
-
-    [
-      KmsgTailer,
-      SyslogTailer,
-      {Kernel.UEvent, kernel_opts},
-      Power,
-      Init
-    ]
+    [Power, Init]
   end
 
   defp load_services("host"), do: :ok

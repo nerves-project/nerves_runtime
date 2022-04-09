@@ -8,23 +8,14 @@ defmodule Nerves.Runtime.MixProject do
     [
       app: :nerves_runtime,
       version: @version,
-      elixir: "~> 1.9",
+      elixir: "~> 1.11",
       start_permanent: Mix.env() == :prod,
       build_embedded: true,
-      compilers: [:elixir_make | Mix.compilers()],
-      make_targets: ["all"],
-      make_clean: ["mix_clean"],
-      make_error_message: """
-      If the error message above says that libmnl.h can't be found, then the
-      fix is to install libmnl. For example, run `apt install libmnl-dev` on
-      Debian-based systems.
-      """,
       description: description(),
       package: package(),
       docs: docs(),
       dialyzer: dialyzer(),
       deps: deps(),
-      aliases: [format: [&format_c/1, "format"]],
       preferred_cli_env: %{docs: :docs, "hex.build": :docs, "hex.publish": :docs}
     ]
   end
@@ -39,7 +30,8 @@ defmodule Nerves.Runtime.MixProject do
   defp deps do
     [
       {:uboot_env, "~> 1.0 or ~> 0.3.0"},
-      {:elixir_make, "~> 0.6", runtime: false},
+      {:nerves_logging, "~> 0.1.0"},
+      {:nerves_uevent, "~> 0.1.0"},
       {:ex_doc, "~> 0.22", only: :docs, runtime: false},
       {:dialyxir, "~> 1.1", only: :dev, runtime: false},
       {:credo, "~> 1.5", only: :dev, runtime: false}
@@ -62,7 +54,6 @@ defmodule Nerves.Runtime.MixProject do
 
   defp package do
     [
-      files: ["CHANGELOG.md", "lib", "LICENSE", "mix.exs", "README.md", "src/*.[ch]", "Makefile"],
       licenses: ["Apache-2.0"],
       links: %{"Github" => @source_url}
     ]
@@ -73,16 +64,4 @@ defmodule Nerves.Runtime.MixProject do
       flags: [:missing_return, :extra_return, :unmatched_returns, :error_handling, :underspecs]
     ]
   end
-
-  defp format_c([]) do
-    astyle =
-      System.find_executable("astyle") ||
-        Mix.raise("""
-        Could not format C code since astyle is not available.
-        """)
-
-    System.cmd(astyle, ["-n", "-r", "src/*.c", "src/*.h"], into: IO.stream(:stdio, :line))
-  end
-
-  defp format_c(_args), do: true
 end
