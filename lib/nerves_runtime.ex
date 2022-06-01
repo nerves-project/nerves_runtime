@@ -1,7 +1,7 @@
 defmodule Nerves.Runtime do
   require Logger
 
-  alias Nerves.Runtime.{KV, OutputLogger}
+  alias Nerves.Runtime.{KV, OutputLogger, Power}
 
   # These are provided by all official Nerves system images
   @revert_fw_path "/usr/share/fwup/revert.fw"
@@ -26,7 +26,7 @@ defmodule Nerves.Runtime do
   the system will be hard rebooted.
   """
   @spec reboot() :: no_return()
-  def reboot(), do: logged_shutdown("reboot")
+  def reboot(), do: Power.run_command("reboot")
 
   @doc """
   Power off the device.
@@ -36,7 +36,7 @@ defmodule Nerves.Runtime do
   the system will be hard rebooted.
   """
   @spec poweroff() :: no_return()
-  def poweroff(), do: logged_shutdown("poweroff")
+  def poweroff(), do: Power.run_command("poweroff")
 
   @doc """
   Halt the device (meaning hang, not power off, nor reboot).
@@ -45,7 +45,7 @@ defmodule Nerves.Runtime do
   rebooting the device if `erlinit.config` settings allow reboot on exit.
   """
   @spec halt() :: no_return()
-  def halt(), do: logged_shutdown("halt")
+  def halt(), do: Power.run_command("halt")
 
   @doc """
   Revert the device to running the previous firmware.
@@ -190,30 +190,5 @@ defmodule Nerves.Runtime do
   def target() do
     target = Application.get_env(:nerves_runtime, :target)
     if target == "host", do: "host", else: "target"
-  end
-
-  # private helpers
-  @dialyzer {:nowarn_function, logged_shutdown: 1}
-  defp logged_shutdown(cmd) do
-    try do
-      Logger.info("#{__MODULE__} : device told to #{cmd}")
-
-      # Invoke the appropriate command to tell erlinit that a shutdown of the
-      # Erlang VM is imminent. Once this returns, the Erlang has about 10
-      # seconds to exit unless `--graceful-powerdown` is used in the
-      # `erlinit.config` to modify the timeout.
-      {_, 0} = cmd(cmd, [], :info)
-
-      # Start a graceful shutdown
-      :ok = :init.stop()
-
-      # `:init.stop()` is asynchronous, so sleep longer than it takes to avoid
-      # returning.
-      Process.sleep(60_000)
-    after
-      # If anything unexpected happens, call :erlang.halt() to avoid getting
-      # stuck in a state where the application thinks it's done.
-      :erlang.halt()
-    end
   end
 end
