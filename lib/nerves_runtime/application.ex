@@ -4,7 +4,7 @@ defmodule Nerves.Runtime.Application do
   use Application
   require Logger
 
-  alias Nerves.Runtime.{Init, Kernel, KV}
+  alias Nerves.Runtime.{Init, Kernel, KV, Power}
   alias Nerves.Runtime.Log.{KmsgTailer, SyslogTailer}
 
   @impl Application
@@ -30,6 +30,7 @@ defmodule Nerves.Runtime.Application do
       KmsgTailer,
       SyslogTailer,
       {Kernel.UEvent, kernel_opts},
+      Power,
       Init
     ]
   end
