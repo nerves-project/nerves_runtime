@@ -13,8 +13,9 @@ Here are its features:
 * Introspection of Nerves system, firmware, and deployment metadata
 * Device reboot and shutdown
 * A small Linux kernel `uevent` application for capturing hardware change events
-  and more
+  and more. See [`nerves_uevent`](https://github.com/nerves-project/nerves_uevent).
 * Device serial numbers
+* Linux log integration with Elixir. See [`nerves_logging`](https://github.com/nerves-project/nerves_logging)
 
 The following sections describe the features in more detail. For more
 information, see the [hex docs](https://hexdocs.pm/nerves_runtime).
@@ -27,27 +28,13 @@ initialize the system when it is started. For this to be useful,
 assume that the system is already initialized before they start. To set up
 `nerves_runtime` to work with `shoehorn`, you will need to do the following:
 
-1. Include `shoehorn` in `mix.exs`
-2. Include `shoehorn` in your `rel/config.exs`
-3. Ensure that `:nerves_runtime` is at the beginning of the `init:` list in
-   your `config/config.exs`:
+1. Add `shoehorn` to your `mix.exs` dependency list
+2. Add a `:shoehorn` configuration to `config.exs` and `:nerves_runtime` to the
+   beginning of the `init:` list:
 
 ```elixir
 config :shoehorn,
-  overlay_path: "",
-  init: [:nerves_runtime, :other_app1, :other_app2],
-  app: :your_app
-```
-
-### Kernel Modules
-
-`nerves_runtime` will attempt to auto-load kernel modules by calling `modprobe`
-using the `modalias` supplied by the device's `uevent` message. You can disable
-this feature by configuring `autoload: false` in your application configuration:
-
-```elixir
-config :nerves_runtime, :kernel,
-  autoload_modules: false
+  init: [:nerves_runtime, :other_app1, :other_app2]
 ```
 
 ## Filesystem Initialization
@@ -253,12 +240,6 @@ protect against kernel and early boot issues, but it can still provide value:
    only called once.
 
 To make this handle hangs, you'll want to enable a hardware watchdog.
-
-## Operating system log collection
-
-Operating system-level messages from `/dev/log` and `/proc/kmsg`, forwarding
-them to `Logger` with an appropriate level to match the syslog priority parsed
-out of the message.
 
 ## Serial numbers
 
