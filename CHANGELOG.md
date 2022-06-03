@@ -1,5 +1,38 @@
 # Changelog
 
+## v0.12.0 - 2022-06-03
+
+This is a major update to `nerves_runtime` that removes SystemRegistry.
+SystemRegistry has been disabled by default for years, but it could be
+re-enabled if device insertion and removal events were needed. That
+functionality has been moved to
+[`nerves_uevent`](https://hexdocs.pm/nerves_uevent/readme.html) and updated to
+use the `property_table` library used by VintageNet.
+
+Elixir 1.11 is the minimum supported Elixir version now.
+
+To upgrade from prior versions of `nerves_runtime`:
+
+1. If you're using `:system_registry` at all, please review the `:nerves_uevent`
+   documentation for new library.
+2. Remove `config :nerves_runtime, :kernel, use_system_registry: false` from
+   your `target.exs`. It's not used any more.
+3. If you had `config :nerves_runtime, :kernel, autoload_modules: false` in your
+   `target.exs`, change it to `config :nerves_uevent, autoload_modules: false`.
+
+* Bug fixes
+  * Run `reboot` and `poweroff` sequences in their own Erlang process. This
+    fixes a bug were the process that calls `reboot` gets killed partway through
+    the reboot process and the system doesn't actually reboot.
+
+* Changes
+  * Kernel logging and syslog monitoring has been moved to
+    [`nerves_logging`](https://hexdocs.pm/nerves_logging/readme.html). The
+    functionality is the same as before, but it's now possible to use without
+    `nerves_runtime`.
+  * Added convenience routines for getting status from
+    [`nerves_heart`](https://github.com/nerves-project/nerves_heart).
+
 ## v0.11.10 - 2022-3-17
 
 * Bug fixes
