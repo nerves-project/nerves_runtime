@@ -1,7 +1,7 @@
 defmodule Nerves.Runtime.KV.UBootEnv do
-  @behaviour Nerves.Runtime.KV
-
   @moduledoc false
+
+  @behaviour Nerves.Runtime.KV
 
   @impl Nerves.Runtime.KV
   def init(_opts) do

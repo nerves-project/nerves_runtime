@@ -1,8 +1,7 @@
 defmodule Nerves.Runtime.OutputLogger do
+  @moduledoc false
   defstruct [:level]
   @type t :: %__MODULE__{level: Logger.level()}
-
-  @moduledoc false
 
   @spec new(Logger.level()) :: t()
   def new(level) do

@@ -1,7 +1,9 @@
 defmodule Nerves.Runtime do
-  require Logger
-
+  @moduledoc """
+  Nerves.Runtime contains functions useful for almost all Nerves-based devices.
+  """
   alias Nerves.Runtime.{KV, OutputLogger, Power}
+  require Logger
 
   # These are provided by all official Nerves system images
   @revert_fw_path "/usr/share/fwup/revert.fw"
@@ -13,10 +15,6 @@ defmodule Nerves.Runtime do
   * `:reboot` - Call `Nerves.Runtime.reboot/0` after reverting (defaults to `true`)
   """
   @type revert_options :: {:reboot, boolean()}
-
-  @moduledoc """
-  Nerves.Runtime contains functions useful for almost all Nerves-based devices.
-  """
 
   @doc """
   Reboot the device and gracefully shutdown the Erlang VM.

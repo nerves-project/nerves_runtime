@@ -1,11 +1,4 @@
 defmodule Nerves.Runtime.Init do
-  use GenServer
-  require Logger
-
-  alias Nerves.Runtime
-  alias Nerves.Runtime.KV
-  alias Nerves.Runtime.MountParser
-
   @moduledoc """
   GenServer that handles device initialization.
 
@@ -27,6 +20,13 @@ defmodule Nerves.Runtime.Init do
   generate a UUID. Look into hardcoding UUIDs or enabling a hw random number
   generator to increase entropy.
   """
+  use GenServer
+
+  alias Nerves.Runtime
+  alias Nerves.Runtime.KV
+  alias Nerves.Runtime.MountParser
+
+  require Logger
 
   # Use a fixed UUID for the application partition. This has two
   # purposes:

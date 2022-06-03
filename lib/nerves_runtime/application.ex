@@ -2,9 +2,10 @@ defmodule Nerves.Runtime.Application do
   @moduledoc false
 
   use Application
-  require Logger
 
   alias Nerves.Runtime.{Init, KV, Power}
+
+  require Logger
 
   @impl Application
   def start(_type, _args) do

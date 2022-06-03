@@ -1,6 +1,4 @@
 defmodule Nerves.Runtime.KV.Mock do
-  @behaviour Nerves.Runtime.KV
-
   @moduledoc """
   Applications that depend on `nerves_runtime` for accessing provisioning
   information from the `Nerves.Runtime.KV` can mock the contents through the
@@ -10,6 +8,8 @@ defmodule Nerves.Runtime.KV.Mock do
   config :nerves_runtime, Nerves.Runtime.KV.Mock, %{"key" => "value"}
   ```
   """
+  @behaviour Nerves.Runtime.KV
+
   @impl Nerves.Runtime.KV
   def init(state) do
     Application.get_env(:nerves_runtime, __MODULE__) || init_state(state)

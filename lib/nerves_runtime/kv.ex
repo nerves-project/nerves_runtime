@@ -121,8 +121,8 @@ defmodule Nerves.Runtime.KV do
       iex> Nerves.Runtime.KV.get_active("nerves_fw_misc")
       "Nerves is awesome"
   """
-
   use GenServer
+
   require Logger
 
   @typedoc """
@@ -157,13 +157,11 @@ defmodule Nerves.Runtime.KV do
   """
   @callback put(state :: string_map()) :: :ok | {:error, reason :: any()}
 
-  alias __MODULE__
-
   mod =
     if Nerves.Runtime.target() != "host" do
-      KV.UBootEnv
+      Nerves.Runtime.KV.UBootEnv
     else
-      KV.Mock
+      Nerves.Runtime.KV.Mock
     end
 
   @default_mod mod
