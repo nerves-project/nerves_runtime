@@ -5,11 +5,6 @@ defmodule Nerves.Runtime.Application do
 
   alias Nerves.Runtime.KV
 
-  if Mix.target() != :host do
-    alias Nerves.Runtime.Init
-    alias Nerves.Runtime.Power
-  end
-
   require Logger
 
   @impl Application
@@ -26,7 +21,7 @@ defmodule Nerves.Runtime.Application do
     defp target_children(), do: []
     defp load_services(), do: :ok
   else
-    defp target_children(), do: [Power, Init]
+    defp target_children(), do: [Nerves.Runtime.Power, Nerves.Runtime.Init]
 
     defp load_services() do
       # On systems with hardware random number generation, it is important that
