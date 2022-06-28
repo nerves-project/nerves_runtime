@@ -158,7 +158,7 @@ defmodule Nerves.Runtime.KV do
   @callback put(state :: string_map()) :: :ok | {:error, reason :: any()}
 
   mod =
-    if Nerves.Runtime.target() != "host" do
+    if Nerves.Runtime.mix_target() != :host do
       Nerves.Runtime.KV.UBootEnv
     else
       Nerves.Runtime.KV.Mock

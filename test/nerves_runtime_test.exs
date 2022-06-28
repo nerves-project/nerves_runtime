@@ -52,6 +52,10 @@ defmodule NervesRuntimeTest do
     assert Nerves.Runtime.firmware_valid?()
   end
 
+  test "mix_target/0" do
+    assert Nerves.Runtime.mix_target() == :host
+  end
+
   defp fixture_path() do
     Path.expand("test/fixture")
   end

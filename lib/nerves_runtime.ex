@@ -9,6 +9,9 @@ defmodule Nerves.Runtime do
   @revert_fw_path "/usr/share/fwup/revert.fw"
   @boardid_path "/usr/bin/boardid"
 
+  # Capture the target that this was built for
+  @mix_target Mix.target()
+
   @typedoc """
   Options for `Nerves.Runtime.revert/1`.
 
@@ -182,11 +185,13 @@ defmodule Nerves.Runtime do
     do: System.cmd(cmd, params, into: OutputLogger.new(out), stderr_to_stdout: true)
 
   @doc """
-  Return whether the application was built for either the host or the target
+  Return the mix target that was used to build this firmware
+
+  If you're running on the development machine, this will return `:host`.
+  If not, it will return whatever the user specified with the `MIX_TARGET`
+  environment variable when building this firmware.
   """
-  @spec target() :: String.t()
-  def target() do
-    target = Application.get_env(:nerves_runtime, :target)
-    if target == "host", do: "host", else: "target"
-  end
+  @dialyzer {:nowarn_function, mix_target: 0}
+  @spec mix_target() :: atom()
+  def mix_target(), do: @mix_target
 end
