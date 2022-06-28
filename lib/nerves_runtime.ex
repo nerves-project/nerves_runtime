@@ -7,7 +7,6 @@ defmodule Nerves.Runtime do
 
   # These are provided by all official Nerves system images
   @revert_fw_path "/usr/share/fwup/revert.fw"
-  @boardid_path "/usr/bin/boardid"
 
   # Capture the target that this was built for
   @mix_target Mix.target()
@@ -90,7 +89,7 @@ defmodule Nerves.Runtime do
   """
   @spec serial_number() :: String.t()
   def serial_number() do
-    boardid_path = Application.get_env(:nerves_runtime, :boardid_path, @boardid_path)
+    boardid_path = Application.get_env(:nerves_runtime, :boardid_path)
     {serial, 0} = System.cmd(boardid_path, [])
     String.trim(serial)
   catch

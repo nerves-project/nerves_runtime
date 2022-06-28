@@ -22,6 +22,9 @@ defmodule Nerves.Runtime.MixProject do
 
   def application do
     [
+      env: [
+        boardid: "/usr/bin/boardid"
+      ],
       extra_applications: [:logger],
       mod: {Nerves.Runtime.Application, []}
     ]
