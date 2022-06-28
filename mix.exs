@@ -23,7 +23,9 @@ defmodule Nerves.Runtime.MixProject do
   def application do
     [
       env: [
-        boardid: "/usr/bin/boardid"
+        # These are provided by all official Nerves system images
+        boardid: "/usr/bin/boardid",
+        revert_fw_path: "/usr/share/fwup/revert.fw"
       ],
       extra_applications: [:logger],
       mod: {Nerves.Runtime.Application, []}

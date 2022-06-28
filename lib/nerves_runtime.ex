@@ -5,9 +5,6 @@ defmodule Nerves.Runtime do
   alias Nerves.Runtime.{KV, OutputLogger, Power}
   require Logger
 
-  # These are provided by all official Nerves system images
-  @revert_fw_path "/usr/share/fwup/revert.fw"
-
   # Capture the target that this was built for
   @mix_target Mix.target()
 
@@ -56,8 +53,10 @@ defmodule Nerves.Runtime do
   def revert(opts \\ []) do
     reboot? = if opts[:reboot] != nil, do: opts[:reboot], else: true
 
-    if File.exists?(@revert_fw_path) do
-      {_, 0} = cmd("fwup", [@revert_fw_path, "-t", "revert", "-d", "/dev/rootdisk0"], :info)
+    revert_fw_path = Application.get_env(:nerves_runtime, :revert_fw_path)
+
+    if File.exists?(revert_fw_path) do
+      {_, 0} = cmd("fwup", [revert_fw_path, "-t", "revert", "-d", "/dev/rootdisk0"], :info)
 
       if reboot? do
         reboot()
@@ -65,7 +64,7 @@ defmodule Nerves.Runtime do
         :ok
       end
     else
-      {:error, "Unable to locate revert firmware at path: #{@revert_fw_path}"}
+      {:error, "Unable to locate revert firmware at path: #{revert_fw_path}"}
     end
   end
 
