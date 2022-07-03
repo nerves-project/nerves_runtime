@@ -11,7 +11,8 @@ defmodule Nerves.Runtime.Application do
   def start(_type, _args) do
     load_services()
 
-    children = [KV | target_children()]
+    options = Application.get_all_env(:nerves_runtime)
+    children = [{KV, options} | target_children()]
 
     opts = [strategy: :one_for_one, name: Nerves.Runtime.Supervisor]
     Supervisor.start_link(children, opts)

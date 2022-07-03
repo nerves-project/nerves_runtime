@@ -1,24 +1,32 @@
 defmodule Nerves.Runtime.KV do
   @moduledoc """
-  Key Value storage for firmware variables provided by fwup.
+  Key-Value storage for firmware variables
 
-  KV provides functionality to read and modify firmware metadata set by fwup.
+  KV provides functionality to read and modify firmware metadata.
   The firmware metadata contains information such as the active firmware
-  slot, where the application data partition is located, etc. The firmware
-  metadata store is a simple key-value store where both keys and values are
-  stored as strings.
+  slot, where the application data partition is located, etc. It may also contain
+  board provisioning information like factory calibration so long as it is not
+  too large.
 
-  The firmware metadata is stored in the U-boot environment block stored at
-  the beginning of the disk outside of actual partitions. It is not stored
-  redundantly, and it can be susceptible to corruption in case of power
-  failure during writes. For this reason, it is recommended to use the
-  firmware metadata with caution. The access patterns in this module lower
-  the risk of corruption, and risk can be lowered further by storing as
-  little data as possible in the firmware metadata.
+  The metadata store is a simple key-value store where both keys and values are
+  ASCII strings. Writes are expected to be infrequent and primarily done
+  on firmware updates. If you expect frequent writes, it is highly recommended
+  to persist the data elsewhere.
 
-  `UBootEnv` can alternatively be used for more direct access to the firmware
-  metadata. However, since KV utilizes caching of the firmware metadata, you
-  should use either KV or UBootEnv, not both.
+  The default KV backend loads and stores metadata to a U-Boot-formatted environment
+  block. This doesn't mean that the device needs to run U-Boot. It just
+  happens to be a convenient data format that's well supported.
+
+  There are some expectations on keys. See the Nerves.Runtime README.md for
+  naming conventions and expected key names. These are not enforced
+
+  To change the KV backend, implement the `Nerves.Runtime.KVBackend` behaviour and
+  configure the application environment in your
+  program's `config.exs` like the following:
+
+  ```elixir
+  config :nerves_runtime, kv_backend: {MyKeyValueBackend, options}
+  ```
 
   ## Examples
 
@@ -133,43 +141,20 @@ defmodule Nerves.Runtime.KV do
   the value `0` (i.e., `NULL`) are disallowed. The `=` sign is also disallowed
   in keys. Values may have embedded new lines. In general, it's recommended to
   stick with ASCII values to avoid causing trouble when working with C programs
-  and U-Boot which also access the variables.
+  which also access the variables.
   """
-  @type string_map :: %{String.t() => String.t()}
+  @type string_map() :: %{String.t() => String.t()}
 
-  @doc """
-  Initialize the KV store and return its contents
-
-  This will be called on boot and should return all persisted key/value pairs.
-  The results will be cached and if a change should be persisted, `c:put/1` will
-  be called with the update.
-
-  The `opts` parameter is currently unused, but may supply configuration
-  options in the future.
-  """
-  @callback init(opts :: any) :: initial_state :: string_map()
-
-  @doc """
-  Persist the updated KV pairs
-
-  The KV map contains the KV pairs returned by `c:init/1` with any changes made
-  by users of `Nerves.Runtime.KV`.
-  """
-  @callback put(state :: string_map()) :: :ok | {:error, reason :: any()}
-
-  mod =
-    if Nerves.Runtime.mix_target() != :host do
-      Nerves.Runtime.KV.UBootEnv
-    else
-      Nerves.Runtime.KV.Mock
-    end
-
-  @default_mod mod
+  @typedoc false
+  @type state() :: %{backend: module(), options: keyword(), contents: string_map()}
 
   @doc """
   Start the KV store server
+
+  Options:
+  * `:kv_backend` - a KV backend of the form `{module, options}` or just `module
   """
-  @spec start_link(any()) :: GenServer.on_start()
+  @spec start_link(keyword()) :: GenServer.on_start()
   def start_link(opts) do
     GenServer.start_link(__MODULE__, opts, name: __MODULE__)
   end
@@ -240,7 +225,7 @@ defmodule Nerves.Runtime.KV do
 
   @impl GenServer
   def init(opts) do
-    {:ok, mod().init(opts)}
+    {:ok, initial_state(opts)}
   end
 
   @impl GenServer
@@ -249,7 +234,7 @@ defmodule Nerves.Runtime.KV do
   end
 
   def handle_call({:get, key}, _from, s) do
-    {:reply, Map.get(s, key), s}
+    {:reply, Map.get(s.contents, key), s}
   end
 
   def handle_call(:get_all_active, _from, s) do
@@ -259,7 +244,7 @@ defmodule Nerves.Runtime.KV do
   end
 
   def handle_call(:get_all, _from, s) do
-    {:reply, s, s}
+    {:reply, s.contents, s}
   end
 
   def handle_call({:put, kv}, _from, s) do
@@ -275,14 +260,14 @@ defmodule Nerves.Runtime.KV do
     {:reply, reply, s}
   end
 
-  defp active(s), do: Map.get(s, "nerves_fw_active", "")
+  defp active(s), do: Map.get(s.contents, "nerves_fw_active", "")
 
   defp active(key, s) do
-    Map.get(s, "#{active(s)}.#{key}")
+    Map.get(s.contents, "#{active(s)}.#{key}")
   end
 
   defp filter_trim_active(s, active) do
-    Enum.filter(s, fn {k, _} ->
+    Enum.filter(s.contents, fn {k, _} ->
       String.starts_with?(k, active)
     end)
     |> Enum.map(fn {k, v} -> {String.replace_leading(k, active, ""), v} end)
@@ -290,13 +275,46 @@ defmodule Nerves.Runtime.KV do
   end
 
   defp do_put(kv, s) do
-    case mod().put(kv) do
-      :ok -> {:ok, Map.merge(s, kv)}
+    case s.backend.save(kv, s.options) do
+      :ok -> {:ok, %{s | contents: Map.merge(s.contents, kv)}}
       error -> {error, s}
     end
   end
 
-  defp mod() do
-    Application.get_env(:nerves_runtime, :modules)[__MODULE__] || @default_mod
+  defguardp is_module(v) when is_atom(v) and not is_nil(v)
+
+  defp initial_state(options) do
+    case options[:kv_backend] do
+      {backend, opts} when is_module(backend) and is_list(opts) ->
+        initialize(backend, opts)
+
+      backend when is_module(backend) ->
+        initialize(backend, [])
+
+      _ ->
+        # Handle Nerves.Runtime v0.12.0 and earlier way
+        initial_contents = options[:modules][Nerves.Runtime.KV.Mock]
+
+        Logger.error(
+          "Using Nerves.Runtime.KV.Mock is deprecated. Use `config :nerves_runtime, kv_backend: {Nerves.Runtime.KVBackend.InMemory, contents: #{inspect(initial_contents)}}`"
+        )
+
+        initialize(Nerves.Runtime.KVBackend.InMemory, contents: initial_contents)
+    end
+  rescue
+    error ->
+      Logger.error("Nerves.Runtime has a bad KV configuration: #{inspect(error)}")
+      initialize(Nerves.Runtime.KVBackend.InMemory, [])
+  end
+
+  defp initialize(backend, options) do
+    case backend.load(options) do
+      {:ok, contents} ->
+        %{backend: backend, options: options, contents: contents}
+
+      {:error, reason} ->
+        Logger.error("Nerves.Runtime failed to load KV: #{inspect(reason)}")
+        %{backend: Nerves.Runtime.KVBackend.InMemory, options: [], contents: %{}}
+    end
   end
 end

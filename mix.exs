@@ -23,14 +23,17 @@ defmodule Nerves.Runtime.MixProject do
   def application do
     [
       env: [
-        # These are provided by all official Nerves system images
         boardid: "/usr/bin/boardid",
-        revert_fw_path: "/usr/share/fwup/revert.fw"
+        revert_fw_path: "/usr/share/fwup/revert.fw",
+        kv_backend: kv_backend(Mix.target())
       ],
       extra_applications: [:logger],
       mod: {Nerves.Runtime.Application, []}
     ]
   end
+
+  defp kv_backend(:host), do: Nerves.Runtime.KVBackend.InMemory
+  defp kv_backend(_target), do: Nerves.Runtime.KVBackend.UBootEnv
 
   defp deps do
     [

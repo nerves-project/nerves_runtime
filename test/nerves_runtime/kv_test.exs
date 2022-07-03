@@ -42,8 +42,12 @@ defmodule Nerves.Runtime.KVTest do
     end)
   end
 
-  setup do
-    {:ok, _pid} = KV.start_link(@kv)
+  setup context do
+    options =
+      context[:kv_options] || [kv_backend: {Nerves.Runtime.KVBackend.InMemory, contents: @kv}]
+
+    start_supervised!({KV, options})
+
     :ok
   end
 
@@ -70,5 +74,50 @@ defmodule Nerves.Runtime.KVTest do
   test "can get single active value from kv" do
     active_value = Map.get(@kv, "b.nerves_fw_version")
     assert KV.get_active("nerves_fw_version") == active_value
+  end
+
+  test "put/2" do
+    assert :ok = KV.put("test_key", "test_value")
+    assert KV.get("test_key") == "test_value"
+  end
+
+  test "put/1" do
+    assert :ok = KV.put(%{"test_key1" => "test_value1", "test_key2" => "test_value2"})
+    assert KV.get("test_key1") == "test_value1"
+    assert KV.get("test_key2") == "test_value2"
+  end
+
+  test "put_active/2" do
+    assert :ok = KV.put_active("active_test_key", "active_test_value")
+    assert KV.get_active("active_test_key") == "active_test_value"
+  end
+
+  test "put_active/1" do
+    assert :ok =
+             KV.put_active(%{
+               "active_test_key1" => "active_test_value1",
+               "active_test_key2" => "active_test_value2"
+             })
+
+    assert KV.get_active("active_test_key1") == "active_test_value1"
+    assert KV.get_active("active_test_key2") == "active_test_value2"
+  end
+
+  @tag kv_options: [{:modules, [{Nerves.Runtime.KV.Mock, %{"key" => "value"}}]}]
+  test "old configuration" do
+    assert KV.get("key") == "value"
+
+    assert :ok = KV.put("test_key", "test_value")
+    assert KV.get("test_key") == "test_value"
+  end
+
+  @tag kv_options: [kv_backend: Nerves.Runtime.KVBackend.InMemory]
+  test "empty configuration" do
+    assert KV.get_all() == %{}
+  end
+
+  @tag kv_options: [kv_backend: Nerves.Runtime.KVBackend.BadBad]
+  test "bad configuration reverts to empty" do
+    assert KV.get_all() == %{}
   end
 end

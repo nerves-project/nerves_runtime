@@ -273,24 +273,24 @@ way.
 
 Applications that depend on `nerves_runtime` for accessing provisioning
 information from the `Nerves.Runtime.KV` can mock the contents with the included
-`Nerves.Runtime.KV.Mock` module through the Application config:
+`Nerves.Runtime.KVBackend.InMemory` module through the Application config:
 
 ```elixir
-config :nerves_runtime, Nerves.Runtime.KV.Mock, %{"key" => "value"}
+config :nerves_runtime, Nerves.Runtime.KVBackend.InMemory, %{"key" => "value"}
 ```
 
-You can also create your own module based on the `Nerves.Runtime.KV` behavior
-and set it to be used in the Application config. In most situations, the
-provided `Nerves.Runtime.KV.Mock` should be sufficient, though this would be
-helpful in cases where you might need to generate the initial state at runtime
-instead:
+You can also create your own module based on the `Nerves.Runtime.KVBackend`
+behavior and set it to be used in the Application config. In most situations,
+the provided `Nerves.Runtime.KVBackend.InMemory` should be sufficient, though
+this would be helpful in cases where you might need to generate the initial
+state at runtime instead:
 
 ```elixir
-defmodule MyApp.KV.Mock do
-  @behaviour Nerves.Runtime.KV
+defmodule MyApp.KVBackend.Mock do
+  @behaviour Nerves.Runtime.KVBackend
 
-  @impl Nerves.Runtime.KV
-  def init(_opts) do
+  @impl Nerves.Runtime.KVBackend
+  def load(_opts) do
     # initial state
     %{
       "howdy" => "partner",
@@ -298,12 +298,10 @@ defmodule MyApp.KV.Mock do
     }
   end
 
-  @impl Nerves.Runtime.KV
-  def put(_map), do: :ok
+  @impl Nerves.Runtime.KVBackend
+  def save(_map, _opts), do: :ok
 end
 
 # Then in config.exs
-config :nerves_runtime, :modules, [
-  {Nerves.Runtime.KV, MyApp.KV.Mock}
-]
+config :nerves_runtime, :kv_backend, MyApp.KVBackend.Mock
 ```
