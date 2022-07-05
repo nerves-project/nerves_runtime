@@ -4,6 +4,8 @@ defmodule Nerves.Runtime.KVTest do
 
   alias Nerves.Runtime.KV
 
+  @moduletag capture_log: true
+
   @kv %{
     "a.nerves_fw_application_part0_devpath" => "/dev/mmcblk0p3",
     "a.nerves_fw_application_part0_fstype" => "ext4",

@@ -38,7 +38,7 @@ defmodule Nerves.Runtime.MixProject do
   defp deps do
     [
       {:uboot_env, "~> 1.0 or ~> 0.3.0"},
-      {:nerves_logging, "~> 0.1.0"},
+      {:nerves_logging, "~> 0.2.0"},
       {:nerves_uevent, "~> 0.1.0"},
       {:ex_doc, "~> 0.22", only: :docs, runtime: false},
       {:dialyxir, "~> 1.1", only: :dev, runtime: false},

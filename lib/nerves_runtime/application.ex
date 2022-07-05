@@ -22,7 +22,14 @@ defmodule Nerves.Runtime.Application do
     defp target_children(), do: []
     defp load_services(), do: :ok
   else
-    defp target_children(), do: [Nerves.Runtime.Power, Nerves.Runtime.Init]
+    defp target_children() do
+      [
+        NervesLogging.KmsgTailer,
+        NervesLogging.SyslogTailer,
+        Nerves.Runtime.Power,
+        Nerves.Runtime.Init
+      ]
+    end
 
     defp load_services() do
       # On systems with hardware random number generation, it is important that
