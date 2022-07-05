@@ -8,7 +8,7 @@ defmodule Nerves.Runtime.KVBackend do
   Load the KV store and return its contents
 
   This will be called on boot and should return all persisted key/value pairs.
-  The results will be cached and if a change should be persisted, `c:save/1` will
+  The results will be cached and if a change should be persisted, `c:save/2` will
   be called with the update.
   """
   @callback load(options :: keyword) ::

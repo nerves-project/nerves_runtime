@@ -152,7 +152,7 @@ defmodule Nerves.Runtime.KV do
   Start the KV store server
 
   Options:
-  * `:kv_backend` - a KV backend of the form `{module, options}` or just `module
+  * `:kv_backend` - a KV backend of the form `{module, options}` or just `module`
   """
   @spec start_link(keyword()) :: GenServer.on_start()
   def start_link(opts) do
