@@ -1,5 +1,19 @@
 # Changelog
 
+## v0.13.0 - 2022-07-05
+
+This update replaces `Nerves.Runtime.target/0` with
+`Nerves.Runtime.mix_target/0`. It is not believed that the former function was
+used much, but if you do use it, note the return value change in `mix_target/0`.
+
+* Changes
+  * Support customizable key-value store backends so that it's possible to store
+    firmware and board metadata outside of U-Boot environment blocks. See the
+    `:kv_backend` configuration option.
+  * Support changing the firmware revert script path (see `:revert_fw_path`)
+  * Decide host vs. target differences at compile time to avoid target-only
+    or host-only logic and dependencies existing unnecessarily at run-time.
+
 ## v0.12.0 - 2022-06-03
 
 This is a major update to `nerves_runtime` that removes SystemRegistry.
