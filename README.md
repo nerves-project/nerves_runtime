@@ -276,7 +276,8 @@ information from the `Nerves.Runtime.KV` can mock the contents with the included
 `Nerves.Runtime.KVBackend.InMemory` module through the Application config:
 
 ```elixir
-config :nerves_runtime, Nerves.Runtime.KVBackend.InMemory, %{"key" => "value"}
+config :nerves_runtime,
+  kv_backend: {Nerves.Runtime.KVBackend.InMemory, contents: %{"key" => "value"}}
 ```
 
 You can also create your own module based on the `Nerves.Runtime.KVBackend`
