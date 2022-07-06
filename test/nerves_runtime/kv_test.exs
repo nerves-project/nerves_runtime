@@ -106,6 +106,14 @@ defmodule Nerves.Runtime.KVTest do
   end
 
   @tag kv_options: [{:modules, [{Nerves.Runtime.KV.Mock, %{"key" => "value"}}]}]
+  test "old modules configuration" do
+    assert KV.get("key") == "value"
+
+    assert :ok = KV.put("test_key", "test_value")
+    assert KV.get("test_key") == "test_value"
+  end
+
+  @tag kv_options: [{Nerves.Runtime.KV.Mock, %{"key" => "value"}}]
   test "old configuration" do
     assert KV.get("key") == "value"
 
