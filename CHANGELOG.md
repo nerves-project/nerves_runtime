@@ -4,6 +4,7 @@
 
 * Changes
   * Handle another way key-value stores were being mocked pre-v0.13.0.
+  * Fix default `boardid_path` in mix.exs
 
 ## v0.13.0 - 2022-07-05
 
