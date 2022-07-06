@@ -293,7 +293,8 @@ defmodule Nerves.Runtime.KV do
 
       _ ->
         # Handle Nerves.Runtime v0.12.0 and earlier way
-        initial_contents = options[:modules][Nerves.Runtime.KV.Mock]
+        initial_contents =
+          options[:modules][Nerves.Runtime.KV.Mock] || options[Nerves.Runtime.KV.Mock]
 
         Logger.error(
           "Using Nerves.Runtime.KV.Mock is deprecated. Use `config :nerves_runtime, kv_backend: {Nerves.Runtime.KVBackend.InMemory, contents: #{inspect(initial_contents)}}`"
