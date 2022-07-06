@@ -1,5 +1,10 @@
 # Changelog
 
+## v0.13.1 - 2022-07-06
+
+* Changes
+  * Handle another way key-value stores were being mocked pre-v0.13.0.
+
 ## v0.13.0 - 2022-07-05
 
 This update replaces `Nerves.Runtime.target/0` with
