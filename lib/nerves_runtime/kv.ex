@@ -133,6 +133,8 @@ defmodule Nerves.Runtime.KV do
 
   require Logger
 
+  alias Nerves.Runtime.KVBackend.Cache
+
   @typedoc """
   The KV store is a string -> string map
 
@@ -225,97 +227,37 @@ defmodule Nerves.Runtime.KV do
 
   @impl GenServer
   def init(opts) do
-    {:ok, initial_state(opts)}
+    {:ok, Cache.new(opts)}
   end
 
   @impl GenServer
   def handle_call({:get_active, key}, _from, s) do
-    {:reply, active(key, s), s}
+    {:reply, Cache.get_active(s, key), s}
   end
 
   def handle_call({:get, key}, _from, s) do
-    {:reply, Map.get(s.contents, key), s}
+    {:reply, Cache.get(s, key), s}
   end
 
   def handle_call(:get_all_active, _from, s) do
-    active = active(s) <> "."
-    reply = filter_trim_active(s, active)
-    {:reply, reply, s}
+    {:reply, Cache.get_all_active(s), s}
   end
 
   def handle_call(:get_all, _from, s) do
-    {:reply, s.contents, s}
+    {:reply, Cache.get_all(s), s}
   end
 
   def handle_call({:put, kv}, _from, s) do
-    {reply, s} = do_put(kv, s)
-    {:reply, reply, s}
+    case Cache.put(s, kv) do
+      {:ok, new_s} -> {:reply, :ok, new_s}
+      error -> {:reply, error, s}
+    end
   end
 
   def handle_call({:put_active, kv}, _from, s) do
-    {reply, s} =
-      Map.new(kv, fn {key, value} -> {"#{active(s)}.#{key}", value} end)
-      |> do_put(s)
-
-    {:reply, reply, s}
-  end
-
-  defp active(s), do: Map.get(s.contents, "nerves_fw_active", "")
-
-  defp active(key, s) do
-    Map.get(s.contents, "#{active(s)}.#{key}")
-  end
-
-  defp filter_trim_active(s, active) do
-    Enum.filter(s.contents, fn {k, _} ->
-      String.starts_with?(k, active)
-    end)
-    |> Enum.map(fn {k, v} -> {String.replace_leading(k, active, ""), v} end)
-    |> Enum.into(%{})
-  end
-
-  defp do_put(kv, s) do
-    case s.backend.save(kv, s.options) do
-      :ok -> {:ok, %{s | contents: Map.merge(s.contents, kv)}}
-      error -> {error, s}
-    end
-  end
-
-  defguardp is_module(v) when is_atom(v) and not is_nil(v)
-
-  defp initial_state(options) do
-    case options[:kv_backend] do
-      {backend, opts} when is_module(backend) and is_list(opts) ->
-        initialize(backend, opts)
-
-      backend when is_module(backend) ->
-        initialize(backend, [])
-
-      _ ->
-        # Handle Nerves.Runtime v0.12.0 and earlier way
-        initial_contents =
-          options[:modules][Nerves.Runtime.KV.Mock] || options[Nerves.Runtime.KV.Mock]
-
-        Logger.error(
-          "Using Nerves.Runtime.KV.Mock is deprecated. Use `config :nerves_runtime, kv_backend: {Nerves.Runtime.KVBackend.InMemory, contents: #{inspect(initial_contents)}}`"
-        )
-
-        initialize(Nerves.Runtime.KVBackend.InMemory, contents: initial_contents)
-    end
-  rescue
-    error ->
-      Logger.error("Nerves.Runtime has a bad KV configuration: #{inspect(error)}")
-      initialize(Nerves.Runtime.KVBackend.InMemory, [])
-  end
-
-  defp initialize(backend, options) do
-    case backend.load(options) do
-      {:ok, contents} ->
-        %{backend: backend, options: options, contents: contents}
-
-      {:error, reason} ->
-        Logger.error("Nerves.Runtime failed to load KV: #{inspect(reason)}")
-        %{backend: Nerves.Runtime.KVBackend.InMemory, options: [], contents: %{}}
+    case Cache.put_active(s, kv) do
+      {:ok, new_s} -> {:reply, :ok, new_s}
+      error -> {:reply, error, s}
     end
   end
 end

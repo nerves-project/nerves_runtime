@@ -46,7 +46,7 @@ defmodule Nerves.Runtime.Power do
     Logger.info("#{__MODULE__} : device told to #{cmd}")
 
     # Invoke the appropriate command to tell erlinit that a shutdown of the
-    # Erlang VM is imminent. Once this returns, the Erlang has about 10
+    # Erlang VM is imminent. Once this returns, Erlang has about 10
     # seconds to exit unless `--graceful-powerdown` is used in the
     # `erlinit.config` to modify the timeout.
     {_, 0} = Nerves.Runtime.cmd(cmd, [], :info)
