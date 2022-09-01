@@ -10,7 +10,6 @@ defmodule Nerves.Runtime.MixProject do
       version: @version,
       elixir: "~> 1.11",
       start_permanent: Mix.env() == :prod,
-      build_embedded: true,
       description: description(),
       package: package(),
       docs: docs(),
