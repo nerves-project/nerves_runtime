@@ -15,5 +15,5 @@
   "nerves_uevent": {:hex, :nerves_uevent, "0.1.0", "651111a46be9a238560cbf7946989fc500e5f33d7035fd9ea7194d07a281bc19", [:make, :mix], [{:elixir_make, "~> 0.6", [hex: :elixir_make, repo: "hexpm", optional: false]}, {:property_table, "~> 0.2.0", [hex: :property_table, repo: "hexpm", optional: false]}], "hexpm", "cb0b1993c3ed3cefadbcdb534e910af0661f95c3445796ce8a7c8be3519a4e5f"},
   "nimble_parsec": {:hex, :nimble_parsec, "1.2.3", "244836e6e3f1200c7f30cb56733fd808744eca61fd182f731eac4af635cc6d0b", [:mix], [], "hexpm", "c8d789e39b9131acf7b99291e93dae60ab48ef14a7ee9d58c6964f59efb570b0"},
   "property_table": {:hex, :property_table, "0.2.0", "d47549d9c75c4f8975ca126b48a21c879c76e73d7e7dd0cc65b7d1619b3a198f", [:mix], [], "hexpm", "00f89af46c1f45e572c8386744c773fbf506f731648538d350b9a96720021f0d"},
-  "uboot_env": {:hex, :uboot_env, "1.0.0", "fdbe0afe65436f760cd372b16a58ccf7c76bbad1538f1766826e0ddbcaf80980", [:mix], [], "hexpm", "86754d5eae9643ca3094ee1d749b808f9d6f0d41b990e1191709b5a66c2b0757"},
+  "uboot_env": {:hex, :uboot_env, "1.0.1", "b0e136cf1a561412ff7db23ed2b6df18d7c7ce2fc59941afd851006788a67f3d", [:mix], [], "hexpm", "b6d4fe7c24123be57ed946c48116d23173e37944bc945b8b76fccc437909c60b"},
 }
