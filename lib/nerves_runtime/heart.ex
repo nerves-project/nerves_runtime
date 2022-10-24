@@ -10,25 +10,16 @@ defmodule Nerves.Runtime.Heart do
   If messages ever stop being sent to `heart`, the hardware watchdog will trip
   and reboot the device. You can add additional health checks for your
   application by providing a callback to `:heart.set_callback/2`.
+
+  See [nerves_heart](https://github.com/nerves-project/nerves_heart) for more
+  information.
   """
 
   @typedoc """
   Nerves Heart's current status
 
-  * `:program_name` - `"nerves_heart"`
-  * `:program_version` - Nerves heart's version number
-  * `:identity` - The hardware watchdog that's being used
-  * `:firmware_version` - An integer that represents the hardware watchdog's firmware revision
-  * `:options` - Hardware watchdog options as reported by Linux
-  * `:time_left` - How many seconds are left before the hardware watchdog triggers a reboot
-  * `:pre_timeout` - How many seconds before the watchdog expires that Linux
-    will receive a pre-timeout notification
-  * `:timeout` - The hardware watchdog
-    timeout. This is only changeable in the Linux configuration
-  * `:last_boot` - What caused the most recent boot. Whether this is reliable
-    depends on the watchdog.
-  * `:heartbeat_timeout` - Erlang's heartbeat timeout setting. Note that the
-    hardware watchdog timeout supersedes this since it reboots.
+  See [nerves_heart](https://github.com/nerves-project/nerves_heart) for more
+  information.
   """
   @type info() :: %{
           program_name: String.t(),
