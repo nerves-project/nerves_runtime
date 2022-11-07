@@ -5,7 +5,7 @@ defmodule Nerves.Runtime.HeartTest do
   alias Nerves.Runtime.Heart
 
   describe "parse_cmd/1" do
-    test "Raspberry Pi w/ hex options" do
+    test "Raspberry Pi w/ v1 hex options" do
       cmd =
         'program_name=nerves_heart\nprogram_version=1.0.0\nidentity=Broadcom BCM2835 Watchdog timer\n' ++
           'firmware_version=0\noptions=0x00008180\ntime_left=13\npre_timeout=0\ntimeout=15\nlast_boot=power_on\n'
@@ -25,7 +25,7 @@ defmodule Nerves.Runtime.HeartTest do
                 }}
     end
 
-    test "BBB w/ options" do
+    test "BBB w/ v1 options" do
       cmd =
         'program_name=nerves_heart\nprogram_version=1.0.0\nidentity=OMAP Watchdog\nfirmware_version=0\n' ++
           'options=settimeout,magicclose,keepaliveping,\ntime_left=119\npre_timeout=0\n' ++
@@ -43,6 +43,34 @@ defmodule Nerves.Runtime.HeartTest do
                   pre_timeout: 0,
                   timeout: 120,
                   last_boot: :power_on
+                }}
+    end
+
+    test "Allwinner w/ v2 options" do
+      cmd =
+        'program_name=nerves_heart\nprogram_version=2.0.0\nheartbeat_timeout=30\nheartbeat_time_left=27\n' ++
+          'wdt_pet_time_left=5\ninit_handshake_happened=1\ninit_handshake_timeout=0\ninit_handshake_time_left=0\n' ++
+          'wdt_identity=sunxi-wdt\nwdt_firmware_version=0\nwdt_options=settimeout,magicclose,keepaliveping,\n' ++
+          'wdt_time_left=0\nwdt_pre_timeout=0\nwdt_timeout=16\nwdt_last_boot=power_on\n'
+
+      assert Heart.parse_cmd(cmd) ==
+               {:ok,
+                %{
+                  program_name: "nerves_heart",
+                  program_version: Version.parse!("2.0.0"),
+                  heartbeat_time_left: 27,
+                  heartbeat_timeout: 30,
+                  init_handshake_happened: true,
+                  init_handshake_time_left: 0,
+                  init_handshake_timeout: 0,
+                  wdt_firmware_version: 0,
+                  wdt_identity: "sunxi-wdt",
+                  wdt_last_boot: :power_on,
+                  wdt_options: [:settimeout, :magicclose, :keepaliveping],
+                  wdt_pre_timeout: 0,
+                  wdt_timeout: 16,
+                  wdt_pet_time_left: 5,
+                  wdt_time_left: 0
                 }}
     end
 
