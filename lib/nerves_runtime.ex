@@ -23,7 +23,7 @@ defmodule Nerves.Runtime do
   the system will be hard rebooted.
   """
   @spec reboot() :: no_return()
-  def reboot(), do: Power.run_command("reboot")
+  defdelegate reboot(), to: Power
 
   @doc """
   Power off the device.
@@ -33,7 +33,7 @@ defmodule Nerves.Runtime do
   the system will be hard rebooted.
   """
   @spec poweroff() :: no_return()
-  def poweroff(), do: Power.run_command("poweroff")
+  defdelegate poweroff(), to: Power
 
   @doc """
   Halt the device (meaning hang, not power off, nor reboot).
@@ -42,7 +42,7 @@ defmodule Nerves.Runtime do
   rebooting the device if `erlinit.config` settings allow reboot on exit.
   """
   @spec halt() :: no_return()
-  def halt(), do: Power.run_command("halt")
+  defdelegate halt(), to: Power
 
   @doc """
   Revert the device to running the previous firmware.

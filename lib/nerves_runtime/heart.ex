@@ -21,6 +21,8 @@ defmodule Nerves.Runtime.Heart do
   See [nerves_heart](https://github.com/nerves-project/nerves_heart) for more
   information.
   """
+  require Logger
+
   @type info() :: info_v2() | info_v1()
 
   @typedoc """
@@ -71,6 +73,67 @@ defmodule Nerves.Runtime.Heart do
     case status() do
       {:ok, %{program_name: "nerves_heart"}} -> true
       _ -> false
+    end
+  end
+
+  @doc """
+  Return whether Nerves Heart supports the v2 command/status set
+  """
+  @spec supports_v2?() :: boolean()
+  def supports_v2?() do
+    case status() do
+      {:ok, %{program_version: v}} -> Version.match?(v, "~> 2.0")
+      _ -> false
+    end
+  end
+
+  @doc """
+  Notify Nerves heart that initialization is complete
+
+  This can be used to ensure that the code that calls `:heart.set_callback/1` gets run.
+  To use, add the following to your projects `rel/vm.args.eex`:
+
+  ```text
+  ## Require an initialization handshake within 15 minutes
+  -env HEART_INIT_TIMEOUT 900
+  ```
+
+  Then call `Nerves.Runtime.Heart.init_complete/0` after
+  `:heart.set_callback/1` is called.
+
+  Supported by Nerves Heart v2.0 and later
+  """
+  @spec init_complete() :: :ok
+  def init_complete() do
+    _ =
+      spawn(fn ->
+        if supports_v2?() do
+          # This must be run in another thread to avoid blocking the current
+          # thread when it is involved in the heart callback.
+          :heart.set_cmd('init_handshake')
+        else
+          Logger.error("Initializing handshake not supported with Nerves Heart < v2.0")
+        end
+      end)
+
+    :ok
+  end
+
+  @spec guarded_reboot() :: :ok | {:error, :unsupported}
+  def guarded_reboot() do
+    do_v2_command('guarded_reboot')
+  end
+
+  @spec guarded_poweroff() :: :ok | {:error, :unsupported}
+  def guarded_poweroff() do
+    do_v2_command('guarded_poweroff')
+  end
+
+  defp do_v2_command(cmd) do
+    if supports_v2?() do
+      :heart.set_cmd(cmd)
+    else
+      {:error, :unsupported}
     end
   end
 

@@ -11,12 +11,50 @@ defmodule Nerves.Runtime.Power do
   #    poweroff.
 
   use GenServer
+
+  alias Nerves.Runtime.Heart
+
   require Logger
 
   @spec start_link(keyword()) :: GenServer.on_start()
   def start_link(options) do
     GenServer.start_link(__MODULE__, options, name: __MODULE__)
   end
+
+  # Delegated from Nerves.Runtime
+  @doc false
+  @spec reboot() :: no_return()
+  def reboot() do
+    case Heart.guarded_reboot() do
+      :ok ->
+        :init.stop()
+
+      _ ->
+        run_command("reboot")
+    end
+  catch
+    _, _ -> :erlang.halt()
+  end
+
+  # Delegated from Nerves.Runtime
+  @doc false
+  @spec poweroff() :: no_return()
+  def poweroff() do
+    case Heart.guarded_reboot() do
+      :ok ->
+        :init.stop()
+
+      _ ->
+        run_command("poweroff")
+    end
+  catch
+    _, _ -> :erlang.halt()
+  end
+
+  # Delegated from Nerves.Runtime
+  @doc false
+  @spec halt() :: no_return()
+  def halt(), do: run_command("halt")
 
   @doc """
   Run a power management command
