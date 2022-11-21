@@ -1,5 +1,23 @@
 # Changelog
 
+## v0.13.2 - 2022-11-22
+
+Support Nerves Heart v2.0.0 attributes and features. Nerves Heart v2.0.0 is a
+major update that addresses rare cases where devices would fail to reboot or
+detect an issue. It also adds helpful statistics. See the docs for details.
+Nerves Heart v1.x versions are still supported.
+
+* Changes
+  * Support guarded reboot and poweroff if Nerves Heart 2.0 is available.
+    Reboots and poweroffs still gracefully stop the VM, but they now don't
+    require Busybox `reboot` or `poweroff`, and they stop petting the hardware
+    watchdog to set a hard limit.
+  * Support Nerves Heart initialization completion notifications. This lets you
+    protect the time between boot and `:heart.set_callback/1` should something
+    happen that prevents the callback from being set. This addresses an issue
+    where the VM would think everything is great since it wasn't calling the
+    callback to find out that it was not.
+
 ## v0.13.1 - 2022-07-06
 
 * Changes
