@@ -168,13 +168,11 @@ defmodule Nerves.Runtime.Heart do
 
   def parse_cmd(cmd) when is_list(cmd) do
     result =
-      cmd
-      |> to_string()
-      |> String.split("\n")
-      |> Enum.map(&String.split(&1, "=", parts: 2))
-      |> Enum.map(&parse_attribute/1)
-      |> Enum.reject(&is_nil/1)
-      |> Map.new()
+      for kv_str <- String.split(to_string(cmd), "\n"),
+          kv = String.split(kv_str, "=", parts: 2),
+          parsed = parse_attribute(kv),
+          into: %{},
+          do: parsed
 
     {:ok, result}
   rescue
