@@ -40,7 +40,7 @@ defmodule Nerves.Runtime.Power do
   @doc false
   @spec poweroff() :: no_return()
   def poweroff() do
-    case Heart.guarded_reboot() do
+    case Heart.guarded_poweroff() do
       :ok ->
         :init.stop()
 
