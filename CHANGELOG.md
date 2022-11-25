@@ -1,5 +1,11 @@
 # Changelog
 
+## v0.13.3 - 2022-11-25
+
+* Changes
+  * Fixed poweroff with Nerves Heart v2.0 (be sure to use Nerves Heart v2.0.2 as
+    well). Thanks to @amclain for finding and fixing this.
+
 ## v0.13.2 - 2022-11-22
 
 Support Nerves Heart v2.0.0 attributes and features. Nerves Heart v2.0.0 is a
