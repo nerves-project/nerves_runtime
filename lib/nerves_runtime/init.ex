@@ -56,7 +56,6 @@ defmodule Nerves.Runtime.Init do
     :ignore
   end
 
-  #@spec init_application_partition :: :mounted | :mounted_with_error | :noop | :unmounted
   def init_application_partition(prefix) do
     #prefix = "nerves_fw_application_part0"
     fstype = KV.get_active("#{prefix}_fstype")
