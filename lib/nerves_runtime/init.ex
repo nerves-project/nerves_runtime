@@ -47,7 +47,8 @@ defmodule Nerves.Runtime.Init do
 
   @impl GenServer
   def init(_args) do
-    init_application_partition()
+    init_application_partition("nerves_fw_application_part0")
+    init_application_partition("nerves_fw_application_part1")
 
     # This GenServer is only used as a hook to initialize the application data
     # partition after the logging GenServers get started. It doesn't do
@@ -56,8 +57,8 @@ defmodule Nerves.Runtime.Init do
   end
 
   @spec init_application_partition :: :mounted | :mounted_with_error | :noop | :unmounted
-  def init_application_partition() do
-    prefix = "nerves_fw_application_part0"
+  def init_application_partition(prefix) do
+    #prefix = "nerves_fw_application_part0"
     fstype = KV.get_active("#{prefix}_fstype")
     target = KV.get_active("#{prefix}_target")
     devpath = KV.get_active("#{prefix}_devpath")
