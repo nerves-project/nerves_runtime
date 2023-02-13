@@ -56,7 +56,7 @@ defmodule Nerves.Runtime.Application do
             true
 
           {reason, _non_zero_exit} ->
-            Logger.warn("Failed to start #{name}: #{inspect(reason)}")
+            Logger.warning("Failed to start #{name}: #{inspect(reason)}")
             false
         end
       else
@@ -73,7 +73,7 @@ defmodule Nerves.Runtime.Application do
             :ok
 
           {reason, _non_zero_exit} ->
-            Logger.warn("Failed to run sysctl on #{conf_path}: #{inspect(reason)}")
+            Logger.warning("Failed to run sysctl on #{conf_path}: #{inspect(reason)}")
             {:error, reason}
         end
       else
