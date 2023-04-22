@@ -36,6 +36,8 @@ defmodule Nerves.Runtime.Heart do
           init_handshake_happened: boolean(),
           init_handshake_timeout: non_neg_integer(),
           init_handshake_time_left: non_neg_integer(),
+          init_grace_time_left: non_neg_integer(),
+          snooze_time_left: non_neg_integer(),
           wdt_identity: String.t(),
           wdt_firmware_version: non_neg_integer(),
           wdt_last_boot: :power_on | :watchdog,
@@ -211,6 +213,8 @@ defmodule Nerves.Runtime.Heart do
   defp parse_attribute(["wdt_last_boot", str]), do: {:wdt_last_boot, parse_last_boot(str)}
   defp parse_attribute(["heartbeat_time_left", str]), do: {:heartbeat_time_left, atoi(str)}
   defp parse_attribute(["init_handshake_timeout", str]), do: {:init_handshake_timeout, atoi(str)}
+  defp parse_attribute(["snooze_time_left", str]), do: {:snooze_time_left, atoi(str)}
+  defp parse_attribute(["init_grace_time_left", str]), do: {:init_grace_time_left, atoi(str)}
 
   defp parse_attribute(["init_handshake_time_left", str]),
     do: {:init_handshake_time_left, atoi(str)}

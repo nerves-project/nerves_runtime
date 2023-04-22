@@ -74,6 +74,37 @@ defmodule Nerves.Runtime.HeartTest do
                 }}
     end
 
+    test "RaspberryPi 3 w/ v2.2 options" do
+      cmd =
+        'program_name=nerves_heart\nprogram_version=2.2.0\nheartbeat_timeout=30\nheartbeat_time_left=29\n' ++
+          'init_grace_time_left=0\nsnooze_time_left=0\nwdt_pet_time_left=6\ninit_handshake_happened=1\n' ++
+          'init_handshake_timeout=0\ninit_handshake_time_left=0\nwdt_identity=Broadcom BCM2835 Watchdog timer\n' ++
+          'wdt_firmware_version=0\nwdt_options=settimeout,magicclose,keepaliveping,\nwdt_time_left=14\n' ++
+          'wdt_pre_timeout=0\nwdt_timeout=15\nwdt_last_boot=power_on\n'
+
+      assert Heart.parse_cmd(cmd) ==
+               {:ok,
+                %{
+                  program_name: "nerves_heart",
+                  program_version: Version.parse!("2.2.0"),
+                  heartbeat_time_left: 29,
+                  heartbeat_timeout: 30,
+                  init_handshake_happened: true,
+                  init_handshake_time_left: 0,
+                  init_handshake_timeout: 0,
+                  wdt_firmware_version: 0,
+                  wdt_identity: "Broadcom BCM2835 Watchdog timer",
+                  wdt_last_boot: :power_on,
+                  wdt_options: [:settimeout, :magicclose, :keepaliveping],
+                  wdt_pet_time_left: 6,
+                  wdt_pre_timeout: 0,
+                  wdt_time_left: 14,
+                  wdt_timeout: 15,
+                  init_grace_time_left: 0,
+                  snooze_time_left: 0
+                }}
+    end
+
     test "No options" do
       cmd = 'program_name=nerves_heart\nprogram_version=1.0.0\noptions=\n'
 
