@@ -79,17 +79,6 @@ defmodule Nerves.Runtime.Heart do
   end
 
   @doc """
-  Return whether Nerves Heart supports the v2 command/status set
-  """
-  @spec supports_v2?() :: boolean()
-  def supports_v2?() do
-    case status() do
-      {:ok, %{program_version: v}} -> Version.match?(v, "~> 2.0")
-      _ -> false
-    end
-  end
-
-  @doc """
   Notify Nerves heart that initialization is complete
 
   This can be used to ensure that the code that calls `:heart.set_callback/1` gets run.
@@ -107,36 +96,38 @@ defmodule Nerves.Runtime.Heart do
   """
   @spec init_complete() :: :ok
   def init_complete() do
-    _ =
-      spawn(fn ->
-        if supports_v2?() do
-          # This must be run in another thread to avoid blocking the current
-          # thread when it is involved in the heart callback.
-          :heart.set_cmd('init_handshake')
-        else
-          Logger.error("Initializing handshake not supported with Nerves Heart < v2.0")
+    # This must be run in another thread to avoid blocking the current
+    # thread when it is involved in the heart callback.
+    {:ok, _} =
+      Task.start(fn ->
+        with {:error, reason} <- run_command('init_handshake', "~> 2.0") do
+          Logger.error("Heart: handshake failed due to #{reason}")
         end
       end)
 
     :ok
   end
 
-  @spec guarded_reboot() :: :ok | {:error, :unsupported}
+  @doc """
+  Initiate a reboot that's guarded by the hardware watchdog
+
+  Most users should call `Nerves.Runtime.reboot/0` instead which calls this and
+  shuts down the Erlang VM.
+  """
+  @spec guarded_reboot() :: :ok | {:error, atom()}
   def guarded_reboot() do
-    do_v2_command('guarded_reboot')
+    run_command('guarded_reboot', "~> 2.0")
   end
 
-  @spec guarded_poweroff() :: :ok | {:error, :unsupported}
+  @doc """
+  Initiate a poweroff that's guarded by the hardware watchdog
+
+  Most users should call `Nerves.Runtime.poweroff/0` instead which calls this
+  and shuts down the Erlang VM.
+  """
+  @spec guarded_poweroff() :: :ok | {:error, atom()}
   def guarded_poweroff() do
-    do_v2_command('guarded_poweroff')
-  end
-
-  defp do_v2_command(cmd) do
-    if supports_v2?() do
-      :heart.set_cmd(cmd)
-    else
-      {:error, :unsupported}
-    end
+    run_command('guarded_poweroff', "~> 2.0")
   end
 
   @doc """
@@ -144,15 +135,11 @@ defmodule Nerves.Runtime.Heart do
 
   Errors are returned when not running Nerves Heart
   """
-  @spec status() :: {:ok, info()} | :error
+  @spec status() :: {:ok, info()} | {:error, atom()}
   def status() do
-    {:ok, cmd} = :heart.get_cmd()
-
-    parse_cmd(cmd)
-  rescue
-    ArgumentError ->
-      # When heart isn't running, an ArgumentError is raised
-      :error
+    with {:ok, cmd} <- timed_cmd(:get_cmd, []) do
+      parse_cmd(cmd)
+    end
   end
 
   @doc """
@@ -164,9 +151,40 @@ defmodule Nerves.Runtime.Heart do
     results
   end
 
+  defp run_command(cmd, requirement) when is_list(cmd) do
+    with {:ok, %{program_version: v}} <- status(),
+         true <- Version.match?(v, requirement) do
+      timed_cmd(:set_cmd, [cmd])
+    else
+      _ -> {:error, :unsupported}
+    end
+  end
+
+  defp timed_cmd(method, args, timeout \\ 1000) do
+    task = Task.async(fn -> safe_heart(method, args) end)
+
+    case Task.yield(task, timeout) || Task.shutdown(task, :brutal_kill) do
+      {:ok, result} ->
+        result
+
+      nil ->
+        Logger.warning("Heart: heart unresponsive. A heart callback is probably taking too long.")
+        {:error, :unresponsive}
+    end
+  end
+
+  defp safe_heart(method, args) do
+    apply(:heart, method, args)
+  rescue
+    ArgumentError ->
+      # When heart isn't running, an ArgumentError is raised
+      Logger.error("Heart: Erlang heart isn't running. Check vm.args.")
+      {:error, :no_heart}
+  end
+
   @doc false
-  @spec parse_cmd(list()) :: {:ok, info()} | :error
-  def parse_cmd([]), do: :error
+  @spec parse_cmd(list()) :: {:ok, info()} | {:error, atom()}
+  def parse_cmd([]), do: {:error, :not_nerves_heart}
 
   def parse_cmd(cmd) when is_list(cmd) do
     result =
@@ -178,7 +196,7 @@ defmodule Nerves.Runtime.Heart do
 
     {:ok, result}
   rescue
-    _ -> :error
+    _ -> {:error, :parse_error}
   end
 
   # v1 and v2 parsers

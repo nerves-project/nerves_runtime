@@ -124,13 +124,13 @@ defmodule Nerves.Runtime.HeartTest do
     end
 
     test "Erlang heart" do
-      assert :error = Heart.parse_cmd('')
-      assert :error = Heart.parse_cmd('reboot')
+      assert {:error, :not_nerves_heart} = Heart.parse_cmd('')
+      assert {:error, :parse_error} = Heart.parse_cmd('reboot')
     end
 
     test "parse errors" do
-      assert :error = Heart.parse_cmd('program_version=1.0')
-      assert :error = Heart.parse_cmd('reboot')
+      assert {:error, :parse_error} = Heart.parse_cmd('program_version=1.0')
+      assert {:error, :parse_error} = Heart.parse_cmd('reboot')
     end
   end
 end
