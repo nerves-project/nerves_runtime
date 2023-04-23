@@ -135,6 +135,33 @@ defmodule Nerves.Runtime.Heart do
   end
 
   @doc """
+  Snooze heart related reboots for the next 15 minutes
+
+  Run this to buy some time if reboots from heart or hardware watchdog are
+  getting in the way.
+
+  Support with Nerves Heart v2.2 and later.
+  """
+  @spec snooze() :: :ok | {:error, atom()}
+  def snooze() do
+    with {:error, :unresponsive} <- run_command('snooze', "~> 2.2") do
+      # If snooze is unresponsive, that probably means that the heart callback
+      # is stuck. Unfortunately, we don't know which version of heart is being
+      # run either. Nerves Heart 2.2 and later support USR1. Previous versions
+      # exit (all signals would exit prior to 2.2). The caller is probably
+      # desperate, so give it a try.
+      kill_usr1_heart()
+    end
+  end
+
+  defp kill_usr1_heart() do
+    case System.cmd("killall", ["-USR1", "heart"]) do
+      {_, 0} -> :ok
+      _ -> {:error, :failed_to_snooze}
+    end
+  end
+
+  @doc """
   Return the current Nerves Heart status
 
   Errors are returned when not running Nerves Heart
@@ -156,11 +183,22 @@ defmodule Nerves.Runtime.Heart do
   end
 
   defp run_command(cmd, requirement) when is_list(cmd) do
-    with {:ok, %{program_version: v}} <- status(),
-         true <- Version.match?(v, requirement) do
+    with :ok <- check_version(requirement) do
       timed_cmd(:set_cmd, [cmd])
-    else
-      _ -> {:error, :unsupported}
+    end
+  end
+
+  defp check_version(requirement) do
+    case status() do
+      {:ok, info} ->
+        if Version.match?(info.program_version, requirement) do
+          :ok
+        else
+          {:error, :unsupported}
+        end
+
+      error ->
+        error
     end
   end
 
