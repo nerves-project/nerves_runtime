@@ -113,6 +113,8 @@ defmodule Nerves.Runtime.Heart do
 
   Most users should call `Nerves.Runtime.reboot/0` instead which calls this and
   shuts down the Erlang VM.
+
+  Support with Nerves Heart v2.0 and later.
   """
   @spec guarded_reboot() :: :ok | {:error, atom()}
   def guarded_reboot() do
@@ -124,6 +126,8 @@ defmodule Nerves.Runtime.Heart do
 
   Most users should call `Nerves.Runtime.poweroff/0` instead which calls this
   and shuts down the Erlang VM.
+
+  Support with Nerves Heart v2.0 and later.
   """
   @spec guarded_poweroff() :: :ok | {:error, atom()}
   def guarded_poweroff() do
