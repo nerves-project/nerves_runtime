@@ -1,5 +1,19 @@
 # Changelog
 
+## v0.13.4 - 2023-04-24
+
+* Changes
+  * Fixed new compiler warnings with Elixir 1.15
+  * Support the Nerves Heart v2.2 snooze feature.
+    `Nerves.Runtime.Heart.snooze/0` will request that `heart` continues to pet
+    the hardware watchdog and ignore lack of updates from Erlang for a short
+    amount of time to allow debug of conditions that would otherwise be
+    interrupted by a watchdog timeout.
+  * Report errors from Heart functions rather than hang forever when Erlang
+    `:heart` is unresponsive.
+  * Support additional status from Nerves Heart v2.2 to report the initial
+    bootup grace period timeout and snooze timeout remaining.
+
 ## v0.13.3 - 2022-11-25
 
 * Changes
