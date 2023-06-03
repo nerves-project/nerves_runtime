@@ -177,7 +177,7 @@ defmodule Nerves.Runtime.Init do
 
   defp find_shell_history_arg([]), do: :enabled
 
-  defp find_shell_history_arg(['shell_history', arg | _rem]) do
+  defp find_shell_history_arg([~c"shell_history", arg | _rem]) do
     # :disabled, :enabled, or user defined module
     List.to_atom(arg)
   end

@@ -100,7 +100,7 @@ defmodule Nerves.Runtime.Heart do
     # thread when it is involved in the heart callback.
     {:ok, _} =
       Task.start(fn ->
-        with {:error, reason} <- run_command('init_handshake', "~> 2.0") do
+        with {:error, reason} <- run_command(~c"init_handshake", "~> 2.0") do
           Logger.error("Heart: handshake failed due to #{reason}")
         end
       end)
@@ -118,7 +118,7 @@ defmodule Nerves.Runtime.Heart do
   """
   @spec guarded_reboot() :: :ok | {:error, atom()}
   def guarded_reboot() do
-    run_command('guarded_reboot', "~> 2.0")
+    run_command(~c"guarded_reboot", "~> 2.0")
   end
 
   @doc """
@@ -131,7 +131,7 @@ defmodule Nerves.Runtime.Heart do
   """
   @spec guarded_poweroff() :: :ok | {:error, atom()}
   def guarded_poweroff() do
-    run_command('guarded_poweroff', "~> 2.0")
+    run_command(~c"guarded_poweroff", "~> 2.0")
   end
 
   @doc """
@@ -144,7 +144,7 @@ defmodule Nerves.Runtime.Heart do
   """
   @spec snooze() :: :ok | {:error, atom()}
   def snooze() do
-    with {:error, :unresponsive} <- run_command('snooze', "~> 2.2") do
+    with {:error, :unresponsive} <- run_command(~c"snooze", "~> 2.2") do
       # If snooze is unresponsive, that probably means that the heart callback
       # is stuck. Unfortunately, we don't know which version of heart is being
       # run either. Nerves Heart 2.2 and later support USR1. Previous versions
