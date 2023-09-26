@@ -81,8 +81,8 @@ defmodule Nerves.Runtime.Heart do
   @doc """
   Notify Nerves heart that initialization is complete
 
-  This can be used to ensure that the code that calls `:heart.set_callback/1` gets run.
-  To use, add the following to your projects `rel/vm.args.eex`:
+  This can be used to ensure that the code that calls `:heart.set_callback/2`
+  gets run. To use, add the following to your projects `rel/vm.args.eex`:
 
   ```text
   ## Require an initialization handshake within 15 minutes
@@ -90,7 +90,7 @@ defmodule Nerves.Runtime.Heart do
   ```
 
   Then call `Nerves.Runtime.Heart.init_complete/0` after
-  `:heart.set_callback/1` is called.
+  `:heart.set_callback/2` is called.
 
   Supported by Nerves Heart v2.0 and later
   """
