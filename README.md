@@ -55,8 +55,9 @@ filesystems uninitialized so that the format operation happens on the first
 boot. This means that the first boot takes slightly longer than subsequent
 boots.
 
-Note that a common implementation of "reset to factory defaults" is to purposely
-corrupt the application partition and reboot.
+A common implementation of "reset to factory defaults" is to purposely erase
+(corrupt) the application partition and reboot. See
+`Nerves.Runtime.FwupOps.factory_reset/1`.
 
 `nerves_runtime` uses firmware metadata to determine how to mount and initialize
 the application partition. The following variables are important:
@@ -165,6 +166,11 @@ iex> Nerves.Runtime.revert
 
 Running this command manually is useful in development. Production use requires
 more work to protect against faulty upgrades.
+
+Newer Nerves systems support preventing a revert. This is useful when you've
+loaded a version of firmware that is not meant to be used after it has been
+upgraded. This could be a factory test or an initial firmware that bootstraps
+encrypted firmware storage. See `Nerves.Runtime.FwupOps.prevent_revert/0`.
 
 ### Assisted firmware validation and automatic revert
 

@@ -1,0 +1,5 @@
+#!/bin/sh
+
+echo -n "$*" > fwup-args
+
+exit 0

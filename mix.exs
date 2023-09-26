@@ -23,6 +23,7 @@ defmodule Nerves.Runtime.MixProject do
     [
       env: [
         boardid_path: "/usr/bin/boardid",
+        fwup_path: "fwup",
         revert_fw_path: "/usr/share/fwup/revert.fw",
         kv_backend: kv_backend(Mix.target())
       ],

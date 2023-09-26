@@ -2,18 +2,15 @@ defmodule Nerves.Runtime do
   @moduledoc """
   Nerves.Runtime contains functions useful for almost all Nerves-based devices.
   """
-  alias Nerves.Runtime.{KV, OutputLogger, Power}
+  alias Nerves.Runtime.FwupOps
+  alias Nerves.Runtime.KV
+  alias Nerves.Runtime.OutputLogger
+  alias Nerves.Runtime.Power
+
   require Logger
 
   # Capture the target that this was built for
   @mix_target Mix.target()
-
-  @typedoc """
-  Options for `Nerves.Runtime.revert/1`.
-
-  * `:reboot` - Call `Nerves.Runtime.reboot/0` after reverting (defaults to `true`)
-  """
-  @type revert_options :: {:reboot, boolean()}
 
   @doc """
   Reboot the device and gracefully shutdown the Erlang VM.
@@ -45,28 +42,19 @@ defmodule Nerves.Runtime do
   defdelegate halt(), to: Power
 
   @doc """
-  Revert the device to running the previous firmware.
+  Revert the device to running the previous firmware
 
-  This requires a specially constructed fw file.
+  This switches the active firmware slot back to the previous one and then
+  reboots. This fails if the slot is empty or partially overwritten to prevent
+  accidents. It also requires the revert feature to be implemented in the
+  Nerves system that's in use. See `Nerves.Runtime.FwupOps` for how this works.
+
+  Specifying `reboot: false` is allowed, but be sure to reboot. It's easy to
+  get confused if you don't reboot afterwards and do a double revert or
+  something else silly.
   """
-  @spec revert([revert_options]) :: :ok | {:error, reason :: any} | no_return()
-  def revert(opts \\ []) do
-    reboot? = if opts[:reboot] != nil, do: opts[:reboot], else: true
-
-    revert_fw_path = Application.get_env(:nerves_runtime, :revert_fw_path)
-
-    if File.exists?(revert_fw_path) do
-      {_, 0} = cmd("fwup", [revert_fw_path, "-t", "revert", "-d", "/dev/rootdisk0"], :info)
-
-      if reboot? do
-        reboot()
-      else
-        :ok
-      end
-    else
-      {:error, "Unable to locate revert firmware at path: #{revert_fw_path}"}
-    end
-  end
+  @spec revert(FwupOps.options()) :: :ok | {:error, reason :: any} | no_return()
+  defdelegate revert(opts \\ []), to: FwupOps
 
   @doc """
   Return the device's serial number
