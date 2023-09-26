@@ -1,5 +1,14 @@
 # Changelog
 
+## v0.13.5 - 2023-09-26
+
+* Changes
+  * Add `Nerves.Runtime.FwupOps` to make it easier to run commands from the
+    `revert.fw` (older) and `ops.fw` (newer) files. The firmware revert logic
+    had always used this, and this makes getting to factory reset and preventing
+    reverts easier. Some operations aren't available on all Nerves systems.
+  * Various documentation and syntactical updates instigated by Elixir 1.15.
+
 ## v0.13.4 - 2023-04-24
 
 * Changes
