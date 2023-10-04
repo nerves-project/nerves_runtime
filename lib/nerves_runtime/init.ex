@@ -1,18 +1,13 @@
 defmodule Nerves.Runtime.Init do
   @moduledoc """
-  GenServer that handles device initialization.
+  Data partition initialization
 
-  Initialization currently consists of:
-
-  1. Mounting the application partition
-  2. If the application partition can't be mounted, format it, and then mount it.
-
-  Device initialization is usually a first boot only operation. It's possible
-  that device filesystems get corrupt enough to cause them to be reinitialized.
-  Since corruption should be rare, Nerves systems create firmware images
-  without formatting the application partition. This has the benefit of
-  exercising the corruption repair code. It's also required since some
-  filesystem types can only be formatted on device.
+  Data partition initialization is usually a first boot only operation. It's
+  possible that device filesystems get corrupt enough to cause them to be
+  reinitialized. Since corruption should be rare, Nerves systems create
+  firmware images without formatting the application partition. This has the
+  benefit of exercising the corruption repair code. It's also required since
+  some filesystem types can only be formatted on device.
 
   Long format times can be problematic in manufacturing. If this is an issue,
   see if you can use F2FS since it formats much faster than ext4. Some devices
@@ -20,10 +15,9 @@ defmodule Nerves.Runtime.Init do
   generate a UUID. Look into hardcoding UUIDs or enabling a hw random number
   generator to increase entropy.
   """
-  use GenServer
 
   alias Nerves.Runtime
-  alias Nerves.Runtime.KV
+  alias Nerves.Runtime.KVBackend.Cache
   alias Nerves.Runtime.MountParser
 
   require Logger
@@ -40,27 +34,19 @@ defmodule Nerves.Runtime.Init do
   #      can do so.
   @app_partition_uuid "3041e38d-615b-48d4-affb-a7787b5c4c39"
 
-  @spec start_link(any()) :: GenServer.on_start()
-  def start_link(_args) do
-    GenServer.start_link(__MODULE__, [], name: __MODULE__)
-  end
+  @doc """
+  Format and mount the data partition if it's missing or corrupt
 
-  @impl GenServer
-  def init(_args) do
-    init_application_partition()
+  If everything is ok, this returns.
+  """
+  @spec init_data_partition(keyword()) :: :mounted | :mounted_with_error | :noop | :unmounted
+  def init_data_partition(options) do
+    kv_cache = Cache.new(options)
 
-    # This GenServer is only used as a hook to initialize the application data
-    # partition after the logging GenServers get started. It doesn't do
-    # anything afterwards, so exit the process.
-    :ignore
-  end
-
-  @spec init_application_partition :: :mounted | :mounted_with_error | :noop | :unmounted
-  def init_application_partition() do
     prefix = "nerves_fw_application_part0"
-    fstype = KV.get_active("#{prefix}_fstype")
-    target = KV.get_active("#{prefix}_target")
-    devpath = KV.get_active("#{prefix}_devpath")
+    fstype = Cache.get_active(kv_cache, "#{prefix}_fstype")
+    target = Cache.get_active(kv_cache, "#{prefix}_target")
+    devpath = Cache.get_active(kv_cache, "#{prefix}_devpath")
 
     %{mounted: nil, fstype: fstype, target: target, devpath: devpath, format_performed: false}
     |> do_format()

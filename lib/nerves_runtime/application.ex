@@ -9,9 +9,9 @@ defmodule Nerves.Runtime.Application do
 
   @impl Application
   def start(_type, _args) do
-    load_services()
-
     options = Application.get_all_env(:nerves_runtime)
+
+    load_services(options)
     children = [{KV, options} | target_children()]
 
     opts = [strategy: :one_for_one, name: Nerves.Runtime.Supervisor]
@@ -20,18 +20,17 @@ defmodule Nerves.Runtime.Application do
 
   if Mix.target() == :host do
     defp target_children(), do: []
-    defp load_services(), do: :ok
+    defp load_services(_options), do: :ok
   else
     defp target_children() do
       [
         NervesLogging.KmsgTailer,
         NervesLogging.SyslogTailer,
-        Nerves.Runtime.Power,
-        Nerves.Runtime.Init
+        Nerves.Runtime.Power
       ]
     end
 
-    defp load_services() do
+    defp load_services(options) do
       # On systems with hardware random number generation, it is important that
       # "rngd" gets started as soon as possible to start adding entropy to the
       # system. So much code directly or indirectly uses random numbers that it's
@@ -42,6 +41,8 @@ defmodule Nerves.Runtime.Application do
       try_entropy_generator("rngd") || try_entropy_generator("haveged")
 
       _ = try_load_sysctl_conf()
+
+      _ = Nerves.Runtime.Init.init_data_partition(options)
 
       :ok
     end
