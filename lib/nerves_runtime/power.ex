@@ -29,7 +29,7 @@ defmodule Nerves.Runtime.Power do
       :ok ->
         :init.stop()
 
-        # :init.stop() isn't sleeping forever and returns in some cases
+        # Sleep forever since callers of this function don't expect it to return
         Process.sleep(:infinity)
 
       _ ->
@@ -46,6 +46,9 @@ defmodule Nerves.Runtime.Power do
     case Heart.guarded_poweroff() do
       :ok ->
         :init.stop()
+
+        # Sleep forever since callers of this function don't expect it to return
+        Process.sleep(:infinity)
 
       _ ->
         run_command("poweroff")
