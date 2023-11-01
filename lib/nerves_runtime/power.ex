@@ -29,6 +29,9 @@ defmodule Nerves.Runtime.Power do
       :ok ->
         :init.stop()
 
+        # :init.stop() isn't sleeping forever and returns in some cases
+        Process.sleep(:infinity)
+
       _ ->
         run_command("reboot")
     end
