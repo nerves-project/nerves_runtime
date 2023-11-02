@@ -26,7 +26,6 @@ defmodule Nerves.Runtime.Application do
       [
         NervesLogging.KmsgTailer,
         NervesLogging.SyslogTailer,
-        Nerves.Runtime.Power,
         Nerves.Runtime.Init
       ]
     end
