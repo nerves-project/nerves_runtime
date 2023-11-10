@@ -1,5 +1,13 @@
 # Changelog
 
+## v0.13.6 - 2023-11-10
+
+* Changes
+  * Fix errant return from `Nerves.Runtime.reboot` when using guarded reboots.
+    This resulted in code running after the reboot call that wasn't expected to
+    have been run.
+  * Simplify and harden power off and reboot for edge cases
+
 ## v0.13.5 - 2023-09-26
 
 * Changes
