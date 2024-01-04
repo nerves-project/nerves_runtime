@@ -135,6 +135,41 @@ defmodule Nerves.Runtime.Heart do
   end
 
   @doc """
+  Immediately reboot without any cleanup
+
+  WARNING: This function should be used with care since it can lose data.
+
+  Support with Nerves Heart v2.3 and later.
+  """
+  @spec guarded_immediate_reboot() :: :ok | {:error, atom()}
+  def guarded_immediate_reboot() do
+    result = run_command(~c"guarded_immediate_reboot", "~> 2.3")
+
+    # Fall back to a graceful reboot on failure. This will probably be
+    # hard to debug if it happens, so log an error and wait a bit.
+    Logger.error("Heart: failed to immediately reboot (#{inspect(result)}).")
+    Process.sleep(10000)
+    guarded_reboot()
+  end
+
+  @doc """
+  Immediately poweroff without any cleanup
+
+  WARNING: This function should be used with care since it can lose data.
+
+  Support with Nerves Heart v2.3 and later.
+  """
+  @spec guarded_immediate_poweroff() :: :ok | {:error, atom()}
+  def guarded_immediate_poweroff() do
+    result = run_command(~c"guarded_immediate_poweroff", "~> 2.3")
+
+    # Fall back to a graceful poweroff on failure
+    Logger.error("Heart: failed to immediately poweroff  (#{inspect(result)})")
+    Process.sleep(10000)
+    guarded_poweroff()
+  end
+
+  @doc """
   Snooze heart related reboots for the next 15 minutes
 
   Run this to buy some time if reboots from heart or hardware watchdog are

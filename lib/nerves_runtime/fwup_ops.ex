@@ -9,6 +9,8 @@ defmodule Nerves.Runtime.FwupOps do
   image was active.
   """
 
+  alias Nerves.Runtime.Heart
+
   @old_revert_fw_path "/usr/share/fwup/revert.fw"
   @ops_fw_path "/usr/share/fwup/ops.fw"
 
@@ -29,7 +31,7 @@ defmodule Nerves.Runtime.FwupOps do
   """
   @spec revert(options()) :: :ok | {:error, reason :: any} | no_return()
   def revert(opts \\ []) do
-    reboot? = if opts[:reboot] != nil, do: opts[:reboot], else: true
+    reboot? = Keyword.get(opts, :reboot, true)
 
     with :ok <- run_fwup("revert") do
       if reboot? do
@@ -78,11 +80,14 @@ defmodule Nerves.Runtime.FwupOps do
   """
   @spec factory_reset(options()) :: :ok | {:error, reason :: any}
   def factory_reset(opts \\ []) do
-    reboot? = if opts[:reboot] != nil, do: opts[:reboot], else: true
+    reboot? = Keyword.get(opts, :reboot, true)
 
     with :ok <- run_fwup("factory-reset") do
       if reboot? do
-        Nerves.Runtime.reboot()
+        # Graceful shutdown can cause writes to happen that may undo parts of
+        # the factory reset, so ungracefully reboot to minimize the time
+        # window of this happening after the call to `fwup`.
+        Heart.guarded_immediate_reboot()
       else
         :ok
       end
