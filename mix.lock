@@ -14,6 +14,6 @@
   "nerves_logging": {:hex, :nerves_logging, "0.2.2", "d0e878ac92e6907757fa9898b661250fa1cf50474763ca59ecfadca1c2235337", [:make, :mix], [{:elixir_make, "~> 0.6", [hex: :elixir_make, repo: "hexpm", optional: false]}], "hexpm", "74c181c6f011ea0c2d52956ad82065a59d7c7b62ddfba5967b010ef125f460a5"},
   "nerves_uevent": {:hex, :nerves_uevent, "0.1.0", "651111a46be9a238560cbf7946989fc500e5f33d7035fd9ea7194d07a281bc19", [:make, :mix], [{:elixir_make, "~> 0.6", [hex: :elixir_make, repo: "hexpm", optional: false]}, {:property_table, "~> 0.2.0", [hex: :property_table, repo: "hexpm", optional: false]}], "hexpm", "cb0b1993c3ed3cefadbcdb534e910af0661f95c3445796ce8a7c8be3519a4e5f"},
   "nimble_parsec": {:hex, :nimble_parsec, "1.4.0", "51f9b613ea62cfa97b25ccc2c1b4216e81df970acd8e16e8d1bdc58fef21370d", [:mix], [], "hexpm", "9c565862810fb383e9838c1dd2d7d2c437b3d13b267414ba6af33e50d2d1cf28"},
-  "property_table": {:hex, :property_table, "0.2.4", "c53e3684b6da8cb77ceee89f8c7a980d6c626429a6653473db29c210b9d53103", [:mix], [], "hexpm", "feae0e06fee2740452dd8375eb2c3407ece12317525491345f141dcbe1b9442c"},
+  "property_table": {:hex, :property_table, "0.2.5", "72567da62711d0b8b517990eadbe76685e5b02ed90ad5a2e48ae6f3a7922cf64", [:mix], [], "hexpm", "abfd4ce4dd9a7a6d39c0a35b177c09dc9aba5af0eb1f93cc28919e31d5f8bbab"},
   "uboot_env": {:hex, :uboot_env, "1.0.1", "b0e136cf1a561412ff7db23ed2b6df18d7c7ce2fc59941afd851006788a67f3d", [:mix], [], "hexpm", "b6d4fe7c24123be57ed946c48116d23173e37944bc945b8b76fccc437909c60b"},
 }
