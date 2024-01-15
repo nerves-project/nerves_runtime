@@ -137,6 +137,18 @@ defmodule Nerves.Runtime.Init do
     check_cmd("mkfs.f2fs", ["-f", "#{devpath}"], :info)
   end
 
+  defp mkfs("ext4", devpath) do
+    # Remount read-only on errors. The default is to continue on error which
+    # partially fails with corruption errors when it fails. Remounting
+    # read-only is the previous behavior and seems slightly easier to deal
+    # with.
+    check_cmd(
+      "mkfs.ext4",
+      ["-e", "remount-ro", "-U", @app_partition_uuid, "-F", "#{devpath}"],
+      :info
+    )
+  end
+
   defp mkfs(fstype, devpath) do
     check_cmd("mkfs.#{fstype}", ["-U", @app_partition_uuid, "-F", "#{devpath}"], :info)
   end
