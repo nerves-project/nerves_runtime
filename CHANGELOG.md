@@ -1,5 +1,18 @@
 # Changelog
 
+## v0.13.7 - 2024-01-15
+
+* Changes
+  * Add `Nerves.Runtime.Heart.guarded_immediate_reboot/0` to ungracefully reboot.
+  * Modify `Nerves.Runtime.FwupOps.factory_reset/1` to immediately reboot to
+    avoid a graceful shutdown unintentionally partially undoing the factory
+    reset work.
+  * Default EXT4 application partitions to remount read-only when formatted.
+    This changes the behavior from file I/O returning file system corruption
+    errors to file I/O returning read-only filesystem errors. The change was
+    made for consistency with F2FS and to lock things down as soon as corruption
+    was detected.
+
 ## v0.13.6 - 2023-11-10
 
 * Changes
