@@ -65,7 +65,9 @@ defmodule Nerves.Runtime.Power do
       # `--graceful-powerdown` is used in the `erlinit.config` to modify
       # the timeout.
 
-      {_, 0} = Nerves.Runtime.cmd(busybox_command(cmd), [], :info)
+      _ = Nerves.Runtime.cmd(busybox_command(cmd), [], :info)
+      # Ignore error return to at least get to the :init.stop
+      :ok
     end
 
     # Start a graceful shutdown
