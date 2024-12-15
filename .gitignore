@@ -25,3 +25,6 @@ nerves_runtime-*.tar
 # Ignore C build products
 src/*.o
 priv/
+
+# Unit test temporary files
+test/fixture/empty.img

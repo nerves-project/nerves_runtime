@@ -17,10 +17,13 @@ defmodule Nerves.Runtime.FwupOps do
   @typedoc """
   General options for utilities
 
+  * `:devpath` - The location of the storage device (defaults to `"/dev/rootdisk0"`)
+  * `:fwup_path` - The path to the `fwup` utility
+  * `:ops_fw_path` - The path to the `ops.fw` file (defaults to `"/usr/share/fwup/ops.fw"`)
   * `:reboot` - Call `Nerves.Runtime.reboot/0` after running (defaults to
    `true` on destructive operations)
   """
-  @type options :: [reboot: boolean()]
+  @type options() :: [devpath: String.t(), ops_fw_path: String.t(), reboot: boolean()]
 
   @doc """
   Revert to the previous firmware
@@ -33,7 +36,7 @@ defmodule Nerves.Runtime.FwupOps do
   def revert(opts \\ []) do
     reboot? = Keyword.get(opts, :reboot, true)
 
-    with :ok <- run_fwup("revert") do
+    with :ok <- run_fwup("revert", opts) do
       if reboot? do
         Nerves.Runtime.reboot()
       else
@@ -49,9 +52,9 @@ defmodule Nerves.Runtime.FwupOps do
   Attempts to revert will fail. This is useful if loading a special firmware
   temporarily that shouldn't be used again even accidentally.
   """
-  @spec prevent_revert() :: :ok | {:error, reason :: any}
-  def prevent_revert() do
-    run_fwup("prevent-revert")
+  @spec prevent_revert(options()) :: :ok | {:error, reason :: any}
+  def prevent_revert(opts \\ []) do
+    run_fwup("prevent-revert", opts)
   end
 
   @doc """
@@ -63,9 +66,9 @@ defmodule Nerves.Runtime.FwupOps do
 
   Call `Nerves.Runtime.validate_firmware/0` instead.
   """
-  @spec validate() :: :ok | {:error, reason :: any}
-  def validate() do
-    run_fwup("validate")
+  @spec validate(options()) :: :ok | {:error, reason :: any}
+  def validate(opts \\ []) do
+    run_fwup("validate", opts)
   end
 
   @doc """
@@ -82,7 +85,7 @@ defmodule Nerves.Runtime.FwupOps do
   def factory_reset(opts \\ []) do
     reboot? = Keyword.get(opts, :reboot, true)
 
-    with :ok <- run_fwup("factory-reset") do
+    with :ok <- run_fwup("factory-reset", opts) do
       if reboot? do
         # Graceful shutdown can cause writes to happen that may undo parts of
         # the factory reset, so ungracefully reboot to minimize the time
@@ -94,10 +97,12 @@ defmodule Nerves.Runtime.FwupOps do
     end
   end
 
-  defp run_fwup(task) do
-    with {:ok, ops_fw} <- ops_fw_path(),
-         {:ok, fwup} <- fwup_path() do
-      params = [ops_fw, "-t", task, "-d", "/dev/rootdisk0", "-q", "-U", "--enable-trim"]
+  defp run_fwup(task, opts) do
+    devpath = Keyword.get(opts, :devpath, "/dev/rootdisk0")
+
+    with {:ok, ops_fw} <- ops_fw_path(opts),
+         {:ok, fwup} <- fwup_path(opts) do
+      params = [ops_fw, "-t", task, "-d", devpath, "-q", "-U", "--enable-trim"]
 
       case System.cmd(fwup, params) do
         {_, 0} -> :ok
@@ -106,8 +111,9 @@ defmodule Nerves.Runtime.FwupOps do
     end
   end
 
-  defp fwup_path() do
-    fwup_path = Application.get_env(:nerves_runtime, :fwup_path)
+  defp fwup_path(opts) do
+    fwup_path =
+      opts[:fwup_path] || Application.get_env(:nerves_runtime, :fwup_path, "fwup")
 
     case System.find_executable(fwup_path) do
       nil -> {:error, "Can't find fwup"}
@@ -115,10 +121,12 @@ defmodule Nerves.Runtime.FwupOps do
     end
   end
 
-  defp ops_fw_path() do
+  defp ops_fw_path(opts) do
     app_path = Application.get_env(:nerves_runtime, :revert_fw_path)
+    overridden_path = opts[:ops_fw_path]
 
     cond do
+      is_binary(overridden_path) and File.exists?(overridden_path) -> {:ok, overridden_path}
       is_binary(app_path) and File.exists?(app_path) -> {:ok, app_path}
       File.exists?(@ops_fw_path) -> {:ok, @ops_fw_path}
       File.exists?(@old_revert_fw_path) -> {:ok, @old_revert_fw_path}
