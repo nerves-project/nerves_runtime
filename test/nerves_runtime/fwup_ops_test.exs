@@ -50,6 +50,20 @@ defmodule NervesRuntime.FwupOpsTest do
     assert {:error, "prevent-revert error"} = FwupOps.prevent_revert(@fwup_fail_options)
   end
 
+  defp status_ops(status) do
+    Keyword.put(@fwup_options, :env, %{"STATUS" => status})
+  end
+
+  test "status" do
+    # ops.conf lets you set the status via $STATUS
+    assert {:ok, %{current: "a", next: "b"}} = FwupOps.status(status_ops("a->b"))
+    assert {:ok, %{current: "b", next: "a"}} = FwupOps.status(status_ops("b->a"))
+    assert {:ok, %{current: "c", next: "c"}} = FwupOps.status(status_ops("c"))
+    assert {:error, "Invalid status"} = FwupOps.status(status_ops("xyz"))
+
+    assert {:error, "status error"} = FwupOps.status(@fwup_fail_options)
+  end
+
   test "missing ops.fw" do
     Application.put_env(:nerves_runtime, :revert_fw_path, "/does/not/exist/missing_ops.fw")
 
