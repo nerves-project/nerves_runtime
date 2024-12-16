@@ -18,12 +18,19 @@ defmodule Nerves.Runtime.FwupOps do
   General options for utilities
 
   * `:devpath` - The location of the storage device (defaults to `"/dev/rootdisk0"`)
+  * `:env` - Additional environment variables to pass to `fwup`
   * `:fwup_path` - The path to the `fwup` utility
   * `:ops_fw_path` - The path to the `ops.fw` file (defaults to `"/usr/share/fwup/ops.fw"`)
   * `:reboot` - Call `Nerves.Runtime.reboot/0` after running (defaults to
    `true` on destructive operations)
   """
-  @type options() :: [devpath: String.t(), ops_fw_path: String.t(), reboot: boolean()]
+  @type options() :: [
+          devpath: String.t(),
+          env: %{String.t() => String.t()},
+          fwup_path: String.t(),
+          ops_fw_path: String.t(),
+          reboot: boolean()
+        ]
 
   @doc """
   Revert to the previous firmware
@@ -99,12 +106,13 @@ defmodule Nerves.Runtime.FwupOps do
 
   defp run_fwup(task, opts) do
     devpath = Keyword.get(opts, :devpath, "/dev/rootdisk0")
+    cmd_opts = [env: Keyword.get(opts, :env, %{})]
 
     with {:ok, ops_fw} <- ops_fw_path(opts),
          {:ok, fwup} <- fwup_path(opts) do
       params = [ops_fw, "-t", task, "-d", devpath, "-q", "-U", "--enable-trim"]
 
-      case System.cmd(fwup, params) do
+      case System.cmd(fwup, params, cmd_opts) do
         {_, 0} -> :ok
         {result, _} -> {:error, result}
       end
