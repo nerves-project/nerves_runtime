@@ -42,6 +42,27 @@ defmodule Nerves.Runtime do
   defdelegate halt(), to: Power
 
   @doc """
+  Return the current and next firmware slots
+
+  Firmware slots are labelled `"a"` and `"b"`. The current slot is the one that
+  is actively being used. The next slot is the one that will be used on the
+  next reboot.
+  """
+  @spec firmware_slot() :: %{current: String.t(), next: String.t()}
+  def firmware_slot() do
+    case FwupOps.status() do
+      {:ok, status} ->
+        status
+
+      {:error, _} ->
+        # This is old way that doesn't use fwup. It should be right for the
+        # next slot and right most of the time for the current one.
+        active = KV.get("nerves_fw_active") || "a"
+        %{current: active, next: active}
+    end
+  end
+
+  @doc """
   Revert the device to running the previous firmware
 
   This switches the active firmware slot back to the previous one and then
