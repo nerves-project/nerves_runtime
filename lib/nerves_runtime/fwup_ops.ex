@@ -43,7 +43,7 @@ defmodule Nerves.Runtime.FwupOps do
   def revert(opts \\ []) do
     reboot? = Keyword.get(opts, :reboot, true)
 
-    with :ok <- run_fwup("revert", opts) do
+    with {:ok, _} <- run_fwup("revert", opts) do
       if reboot? do
         Nerves.Runtime.reboot()
       else
@@ -61,7 +61,7 @@ defmodule Nerves.Runtime.FwupOps do
   """
   @spec prevent_revert(options()) :: :ok | {:error, reason :: any}
   def prevent_revert(opts \\ []) do
-    run_fwup("prevent-revert", opts)
+    run_fwup("prevent-revert", opts) |> ignore_success_results()
   end
 
   @doc """
@@ -75,7 +75,7 @@ defmodule Nerves.Runtime.FwupOps do
   """
   @spec validate(options()) :: :ok | {:error, reason :: any}
   def validate(opts \\ []) do
-    run_fwup("validate", opts)
+    run_fwup("validate", opts) |> ignore_success_results()
   end
 
   @doc """
@@ -92,7 +92,7 @@ defmodule Nerves.Runtime.FwupOps do
   def factory_reset(opts \\ []) do
     reboot? = Keyword.get(opts, :reboot, true)
 
-    with :ok <- run_fwup("factory-reset", opts) do
+    with {:ok, _} <- run_fwup("factory-reset", opts) do
       if reboot? do
         # Graceful shutdown can cause writes to happen that may undo parts of
         # the factory reset, so ungracefully reboot to minimize the time
@@ -110,14 +110,35 @@ defmodule Nerves.Runtime.FwupOps do
 
     with {:ok, ops_fw} <- ops_fw_path(opts),
          {:ok, fwup} <- fwup_path(opts) do
-      params = [ops_fw, "-t", task, "-d", devpath, "-q", "-U", "--enable-trim"]
+      params = [
+        "-a",
+        "-i",
+        ops_fw,
+        "-t",
+        task,
+        "-d",
+        devpath,
+        "-q",
+        "-U",
+        "--enable-trim",
+        "--framing"
+      ]
 
       case System.cmd(fwup, params, cmd_opts) do
-        {_, 0} -> :ok
-        {result, _} -> {:error, result}
+        {results, 0} -> {:ok, results}
+        {result, _} -> output_to_error(result)
       end
     end
   end
+
+  defp output_to_error(raw_result) do
+    with {:ok, result} <- deframe(raw_result, []) do
+      Enum.find(result, {:error, "Unknown"}, &find_error/1)
+    end
+  end
+
+  defp find_error({:error, _message}), do: true
+  defp find_error(_status), do: false
 
   defp fwup_path(opts) do
     fwup_path =
@@ -141,4 +162,28 @@ defmodule Nerves.Runtime.FwupOps do
       true -> {:error, "ops.fw or revert.fw not found in Nerves system"}
     end
   end
+
+  defp ignore_success_results({:ok, _}), do: :ok
+  defp ignore_success_results(other), do: other
+
+  defp deframe(<<length::32, payload::binary-size(length), rest::binary>>, acc) do
+    case decode(payload) do
+      {:ok, result} -> deframe(rest, [result | acc])
+      {:error, _} -> {:error, "Invalid framing"}
+    end
+  end
+
+  defp deframe(<<>>, acc) do
+    {:ok, Enum.reverse(acc)}
+  end
+
+  defp deframe(_, _acc) do
+    {:error, "Invalid framing"}
+  end
+
+  defp decode(<<"OK", _result::16, _meassage::binary>>), do: {:ok, :ok}
+  defp decode(<<"ER", _error_code::16, message::binary>>), do: {:ok, {:error, message}}
+  defp decode(<<"WN", _code::16, meassage::binary>>), do: {:ok, {:warning, meassage}}
+  defp decode(<<"PR", percent::16>>), do: {:ok, {:progress, percent}}
+  defp decode(_), do: {:error, "Invalid message"}
 end

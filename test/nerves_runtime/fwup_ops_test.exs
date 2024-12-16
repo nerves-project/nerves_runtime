@@ -9,6 +9,8 @@ defmodule NervesRuntime.FwupOpsTest do
     reboot: false
   ]
 
+  @fwup_fail_options [ops_fw_path: Path.expand("test/fixture/ops-fail.fw")] ++ @fwup_options
+
   setup do
     # Even though this can be specified via an option, use the Application environment
     # since that's how it's normally set in practice.
@@ -23,21 +25,29 @@ defmodule NervesRuntime.FwupOpsTest do
   test "revert" do
     assert :ok = FwupOps.revert(@fwup_options)
     assert read_output() == "revert"
+
+    assert {:error, "revert error"} = FwupOps.revert(@fwup_fail_options)
   end
 
   test "factory reset" do
     assert :ok = FwupOps.factory_reset(@fwup_options)
     assert read_output() == "factory-reset"
+
+    assert {:error, "factory-reset error"} = FwupOps.factory_reset(@fwup_fail_options)
   end
 
   test "validate" do
     assert :ok = FwupOps.validate(@fwup_options)
     assert read_output() == "validate"
+
+    assert {:error, "validate error"} = FwupOps.validate(@fwup_fail_options)
   end
 
   test "prevent_revert" do
     assert :ok = FwupOps.prevent_revert(@fwup_options)
     assert read_output() == "prevent-revert"
+
+    assert {:error, "prevent-revert error"} = FwupOps.prevent_revert(@fwup_fail_options)
   end
 
   test "missing ops.fw" do
