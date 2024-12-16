@@ -54,9 +54,11 @@ defmodule Nerves.Runtime do
       {:ok, status} ->
         status
 
-      {:error, _} ->
-        # This is old way that doesn't use fwup. It should be right for the
-        # next slot and right most of the time for the current one.
+      {:error, reason} ->
+        Logger.error("Using old slot detection due to ops.fw error: #{inspect(reason)}")
+
+        # This should be right for the next slot and right most of the time for
+        # the current one.
         active = KV.get("nerves_fw_active") || "a"
         %{current: active, next: active}
     end
