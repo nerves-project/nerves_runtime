@@ -43,7 +43,8 @@ defmodule NervesRuntime.FwupOpsTest do
   test "missing ops.fw" do
     Application.put_env(:nerves_runtime, :revert_fw_path, "/does/not/exist/missing_ops.fw")
 
-    assert {:error, _} = FwupOps.validate(@fwup_options)
+    assert {:error, "ops.fw or revert.fw not found in Nerves system"} =
+             FwupOps.validate(@fwup_options)
   end
 
   test "missing fwup" do
