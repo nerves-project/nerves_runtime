@@ -131,6 +131,8 @@ defmodule Nerves.Runtime.KV do
   """
   use GenServer
 
+  alias Nerves.Runtime.FwupOps
+
   require Logger
 
   @typedoc """
@@ -238,7 +240,7 @@ defmodule Nerves.Runtime.KV do
   end
 
   def handle_call(:get_all_active, _from, s) do
-    active = active(s) <> "."
+    active = s.active <> "."
     reply = filter_trim_active(s, active)
     {:reply, reply, s}
   end
@@ -254,16 +256,14 @@ defmodule Nerves.Runtime.KV do
 
   def handle_call({:put_active, kv}, _from, s) do
     {reply, s} =
-      Map.new(kv, fn {key, value} -> {"#{active(s)}.#{key}", value} end)
+      Map.new(kv, fn {key, value} -> {"#{s.active}.#{key}", value} end)
       |> do_put(s)
 
     {:reply, reply, s}
   end
 
-  defp active(s), do: Map.get(s.contents, "nerves_fw_active", "")
-
   defp active(key, s) do
-    Map.get(s.contents, "#{active(s)}.#{key}")
+    Map.get(s.contents, "#{s.active}.#{key}")
   end
 
   defp filter_trim_active(s, active) do
@@ -287,11 +287,18 @@ defmodule Nerves.Runtime.KV do
     {backend, backend_opts} = normalize_kv_backend(options[:kv_backend], options)
 
     {:ok, contents} = backend.load(backend_opts)
-    %{backend: backend, options: options, contents: contents}
+
+    active =
+      case FwupOps.status() do
+        {:ok, %{current: active}} -> active
+        {:error, _reason} -> contents["nerves_fw_active"] || "a"
+      end
+
+    %{backend: backend, options: options, contents: contents, active: active}
   rescue
     error ->
       Logger.error("Nerves.Runtime has a bad KV configuration: #{inspect(error)}")
-      %{backend: Nerves.Runtime.KVBackend.InMemory, options: [], contents: %{}}
+      %{backend: Nerves.Runtime.KVBackend.InMemory, options: [], contents: %{}, active: "a"}
   end
 
   defp normalize_kv_backend({backend, opts}, _options) when is_module(backend) and is_list(opts),
