@@ -284,38 +284,30 @@ defmodule Nerves.Runtime.KV do
   defguardp is_module(v) when is_atom(v) and not is_nil(v)
 
   defp initial_state(options) do
-    case options[:kv_backend] do
-      {backend, opts} when is_module(backend) and is_list(opts) ->
-        initialize(backend, opts)
+    {backend, backend_opts} = normalize_kv_backend(options[:kv_backend], options)
 
-      backend when is_module(backend) ->
-        initialize(backend, [])
-
-      _ ->
-        # Handle Nerves.Runtime v0.12.0 and earlier way
-        initial_contents =
-          options[:modules][Nerves.Runtime.KV.Mock] || options[Nerves.Runtime.KV.Mock]
-
-        Logger.error(
-          "Using Nerves.Runtime.KV.Mock is deprecated. Use `config :nerves_runtime, kv_backend: {Nerves.Runtime.KVBackend.InMemory, contents: #{inspect(initial_contents)}}`"
-        )
-
-        initialize(Nerves.Runtime.KVBackend.InMemory, contents: initial_contents)
-    end
+    {:ok, contents} = backend.load(backend_opts)
+    %{backend: backend, options: options, contents: contents}
   rescue
     error ->
       Logger.error("Nerves.Runtime has a bad KV configuration: #{inspect(error)}")
-      initialize(Nerves.Runtime.KVBackend.InMemory, [])
+      %{backend: Nerves.Runtime.KVBackend.InMemory, options: [], contents: %{}}
   end
 
-  defp initialize(backend, options) do
-    case backend.load(options) do
-      {:ok, contents} ->
-        %{backend: backend, options: options, contents: contents}
+  defp normalize_kv_backend({backend, opts}, _options) when is_module(backend) and is_list(opts),
+    do: {backend, opts}
 
-      {:error, reason} ->
-        Logger.error("Nerves.Runtime failed to load KV: #{inspect(reason)}")
-        %{backend: Nerves.Runtime.KVBackend.InMemory, options: [], contents: %{}}
-    end
+  defp normalize_kv_backend(backend, _options) when is_module(backend), do: {backend, []}
+
+  defp normalize_kv_backend(_other, options) do
+    # Handle Nerves.Runtime v0.12.0 and earlier way
+    initial_contents =
+      options[:modules][Nerves.Runtime.KV.Mock] || options[Nerves.Runtime.KV.Mock]
+
+    Logger.error(
+      "Using Nerves.Runtime.KV.Mock is deprecated. Use `config :nerves_runtime, kv_backend: {Nerves.Runtime.KVBackend.InMemory, contents: #{inspect(initial_contents)}}`"
+    )
+
+    {Nerves.Runtime.KVBackend.InMemory, contents: initial_contents}
   end
 end
