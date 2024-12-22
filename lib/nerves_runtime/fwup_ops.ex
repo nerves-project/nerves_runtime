@@ -10,6 +10,7 @@ defmodule Nerves.Runtime.FwupOps do
   """
 
   alias Nerves.Runtime.Heart
+  alias Nerves.Runtime.KV
 
   @old_revert_fw_path "/usr/share/fwup/revert.fw"
   @ops_fw_path "/usr/share/fwup/ops.fw"
@@ -61,7 +62,9 @@ defmodule Nerves.Runtime.FwupOps do
   """
   @spec prevent_revert(options()) :: :ok | {:error, reason :: any}
   def prevent_revert(opts \\ []) do
-    run_fwup("prevent-revert", opts) |> ignore_success_results()
+    with {:ok, _} <- run_fwup("prevent-revert", opts) do
+      KV.reload()
+    end
   end
 
   @doc """
@@ -75,7 +78,9 @@ defmodule Nerves.Runtime.FwupOps do
   """
   @spec validate(options()) :: :ok | {:error, reason :: any}
   def validate(opts \\ []) do
-    run_fwup("validate", opts) |> ignore_success_results()
+    with {:ok, _} <- run_fwup("validate", opts) do
+      KV.reload()
+    end
   end
 
   @doc """
@@ -185,9 +190,6 @@ defmodule Nerves.Runtime.FwupOps do
       true -> {:error, "ops.fw or revert.fw not found in Nerves system"}
     end
   end
-
-  defp ignore_success_results({:ok, _}), do: :ok
-  defp ignore_success_results(other), do: other
 
   defp deframe(<<length::32, payload::binary-size(length), rest::binary>>, acc) do
     case decode(payload) do

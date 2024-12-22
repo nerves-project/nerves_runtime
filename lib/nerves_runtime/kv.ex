@@ -148,7 +148,7 @@ defmodule Nerves.Runtime.KV do
   @type string_map() :: %{String.t() => String.t()}
 
   @typedoc false
-  @type state() :: %{backend: module(), options: keyword(), contents: string_map()}
+  @type state() :: %{backend: module(), backend_opts: keyword(), contents: string_map(), active: String.t()}
 
   @doc """
   Start the KV store server
@@ -159,6 +159,16 @@ defmodule Nerves.Runtime.KV do
   @spec start_link(keyword()) :: GenServer.on_start()
   def start_link(opts) do
     GenServer.start_link(__MODULE__, opts, name: __MODULE__)
+  end
+
+  @doc """
+  Reload the KV store
+
+  This needs to be run if the KV is changed outside of using this module.
+  """
+  @spec reload() :: :ok
+  def reload() do
+    GenServer.call(__MODULE__, :reload)
   end
 
   @doc """
@@ -226,8 +236,10 @@ defmodule Nerves.Runtime.KV do
   end
 
   @impl GenServer
-  def init(opts) do
-    {:ok, initial_state(opts)}
+  def init(init_opts) do
+    {backend, backend_opts} = normalize_kv_backend(init_opts[:kv_backend], init_opts)
+    s = %{backend: backend, backend_opts: backend_opts, contents: %{}, active: "a"} |> reload()
+    {:ok, s}
   end
 
   @impl GenServer
@@ -262,6 +274,10 @@ defmodule Nerves.Runtime.KV do
     {:reply, reply, s}
   end
 
+  def handle_call(:reload, _from, s) do
+    {:reply, :ok, reload(s)}
+  end
+
   defp active(key, s) do
     Map.get(s.contents, "#{s.active}.#{key}")
   end
@@ -275,18 +291,14 @@ defmodule Nerves.Runtime.KV do
   end
 
   defp do_put(kv, s) do
-    case s.backend.save(kv, s.options) do
+    case s.backend.save(kv, s.backend_opts) do
       :ok -> {:ok, %{s | contents: Map.merge(s.contents, kv)}}
       error -> {error, s}
     end
   end
 
-  defguardp is_module(v) when is_atom(v) and not is_nil(v)
-
-  defp initial_state(options) do
-    {backend, backend_opts} = normalize_kv_backend(options[:kv_backend], options)
-
-    {:ok, contents} = backend.load(backend_opts)
+  defp reload(s) do
+    {:ok, contents} = s.backend.load(s.backend_opts)
 
     active =
       case FwupOps.status() do
@@ -294,12 +306,14 @@ defmodule Nerves.Runtime.KV do
         {:error, _reason} -> contents["nerves_fw_active"] || "a"
       end
 
-    %{backend: backend, options: options, contents: contents, active: active}
+    %{s | contents: contents, active: active}
   rescue
     error ->
-      Logger.error("Nerves.Runtime has a bad KV configuration: #{inspect(error)}")
-      %{backend: Nerves.Runtime.KVBackend.InMemory, options: [], contents: %{}, active: "a"}
+      Logger.error("Nerves.Runtime couldn't load KV (#{inspect(s.backend)}): #{inspect(error)}")
+      s
   end
+
+  defguardp is_module(v) when is_atom(v) and not is_nil(v)
 
   defp normalize_kv_backend({backend, opts}, _options) when is_module(backend) and is_list(opts),
     do: {backend, opts}
@@ -309,10 +323,10 @@ defmodule Nerves.Runtime.KV do
   defp normalize_kv_backend(_other, options) do
     # Handle Nerves.Runtime v0.12.0 and earlier way
     initial_contents =
-      options[:modules][Nerves.Runtime.KV.Mock] || options[Nerves.Runtime.KV.Mock]
+      options[:modules][Nerves.Runtime.KV.Mock] || options[Nerves.Runtime.KV.Mock] || %{}
 
     Logger.error(
-      "Using Nerves.Runtime.KV.Mock is deprecated. Use `config :nerves_runtime, kv_backend: {Nerves.Runtime.KVBackend.InMemory, contents: #{inspect(initial_contents)}}`"
+      "Invalid Nerves.Runtime.KV backend. Using `config :nerves_runtime, kv_backend: {Nerves.Runtime.KVBackend.InMemory, contents: #{inspect(initial_contents)}}`"
     )
 
     {Nerves.Runtime.KVBackend.InMemory, contents: initial_contents}

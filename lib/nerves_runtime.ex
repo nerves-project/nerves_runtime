@@ -164,7 +164,10 @@ defmodule Nerves.Runtime do
   end
 
   defp nerves_validated_status() do
-    case KV.get("nerves_fw_validated") do
+    # Try the slot-specific validation status and then fall back to the global flag
+    raw_status = KV.get_active("nerves_fw_validated") || KV.get("nerves_fw_validated")
+
+    case raw_status do
       "1" -> :validated
       "0" -> :unvalidated
       _ -> :unknown
