@@ -60,7 +60,7 @@ defmodule Nerves.Runtime.KV do
         "b.nerves_fw_version" => "0.1.1",
         "nerves_fw_active" => "b",
         "nerves_fw_devpath" => "/dev/mmcblk0",
-        "nerves_serial_number" => ""
+        "nerves_serial_number" => "123456"
       }
 
   Parts of the firmware metadata are global, while others pertain to a
@@ -157,6 +157,16 @@ defmodule Nerves.Runtime.KV do
   @spec start_link(keyword()) :: GenServer.on_start()
   def start_link(opts) do
     GenServer.start_link(__MODULE__, opts, name: __MODULE__)
+  end
+
+  @doc """
+  Reload the KV store
+
+  This needs to be run if the KV is changed outside of using this module.
+  """
+  @spec reload() :: :ok
+  def reload() do
+    GenServer.call(__MODULE__, :reload)
   end
 
   @doc """
@@ -260,6 +270,10 @@ defmodule Nerves.Runtime.KV do
       |> do_put(s)
 
     {:reply, reply, s}
+  end
+
+  def handle_call(:reload, _from, s) do
+    {:reply, :ok, load(s)}
   end
 
   defp active(s), do: Map.get(s.contents, "nerves_fw_active", "")
