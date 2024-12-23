@@ -275,6 +275,26 @@ See
 for how to assign serial numbers to devices using the U-Boot environment block
 way.
 
+## Fwup runtime integration
+
+In addition to using [fwup](https://github.com/fwup-home/fwup) to create and
+apply firmware updates, Nerves uses it to get status on currently running
+firmware and apply housekeeping tasks. NervesRuntime expects a file names
+`ops.fw` to be located in the `/usr/share/fwup` directory in the root
+filesystem. All official Nerves systems supply this file as do most unofficial
+ones.
+
+The following table describes `fwup` tasks in `ops.fw`. More information and
+access to these tasks is in `Nerves.Runtime.FwupOps`.
+
+Task             | Description
+---------------- | -------------------------
+`factory-reset`  | Clear out all application data and any non-default configuration. On the next boot, the device should look like it was just initialized.
+`prevent-revert` | Make it impossible to revert to the previous partition in the future. This should erase the non-running firmware slot.
+`revert`         | Switch to the previous firmware slot on the next boot.
+`status`         | Print the active firmware slot (lowercase `a`-`z`) and optionally the one for the next boot. Examples: `a`, `b`, `a->b`.
+`validate`       | Mark the currently running firmware slot as good so that it's booted in the future.
+
 ## Using nerves_runtime in tests
 
 Applications that depend on `nerves_runtime` for accessing provisioning
