@@ -146,7 +146,7 @@ defmodule Nerves.Runtime.KV do
   @type string_map() :: %{String.t() => String.t()}
 
   @typedoc false
-  @type state() :: %{backend: module(), options: keyword(), contents: string_map()}
+  @type state() :: %{backend: module(), backend_opts: keyword(), contents: string_map()}
 
   @doc """
   Start the KV store server
@@ -224,8 +224,10 @@ defmodule Nerves.Runtime.KV do
   end
 
   @impl GenServer
-  def init(opts) do
-    {:ok, initial_state(opts)}
+  def init(init_opts) do
+    {backend, backend_opts} = normalize_kv_backend(init_opts[:kv_backend], init_opts)
+    s = %{backend: backend, backend_opts: backend_opts, contents: %{}} |> load()
+    {:ok, s}
   end
 
   @impl GenServer
@@ -275,47 +277,38 @@ defmodule Nerves.Runtime.KV do
   end
 
   defp do_put(kv, s) do
-    case s.backend.save(kv, s.options) do
+    case s.backend.save(kv, s.backend_opts) do
       :ok -> {:ok, %{s | contents: Map.merge(s.contents, kv)}}
       error -> {error, s}
     end
   end
 
-  defguardp is_module(v) when is_atom(v) and not is_nil(v)
+  defp load(s) do
+    {:ok, contents} = s.backend.load(s.backend_opts)
 
-  defp initial_state(options) do
-    case options[:kv_backend] do
-      {backend, opts} when is_module(backend) and is_list(opts) ->
-        initialize(backend, opts)
-
-      backend when is_module(backend) ->
-        initialize(backend, [])
-
-      _ ->
-        # Handle Nerves.Runtime v0.12.0 and earlier way
-        initial_contents =
-          options[:modules][Nerves.Runtime.KV.Mock] || options[Nerves.Runtime.KV.Mock]
-
-        Logger.error(
-          "Using Nerves.Runtime.KV.Mock is deprecated. Use `config :nerves_runtime, kv_backend: {Nerves.Runtime.KVBackend.InMemory, contents: #{inspect(initial_contents)}}`"
-        )
-
-        initialize(Nerves.Runtime.KVBackend.InMemory, contents: initial_contents)
-    end
+    %{s | contents: contents}
   rescue
     error ->
-      Logger.error("Nerves.Runtime has a bad KV configuration: #{inspect(error)}")
-      initialize(Nerves.Runtime.KVBackend.InMemory, [])
+      Logger.error("Nerves.Runtime couldn't load KV (#{inspect(s.backend)}): #{inspect(error)}")
+      s
   end
 
-  defp initialize(backend, options) do
-    case backend.load(options) do
-      {:ok, contents} ->
-        %{backend: backend, options: options, contents: contents}
+  defguardp is_module(v) when is_atom(v) and not is_nil(v)
 
-      {:error, reason} ->
-        Logger.error("Nerves.Runtime failed to load KV: #{inspect(reason)}")
-        %{backend: Nerves.Runtime.KVBackend.InMemory, options: [], contents: %{}}
-    end
+  defp normalize_kv_backend({backend, opts}, _options) when is_module(backend) and is_list(opts),
+    do: {backend, opts}
+
+  defp normalize_kv_backend(backend, _options) when is_module(backend), do: {backend, []}
+
+  defp normalize_kv_backend(_other, options) do
+    # Handle Nerves.Runtime v0.12.0 and earlier way
+    initial_contents =
+      options[:modules][Nerves.Runtime.KV.Mock] || options[Nerves.Runtime.KV.Mock] || %{}
+
+    Logger.error(
+      "Invalid Nerves.Runtime.KV backend. Using `config :nerves_runtime, kv_backend: {Nerves.Runtime.KVBackend.InMemory, contents: #{inspect(initial_contents)}}`"
+    )
+
+    {Nerves.Runtime.KVBackend.InMemory, contents: initial_contents}
   end
 end
