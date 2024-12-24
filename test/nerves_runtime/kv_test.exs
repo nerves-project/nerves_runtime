@@ -33,7 +33,7 @@ defmodule Nerves.Runtime.KVTest do
     "b.nerves_fw_version" => "0.1.1",
     "nerves_fw_active" => "b",
     "nerves_fw_devpath" => "/dev/mmcblk0",
-    "nerves_serial_number" => ""
+    "nerves_serial_number" => "123456"
   }
 
   setup_all do
@@ -103,6 +103,18 @@ defmodule Nerves.Runtime.KVTest do
 
     assert KV.get_active("active_test_key1") == "active_test_value1"
     assert KV.get_active("active_test_key2") == "active_test_value2"
+  end
+
+  test "reload/1" do
+    # Check the basics and set the serial number to something else
+    assert KV.get("nerves_serial_number") == "123456"
+    KV.put("nerves_serial_number", "654321")
+    assert KV.get("nerves_serial_number") == "654321"
+
+    KV.reload()
+
+    # Check that the serial number is back to the original value
+    assert KV.get("nerves_serial_number") == "123456"
   end
 
   @tag kv_options: [{:modules, [{Nerves.Runtime.KV.Mock, %{"key" => "value"}}]}]
