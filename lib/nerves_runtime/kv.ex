@@ -131,6 +131,8 @@ defmodule Nerves.Runtime.KV do
   """
   use GenServer
 
+  alias Nerves.Runtime.FwupOps
+
   require Logger
 
   @typedoc """
@@ -146,7 +148,12 @@ defmodule Nerves.Runtime.KV do
   @type string_map() :: %{String.t() => String.t()}
 
   @typedoc false
-  @type state() :: %{backend: module(), backend_opts: keyword(), contents: string_map()}
+  @type state() :: %{
+          backend: module(),
+          backend_opts: keyword(),
+          contents: string_map(),
+          active: String.t()
+        }
 
   @doc """
   Start the KV store server
@@ -236,7 +243,7 @@ defmodule Nerves.Runtime.KV do
   @impl GenServer
   def init(init_opts) do
     {backend, backend_opts} = normalize_kv_backend(init_opts[:kv_backend], init_opts)
-    s = %{backend: backend, backend_opts: backend_opts, contents: %{}} |> load()
+    s = %{backend: backend, backend_opts: backend_opts, contents: %{}, active: "a"} |> load()
     {:ok, s}
   end
 
@@ -250,7 +257,7 @@ defmodule Nerves.Runtime.KV do
   end
 
   def handle_call(:get_all_active, _from, s) do
-    active = active(s) <> "."
+    active = s.active <> "."
     reply = filter_trim_active(s, active)
     {:reply, reply, s}
   end
@@ -266,7 +273,7 @@ defmodule Nerves.Runtime.KV do
 
   def handle_call({:put_active, kv}, _from, s) do
     {reply, s} =
-      Map.new(kv, fn {key, value} -> {"#{active(s)}.#{key}", value} end)
+      Map.new(kv, fn {key, value} -> {"#{s.active}.#{key}", value} end)
       |> do_put(s)
 
     {:reply, reply, s}
@@ -276,10 +283,8 @@ defmodule Nerves.Runtime.KV do
     {:reply, :ok, load(s)}
   end
 
-  defp active(s), do: Map.get(s.contents, "nerves_fw_active", "")
-
   defp active(key, s) do
-    Map.get(s.contents, "#{active(s)}.#{key}")
+    Map.get(s.contents, "#{s.active}.#{key}")
   end
 
   defp filter_trim_active(s, active) do
@@ -300,7 +305,13 @@ defmodule Nerves.Runtime.KV do
   defp load(s) do
     {:ok, contents} = s.backend.load(s.backend_opts)
 
-    %{s | contents: contents}
+    active =
+      case FwupOps.status() do
+        {:ok, %{current: active}} -> active
+        {:error, _reason} -> contents["nerves_fw_active"] || "a"
+      end
+
+    %{s | contents: contents, active: active}
   rescue
     error ->
       Logger.error("Nerves.Runtime couldn't load KV (#{inspect(s.backend)}): #{inspect(error)}")
