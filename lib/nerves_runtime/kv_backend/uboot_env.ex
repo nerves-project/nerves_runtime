@@ -10,15 +10,28 @@ defmodule Nerves.Runtime.KVBackend.UBootEnv do
   @behaviour Nerves.Runtime.KVBackend
 
   @impl Nerves.Runtime.KVBackend
-  def load(_options) do
-    UBootEnv.read()
+  def load(options) do
+    with {:ok, config} <- options_to_uboot_config(options) do
+      UBootEnv.read(config)
+    end
   end
 
   @impl Nerves.Runtime.KVBackend
-  def save(%{} = kv, _options) do
-    with {:ok, current_kv} <- UBootEnv.read() do
+  def save(%{} = kv, options) do
+    with {:ok, config} <- options_to_uboot_config(options),
+         {:ok, current_kv} <- UBootEnv.read(config) do
       merged_kv = Map.merge(current_kv, kv)
-      UBootEnv.write(merged_kv)
+      UBootEnv.write(merged_kv, config)
+    end
+  end
+
+  defp options_to_uboot_config(options) do
+    case Keyword.fetch(options, :uboot_locations) do
+      {:ok, locations} ->
+        {:ok, %UBootEnv.Config{locations: Enum.map(locations, &struct(UBootEnv.Location, &1))}}
+
+      :error ->
+        UBootEnv.configuration()
     end
   end
 end

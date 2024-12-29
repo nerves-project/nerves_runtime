@@ -27,4 +27,4 @@ src/*.o
 priv/
 
 # Unit test temporary files
-test/fixture/empty.img
+/tmp

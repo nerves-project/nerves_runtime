@@ -295,6 +295,22 @@ Task             | Description
 `status`         | Print the active firmware slot (lowercase `a`-`z`) and optionally the one for the next boot. Examples: `a`, `b`, `a->b`.
 `validate`       | Mark the currently running firmware slot as good so that it's booted in the future.
 
+## Application environment
+
+This section documents officially supported application environment keys.
+
+Most users shouldn't need to modify the application environment for
+`nerves_runtime` except for unit testing. See the next section for testing.
+
+Key             | Default                             | Description
+--------------- | ----------------------------------- | ------------
+`:kv_backend`   | `Nerves.Runtime.KVBackend.UBootEnv` | The backing store for firmware slot and other low level key-value pairs. This is almost always a U-Boot environment block for Nerves
+`:boardid_path` | `"/usr/bin/boardid"`                | Path to the `boardid` binary for determining the device's serial number
+`:fwup_path`    | `"fwup"`                            | Path to the `fwup` binary for querying or modifying firmware status
+`:ops_fw_path`  | `"/usr/share/fwup/ops.fw"`          | Path to the `ops.fw` file for passing to `fwup` for firmware status tasks
+`:fwup_env`     | `%{}`                               | Additional environment variables to pass to `fwup`
+`:devpath`      | `/dev/rootdisk0`                    | The block device that firmware is stored on. `/dev/rootdisk0` is a symlink on Nerves to the real location, so this really shouldn't need to be changed.
+
 ## Using nerves_runtime in tests
 
 Applications that depend on `nerves_runtime` for accessing provisioning

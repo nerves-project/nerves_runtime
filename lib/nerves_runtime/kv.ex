@@ -268,7 +268,9 @@ defmodule Nerves.Runtime.KV do
 
   def handle_call({:put, kv}, _from, s) do
     {reply, s} = do_put(kv, s)
-    {:reply, reply, s}
+
+    # Putting generic, non-slot-specific keys could change the active slot logic.
+    {:reply, reply, refresh_active(s)}
   end
 
   def handle_call({:put_active, kv}, _from, s) do
@@ -305,17 +307,24 @@ defmodule Nerves.Runtime.KV do
   defp load(s) do
     {:ok, contents} = s.backend.load(s.backend_opts)
 
+    %{s | contents: contents} |> refresh_active()
+  rescue
+    error ->
+      Logger.error(
+        "Nerves.Runtime.KV load error (#{inspect(s.backend)},#{inspect(s.backend_opts)}). Reverting to in-memory store: #{inspect(error)}"
+      )
+
+      %{s | backend: Nerves.Runtime.KVBackend.InMemory, backend_opts: [contents: s.contents]}
+  end
+
+  defp refresh_active(s) do
     active =
       case FwupOps.status() do
         {:ok, %{current: active}} -> active
-        {:error, _reason} -> contents["nerves_fw_active"] || "a"
+        {:error, _reason} -> s.contents["nerves_fw_active"] || "a"
       end
 
-    %{s | contents: contents, active: active}
-  rescue
-    error ->
-      Logger.error("Nerves.Runtime couldn't load KV (#{inspect(s.backend)}): #{inspect(error)}")
-      s
+    %{s | active: active}
   end
 
   defguardp is_module(v) when is_atom(v) and not is_nil(v)
@@ -325,13 +334,13 @@ defmodule Nerves.Runtime.KV do
 
   defp normalize_kv_backend(backend, _options) when is_module(backend), do: {backend, []}
 
-  defp normalize_kv_backend(_other, options) do
+  defp normalize_kv_backend(other, options) do
     # Handle Nerves.Runtime v0.12.0 and earlier way
     initial_contents =
       options[:modules][Nerves.Runtime.KV.Mock] || options[Nerves.Runtime.KV.Mock] || %{}
 
     Logger.error(
-      "Invalid Nerves.Runtime.KV backend. Using `config :nerves_runtime, kv_backend: {Nerves.Runtime.KVBackend.InMemory, contents: #{inspect(initial_contents)}}`"
+      "Invalid Nerves.Runtime.KV backend `#{inspect(other)}`. Using `config :nerves_runtime, kv_backend: {Nerves.Runtime.KVBackend.InMemory, contents: #{inspect(initial_contents)}}`"
     )
 
     {Nerves.Runtime.KVBackend.InMemory, contents: initial_contents}
