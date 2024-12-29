@@ -27,6 +27,7 @@ SPDX-License-Identifier = "CC-BY-4.0"
 [[annotations]]
 path = [
  "test/fixture/ops-fail.fw",
+ "test/fixture/ops-status.fw",
  "test/fixture/ops.fw",
 ]
 precedence = "aggregate"

@@ -3,14 +3,17 @@
 # SPDX-License-Identifier: Apache-2.0
 defmodule Nerves.Runtime.FwupOps do
   @moduledoc """
-  Convenience functions for /usr/share/fwup/ops.fw
+  Functions for managing firmware slots via an ops.fw file
 
   The `/usr/share/fwup/ops.fw` is provided by the Nerves system for handling
   some eMMC/MicroSD card operations. Look for `fwup-ops.conf` in the Nerves
   system source tree for more details. It used to be called
   `revert.fw`/`fwup-revert.conf` when it only handled reverting which firmware
   image was active.
+
+  This is a GenServer to maintain state and serialize firmware slot operations.
   """
+  use GenServer
 
   alias Nerves.Runtime.Heart
   alias Nerves.Runtime.KV
@@ -19,7 +22,7 @@ defmodule Nerves.Runtime.FwupOps do
   @ops_fw_path "/usr/share/fwup/ops.fw"
 
   @typedoc """
-  General options for utilities
+  Options for calling fwup
 
   * `:devpath` - The location of the storage device (defaults to `"/dev/rootdisk0"`)
   * `:fwup_env` - Additional environment variables to pass to `fwup`
@@ -37,6 +40,17 @@ defmodule Nerves.Runtime.FwupOps do
         ]
 
   @doc """
+  Start the FwupOps GenServer
+
+  Pass in the default options for running `fwup`. They can be overridden
+  on a one-off basis by passing options to other functions.
+  """
+  @spec start_link(options()) :: GenServer.on_start()
+  def start_link(init_args) do
+    GenServer.start_link(__MODULE__, init_args, name: __MODULE__)
+  end
+
+  @doc """
   Revert to the previous firmware
 
   This invokes the "revert" task in the `ops.fw` and then reboots (unless told
@@ -47,7 +61,7 @@ defmodule Nerves.Runtime.FwupOps do
   def revert(opts \\ []) do
     reboot? = Keyword.get(opts, :reboot, true)
 
-    with {:ok, _} <- run_fwup("revert", opts) do
+    with {:ok, _} <- call_run_fwup("revert", opts) do
       if reboot? do
         Nerves.Runtime.reboot()
       else
@@ -65,7 +79,7 @@ defmodule Nerves.Runtime.FwupOps do
   """
   @spec prevent_revert(options()) :: :ok | {:error, reason :: any}
   def prevent_revert(opts \\ []) do
-    with {:ok, _} <- run_fwup("prevent-revert", opts) do
+    with {:ok, _} <- call_run_fwup("prevent-revert", opts) do
       KV.reload()
     end
   end
@@ -81,7 +95,7 @@ defmodule Nerves.Runtime.FwupOps do
   """
   @spec validate(options()) :: :ok | {:error, reason :: any}
   def validate(opts \\ []) do
-    with {:ok, _} <- run_fwup("validate", opts) do
+    with {:ok, _} <- call_run_fwup("validate", opts) do
       KV.reload()
     end
   end
@@ -100,7 +114,7 @@ defmodule Nerves.Runtime.FwupOps do
   def factory_reset(opts \\ []) do
     reboot? = Keyword.get(opts, :reboot, true)
 
-    with {:ok, _} <- run_fwup("factory-reset", opts) do
+    with {:ok, _} <- call_run_fwup("factory-reset", opts) do
       if reboot? do
         # Graceful shutdown can cause writes to happen that may undo parts of
         # the factory reset, so ungracefully reboot to minimize the time
@@ -122,7 +136,7 @@ defmodule Nerves.Runtime.FwupOps do
   @spec status(options()) ::
           {:ok, %{current: String.t(), next: String.t()}} | {:error, reason :: any}
   def status(opts \\ []) do
-    with {:ok, raw_result} <- run_fwup("status", opts),
+    with {:ok, raw_result} <- call_run_fwup("status", opts),
          {:ok, result} <- deframe(raw_result, []) do
       Enum.find_value(result, {:error, "Invalid status"}, &find_status/1)
     end
@@ -135,10 +149,27 @@ defmodule Nerves.Runtime.FwupOps do
 
   defp find_status(_status), do: nil
 
-  defp run_fwup(task, opts) do
-    devpath = Keyword.get(opts, :devpath, "/dev/rootdisk0")
-    cmd_opts = [env: Keyword.get(opts, :fwup_env, %{})]
+  @impl GenServer
+  def init(init_args) do
+    specified_options = Keyword.take(init_args, [:devpath, :fwup_env, :fwup_path, :ops_fw_path])
 
+    {:ok, specified_options}
+  end
+
+  @impl GenServer
+  def handle_call({:run_fwup, task, options}, _from, default_options) do
+    result = run_fwup(task, Keyword.merge(default_options, options))
+    {:reply, result, default_options}
+  end
+
+  defp call_run_fwup(task, options) do
+    GenServer.call(__MODULE__, {:run_fwup, task, options}, 1000)
+  catch
+    :exit, {:noproc, _} ->
+      {:error, "FwupOps server not running"}
+  end
+
+  defp run_fwup(task, opts) do
     with {:ok, ops_fw} <- ops_fw_path(opts),
          {:ok, fwup} <- fwup_path(opts) do
       params = [
@@ -148,14 +179,14 @@ defmodule Nerves.Runtime.FwupOps do
         "-t",
         task,
         "-d",
-        devpath,
+        opts[:devpath],
         "-q",
         "-U",
         "--enable-trim",
         "--framing"
       ]
 
-      case System.cmd(fwup, params, cmd_opts) do
+      case System.cmd(fwup, params, env: opts[:fwup_env]) do
         {results, 0} -> {:ok, results}
         {result, _} -> output_to_error(result)
       end
@@ -172,22 +203,17 @@ defmodule Nerves.Runtime.FwupOps do
   defp find_error(_status), do: false
 
   defp fwup_path(opts) do
-    fwup_path =
-      opts[:fwup_path] || Application.get_env(:nerves_runtime, :fwup_path, "fwup")
-
-    case System.find_executable(fwup_path) do
-      nil -> {:error, "Can't find fwup"}
+    case System.find_executable(opts[:fwup_path]) do
+      nil -> {:error, "can't find fwup"}
       path -> {:ok, path}
     end
   end
 
   defp ops_fw_path(opts) do
-    app_path = Application.get_env(:nerves_runtime, :ops_fw_path)
-    overridden_path = opts[:ops_fw_path]
+    ops_fw_path = opts[:ops_fw_path]
 
     cond do
-      is_binary(overridden_path) and File.exists?(overridden_path) -> {:ok, overridden_path}
-      is_binary(app_path) and File.exists?(app_path) -> {:ok, app_path}
+      is_binary(ops_fw_path) and File.exists?(ops_fw_path) -> {:ok, ops_fw_path}
       File.exists?(@ops_fw_path) -> {:ok, @ops_fw_path}
       File.exists?(@old_revert_fw_path) -> {:ok, @old_revert_fw_path}
       true -> {:error, "ops.fw not found in Nerves system (default is #{@ops_fw_path})"}

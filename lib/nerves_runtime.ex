@@ -57,6 +57,9 @@ defmodule Nerves.Runtime do
   accidents. It also requires the revert feature to be implemented in the
   Nerves system that's in use. See `Nerves.Runtime.FwupOps` for how this works.
 
+  Normally options are not passed. See `t:Nerves.Runtime.FwupOps.options/0` for
+  modifying the behavior of `fwup`.
+
   Specifying `reboot: false` is allowed, but be sure to reboot. It's easy to
   get confused if you don't reboot afterwards and do a double revert or
   something else silly.
@@ -102,14 +105,21 @@ defmodule Nerves.Runtime do
 
   For systems that support automatic reverting, if the firmware is not marked as
   valid, then the next reboot will cause a revert to the old firmware
+
+  Normally options are not passed. See `t:Nerves.Runtime.FwupOps.options/0` for
+  modifying the behavior of `fwup`.
   """
-  @spec validate_firmware() :: :ok
-  def validate_firmware() do
-    # If using U-Boot's bootcount feature, set those variables as well
-    if KV.get("upgrade_available") do
-      KV.put(%{"upgrade_available" => "0", "bootcount" => "0", "nerves_fw_validated" => "1"})
-    else
-      KV.put("nerves_fw_validated", "1")
+  @spec validate_firmware(FwupOps.options()) :: :ok
+  def validate_firmware(opts \\ []) do
+    with {:error, reason} <- FwupOps.validate(opts) do
+      Logger.error("Using old validation logic due to ops.fw error: #{inspect(reason)}")
+
+      # If using U-Boot's bootcount feature, set those variables as well
+      if KV.get("upgrade_available") do
+        KV.put(%{"upgrade_available" => "0", "bootcount" => "0", "nerves_fw_validated" => "1"})
+      else
+        KV.put("nerves_fw_validated", "1")
+      end
     end
   end
 
@@ -145,7 +155,10 @@ defmodule Nerves.Runtime do
   end
 
   defp nerves_validated_status() do
-    case KV.get("nerves_fw_validated") do
+    # Try the slot-specific validation status and then fall back to the global flag
+    raw_status = KV.get_active("nerves_fw_validated") || KV.get("nerves_fw_validated")
+
+    case raw_status do
       "1" -> :validated
       "0" -> :unvalidated
       _ -> :unknown
