@@ -85,7 +85,7 @@ defmodule Nerves.Runtime.FwupOps do
   end
 
   @doc """
-  Validate the current partition
+  Validate the active partition
 
   For Nerves systems that support automatic rollback of firmware versions, this
   marks the partition as good so that it will continue to be used on future
@@ -129,12 +129,12 @@ defmodule Nerves.Runtime.FwupOps do
   @doc """
   Return boot status
 
-  This invokes the "status" task in the `ops.fw` to report the current
+  This invokes the "status" task in the `ops.fw` to report the active
   firmware slot and what slot will be tried on the next reboot. The `ops.fw`
   is expected to print the slot name or two slot names separated by "->".
   """
   @spec status(options()) ::
-          {:ok, %{current: String.t(), next: String.t()}} | {:error, reason :: any}
+          {:ok, %{active: String.t(), next: String.t()}} | {:error, reason :: any}
   def status(opts \\ []) do
     with {:ok, raw_result} <- call_run_fwup("status", opts),
          {:ok, result} <- deframe(raw_result, []) do
@@ -142,10 +142,10 @@ defmodule Nerves.Runtime.FwupOps do
     end
   end
 
-  defp find_status({:warning, <<slot::1-bytes>>}), do: {:ok, %{current: slot, next: slot}}
+  defp find_status({:warning, <<slot::1-bytes>>}), do: {:ok, %{active: slot, next: slot}}
 
-  defp find_status({:warning, <<current::1-bytes, "->", next::1-bytes>>}),
-    do: {:ok, %{current: current, next: next}}
+  defp find_status({:warning, <<active::1-bytes, "->", next::1-bytes>>}),
+    do: {:ok, %{active: active, next: next}}
 
   defp find_status(_status), do: nil
 

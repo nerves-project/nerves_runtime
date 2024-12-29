@@ -50,6 +50,52 @@ defmodule Nerves.Runtime do
   defdelegate halt(), to: Power
 
   @doc """
+  Return information about firmware slots
+
+  Most Nerves devices have two slots for firmware storage. The first slot is
+  usually labeled "a" and the second "b". Firmware updates alternate between
+  these slots. In principle, a Nerves system could define more slots for other
+  purposes.
+
+  This function returns a map with the how the firmware slots are currently
+  being used. It has the following keys:
+
+  * `:active` - the slot containing the currently running firmware
+  * `:next` - the slot containing the firmware that will be loaded on the next boot
+
+  If you're a Nerves systems developer, this function works best when
+  `Nerves.Runtime.FwupOps.status/1` is implemented. If not, a heuristic is used
+  that tends to mostly work if your Nerves system uses U-Boot variables to
+  track slots.
+
+  Normally options are not passed. See `t:Nerves.Runtime.FwupOps.options/0` for
+  modifying the behavior of `fwup`.
+  """
+  @doc since: "0.13.9"
+  @spec firmware_slots(FwupOps.options()) :: %{active: String.t(), next: String.t()}
+  def firmware_slots(opts \\ []) do
+    case FwupOps.status(opts) do
+      {:ok, status} ->
+        status
+
+      {:error, reason} ->
+        Logger.info("Using slot detection heuristic due to ops.fw error: #{inspect(reason)}")
+
+        # This should be right for the next slot and right most of the time for
+        # the current one.
+        active = KV.get("nerves_fw_active") || "a"
+        next = if firmware_valid?(), do: active, else: opposite_slot(active)
+        %{active: active, next: next}
+    end
+  end
+
+  # This is best effort for inferring the opposite slot.
+  # The better way is to avoid it and implement `FwupOps.status/1`.
+  defp opposite_slot("a"), do: "b"
+  defp opposite_slot("b"), do: "a"
+  defp opposite_slot(slot), do: slot
+
+  @doc """
   Revert the device to running the previous firmware
 
   This switches the active firmware slot back to the previous one and then

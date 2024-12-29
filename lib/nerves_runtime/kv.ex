@@ -328,7 +328,7 @@ defmodule Nerves.Runtime.KV do
   defp refresh_active(s) do
     active =
       case FwupOps.status() do
-        {:ok, %{current: active}} -> active
+        {:ok, %{active: active}} -> active
         {:error, _reason} -> s.contents["nerves_fw_active"] || "a"
       end
 

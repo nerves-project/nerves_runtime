@@ -87,9 +87,9 @@ defmodule NervesRuntime.FwupOpsTest do
 
     test "success", context do
       # ops-status.conf lets you set the status via $STATUS
-      assert {:ok, %{current: "a", next: "b"}} = fwup_status(context, "a->b")
-      assert {:ok, %{current: "b", next: "a"}} = fwup_status(context, "b->a")
-      assert {:ok, %{current: "c", next: "c"}} = fwup_status(context, "c")
+      assert {:ok, %{active: "a", next: "b"}} = fwup_status(context, "a->b")
+      assert {:ok, %{active: "b", next: "a"}} = fwup_status(context, "b->a")
+      assert {:ok, %{active: "c", next: "c"}} = fwup_status(context, "c")
       assert {:error, "Invalid status"} = fwup_status(context, "xyz")
     end
 

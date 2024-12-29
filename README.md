@@ -295,7 +295,7 @@ Task             | Description
 `prevent-revert` | Make it impossible to revert to the previous partition in the future. This should erase the non-running firmware slot.
 `revert`         | Switch to the previous firmware slot on the next boot.
 `status`         | Print the active firmware slot (lowercase `a`-`z`) and optionally the one for the next boot. Examples: `a`, `b`, `a->b`.
-`validate`       | Mark the currently running firmware slot as good so that it's booted in the future.
+`validate`       | Mark the actively running firmware slot as good so that it's booted in the future.
 
 ## Application environment
 
