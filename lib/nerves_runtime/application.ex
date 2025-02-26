@@ -1,3 +1,10 @@
+# SPDX-FileCopyrightText: 2017 Justin Schneck
+# SPDX-FileCopyrightText: 2018 Frank Hunleth
+# SPDX-FileCopyrightText: 2018 Greg Mefford
+# SPDX-FileCopyrightText: 2019 Troels Brødsgaard
+# SPDX-FileCopyrightText: 2021 Alex McLain
+#
+# SPDX-License-Identifier: Apache-2.0
 defmodule Nerves.Runtime.Application do
   @moduledoc false
 

@@ -1,3 +1,7 @@
+# SPDX-FileCopyrightText: 2022 Frank Hunleth
+# SPDX-FileCopyrightText: 2022 Jon Carstens
+#
+# SPDX-License-Identifier: Apache-2.0
 defmodule Nerves.Runtime.Heart do
   @moduledoc """
   Functions for querying Nerves Heart and the device's watchdog

@@ -1,3 +1,7 @@
+# SPDX-FileCopyrightText: 2018 Frank Hunleth
+# SPDX-FileCopyrightText: 2018 Michał Kalbarczyk
+#
+# SPDX-License-Identifier: Apache-2.0
 defmodule Nerves.Runtime.OutputLogger do
   @moduledoc false
   defstruct [:level]

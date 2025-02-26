@@ -1,4 +1,8 @@
 #!/bin/sh
+# SPDX-FileCopyrightText: 2020 Frank Hunleth
+#
+# SPDX-License-Identifier: Apache-2.0
+#
 
 echo "123456789"
 exit 0

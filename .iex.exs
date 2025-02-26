@@ -1,1 +1,0 @@
-alias Nerves.Runtime.KV

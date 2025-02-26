@@ -1,3 +1,11 @@
+# SPDX-FileCopyrightText: 2017 Frank Hunleth
+# SPDX-FileCopyrightText: 2017 Justin Schneck
+# SPDX-FileCopyrightText: 2018 Greg Mefford
+# SPDX-FileCopyrightText: 2018 Michał Kalbarczyk
+# SPDX-FileCopyrightText: 2020 Connor Rigby
+# SPDX-FileCopyrightText: 2020 Jon Carstens
+#
+# SPDX-License-Identifier: Apache-2.0
 defmodule Nerves.Runtime do
   @moduledoc """
   Nerves.Runtime contains functions useful for almost all Nerves-based devices.

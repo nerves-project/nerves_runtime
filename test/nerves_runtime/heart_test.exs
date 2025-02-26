@@ -1,3 +1,7 @@
+# SPDX-FileCopyrightText: 2022 Frank Hunleth
+# SPDX-FileCopyrightText: 2023 Jon Carstens
+#
+# SPDX-License-Identifier: Apache-2.0
 defmodule Nerves.Runtime.HeartTest do
   use ExUnit.Case
   doctest Nerves.Runtime.Heart

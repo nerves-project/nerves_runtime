@@ -1,3 +1,7 @@
+# SPDX-FileCopyrightText: 2017 Frank Hunleth
+# SPDX-FileCopyrightText: 2018 Greg Mefford
+#
+# SPDX-License-Identifier: Apache-2.0
 defmodule Nerves.Runtime.Helpers do
   @moduledoc false
 

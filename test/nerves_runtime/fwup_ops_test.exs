@@ -1,3 +1,6 @@
+# SPDX-FileCopyrightText: 2023 Frank Hunleth
+#
+# SPDX-License-Identifier: Apache-2.0
 defmodule NervesRuntime.FwupOpsTest do
   use ExUnit.Case
 

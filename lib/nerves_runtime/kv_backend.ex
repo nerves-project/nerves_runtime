@@ -1,3 +1,6 @@
+# SPDX-FileCopyrightText: 2022 Frank Hunleth
+#
+# SPDX-License-Identifier: Apache-2.0
 defmodule Nerves.Runtime.KVBackend do
   @moduledoc """
   Behaviour for customizing the Nerves Runtime's key-value store

@@ -1,3 +1,8 @@
+# SPDX-FileCopyrightText: 2022 Alex McLain
+# SPDX-FileCopyrightText: 2022 Frank Hunleth
+# SPDX-FileCopyrightText: 2023 Eric Oestrich
+#
+# SPDX-License-Identifier: Apache-2.0
 defmodule Nerves.Runtime.Power do
   @moduledoc false
 

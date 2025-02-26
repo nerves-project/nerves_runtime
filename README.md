@@ -1,7 +1,9 @@
 # nerves_runtime
 
-[![CircleCI](https://circleci.com/gh/nerves-project/nerves_runtime.svg?style=svg)](https://circleci.com/gh/nerves-project/nerves_runtime)
 [![Hex version](https://img.shields.io/hexpm/v/nerves_runtime.svg "Hex version")](https://hex.pm/packages/nerves_runtime)
+[![API docs](https://img.shields.io/hexpm/v/nerves_runtime.svg?label=hexdocs "API docs")](https://hexdocs.pm/nerves_runtime/Nerves.Runtime.html)
+[![CircleCI](https://dl.circleci.com/status-badge/img/gh/nerves-project/nerves_runtime/tree/main.svg?style=svg)](https://dl.circleci.com/status-badge/redirect/gh/nerves-project/nerves_runtime/tree/main)
+[![REUSE status](https://api.reuse.software/badge/github.com/nerves-project/nerves_runtime)](https://api.reuse.software/info/github.com/nerves-project/nerves_runtime)
 
 `nerves_runtime` is a core component of Nerves. It contains applications and
 libraries that are expected to be useful on all Nerves devices.
@@ -332,3 +334,11 @@ end
 # Then in config.exs
 config :nerves_runtime, :kv_backend, MyApp.KVBackend.Mock
 ```
+
+## License
+
+All original source code in this project is licensed under Apache-2.0.
+
+Additionally, this project follows the [REUSE recommendations](https://reuse.software)
+and labels so that licensing and copyright are clear at the file level.
+

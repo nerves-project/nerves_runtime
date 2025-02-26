@@ -1,3 +1,7 @@
+# SPDX-FileCopyrightText: 2017 Justin Schneck
+# SPDX-FileCopyrightText: 2021 Frank Hunleth
+#
+# SPDX-License-Identifier: Apache-2.0
 defmodule Nerves.Runtime.InitTest do
   use ExUnit.Case
   doctest Nerves.Runtime.Init

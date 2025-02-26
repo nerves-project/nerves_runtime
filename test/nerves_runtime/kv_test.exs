@@ -1,3 +1,8 @@
+# SPDX-FileCopyrightText: 2017 Justin Schneck
+# SPDX-FileCopyrightText: 2018 Frank Hunleth
+# SPDX-FileCopyrightText: 2022 Jon Carstens
+#
+# SPDX-License-Identifier: Apache-2.0
 defmodule Nerves.Runtime.KVTest do
   use ExUnit.Case, async: false
   doctest Nerves.Runtime.KV

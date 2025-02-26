@@ -1,3 +1,6 @@
+# SPDX-FileCopyrightText: 2022 Frank Hunleth
+#
+# SPDX-License-Identifier: Apache-2.0
 defmodule Nerves.Runtime.KVBackend.InMemory do
   @moduledoc """
   In-memory KV store

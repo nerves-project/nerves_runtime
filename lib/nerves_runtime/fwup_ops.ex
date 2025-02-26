@@ -1,3 +1,6 @@
+# SPDX-FileCopyrightText: 2023 Frank Hunleth
+#
+# SPDX-License-Identifier: Apache-2.0
 defmodule Nerves.Runtime.FwupOps do
   @moduledoc """
   Convenience functions for /usr/share/fwup/ops.fw

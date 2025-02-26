@@ -1,3 +1,12 @@
+# SPDX-FileCopyrightText: 2017 Frank Hunleth
+# SPDX-FileCopyrightText: 2017 Justin Schneck
+# SPDX-FileCopyrightText: 2018 Eric Rauer
+# SPDX-FileCopyrightText: 2018 Greg Mefford
+# SPDX-FileCopyrightText: 2018 Michał Kalbarczyk
+# SPDX-FileCopyrightText: 2019 Connor Rigby
+# SPDX-FileCopyrightText: 2020 Jon Carstens
+#
+# SPDX-License-Identifier: Apache-2.0
 defmodule Nerves.Runtime.Init do
   @moduledoc """
   GenServer that handles device initialization.

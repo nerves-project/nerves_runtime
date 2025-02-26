@@ -1,3 +1,11 @@
+# SPDX-FileCopyrightText: 2017 Frank Hunleth
+# SPDX-FileCopyrightText: 2017 Greg Mefford
+# SPDX-FileCopyrightText: 2017 Justin Schneck
+# SPDX-FileCopyrightText: 2018 Connor Rigby
+# SPDX-FileCopyrightText: 2019 Jon Carstens
+# SPDX-FileCopyrightText: 2019 Troels Brødsgaard
+#
+# SPDX-License-Identifier: Apache-2.0
 defmodule Nerves.Runtime.KV do
   @moduledoc """
   Key-Value storage for firmware variables
