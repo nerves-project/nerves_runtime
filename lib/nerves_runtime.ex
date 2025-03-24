@@ -185,7 +185,13 @@ defmodule Nerves.Runtime do
   If not, it will return whatever the user specified with the `MIX_TARGET`
   environment variable when building this firmware.
   """
-  @dialyzer {:nowarn_function, mix_target: 0}
   @spec mix_target() :: atom()
-  def mix_target(), do: @mix_target
+  def mix_target() do
+    # Use Function.identity/1 to hide the constant return value from Dialyzer.
+    # The Dialyzer error is correct: the check should have been done at
+    # compile-time. However, using it at runtime is usually not a huge deal and
+    # debugging the Dialyzer warning takes longer than it's worth on every time
+    # it's come up so far.
+    Function.identity(@mix_target)
+  end
 end
