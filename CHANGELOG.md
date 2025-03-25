@@ -1,5 +1,25 @@
 # Changelog
 
+## v0.13.8 - 2025-03-24
+
+This release has many updates, but none of them are expected to be noticeable to
+most Nerves users. Most are in support of the Raspberry Pi's TRYBOOT feature
+which is not supported in official Nerves systems.
+
+* Changes
+  * Update licensing and copyright for [REUSE compliance](https://reuse.software/)
+  * Add `Nerves.Runtime.FwopOps.status/1` to report the currently running slot
+    and the one that will run on the next boot
+  * Improve active (current) firmware slot detection when `ops.fw` is available.
+    While nothing has changed in official Nerves systems, more documentation has
+    been added here to make the `ops.fw` tasks use official.
+  * Support reloading KV cache and reload it automatically on firmware
+    operations that may affect it.
+  * Return error and warning details from `fwup` calls to avoid losing failure
+    reasons
+  * Reduce Dialyzer warnings when calling `Nerves.Runtime.mix_target/0` at
+    runtime
+
 ## v0.13.7 - 2024-01-15
 
 * Changes
