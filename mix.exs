@@ -35,6 +35,10 @@ defmodule Nerves.Runtime.MixProject do
   defp kv_backend(:host), do: Nerves.Runtime.KVBackend.InMemory
   defp kv_backend(_target), do: Nerves.Runtime.KVBackend.UBootEnv
 
+  def cli do
+    [preferred_envs: %{docs: :docs, "hex.build": :docs, "hex.publish": :docs}]
+  end
+
   defp deps do
     [
       {:uboot_env, "~> 1.0 or ~> 0.3.0"},
