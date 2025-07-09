@@ -23,9 +23,11 @@ defmodule Nerves.Runtime.MixProject do
     [
       env: [
         boardid_path: "/usr/bin/boardid",
+        devpath: "/dev/rootdisk0",
+        fwup_env: %{},
         fwup_path: "fwup",
-        revert_fw_path: "/usr/share/fwup/revert.fw",
-        kv_backend: kv_backend(Mix.target())
+        kv_backend: kv_backend(Mix.target()),
+        ops_fw_path: "/usr/share/fwup/ops.fw"
       ],
       extra_applications: [:logger],
       mod: {Nerves.Runtime.Application, []}

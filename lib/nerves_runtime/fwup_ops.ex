@@ -22,7 +22,7 @@ defmodule Nerves.Runtime.FwupOps do
   General options for utilities
 
   * `:devpath` - The location of the storage device (defaults to `"/dev/rootdisk0"`)
-  * `:env` - Additional environment variables to pass to `fwup`
+  * `:fwup_env` - Additional environment variables to pass to `fwup`
   * `:fwup_path` - The path to the `fwup` utility
   * `:ops_fw_path` - The path to the `ops.fw` file (defaults to `"/usr/share/fwup/ops.fw"`)
   * `:reboot` - Call `Nerves.Runtime.reboot/0` after running (defaults to
@@ -30,7 +30,7 @@ defmodule Nerves.Runtime.FwupOps do
   """
   @type options() :: [
           devpath: String.t(),
-          env: %{String.t() => String.t()},
+          fwup_env: %{String.t() => String.t()},
           fwup_path: String.t(),
           ops_fw_path: String.t(),
           reboot: boolean()
@@ -137,7 +137,7 @@ defmodule Nerves.Runtime.FwupOps do
 
   defp run_fwup(task, opts) do
     devpath = Keyword.get(opts, :devpath, "/dev/rootdisk0")
-    cmd_opts = [env: Keyword.get(opts, :env, %{})]
+    cmd_opts = [env: Keyword.get(opts, :fwup_env, %{})]
 
     with {:ok, ops_fw} <- ops_fw_path(opts),
          {:ok, fwup} <- fwup_path(opts) do
@@ -182,7 +182,7 @@ defmodule Nerves.Runtime.FwupOps do
   end
 
   defp ops_fw_path(opts) do
-    app_path = Application.get_env(:nerves_runtime, :revert_fw_path)
+    app_path = Application.get_env(:nerves_runtime, :ops_fw_path)
     overridden_path = opts[:ops_fw_path]
 
     cond do

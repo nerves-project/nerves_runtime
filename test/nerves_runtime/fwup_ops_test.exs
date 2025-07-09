@@ -17,7 +17,7 @@ defmodule NervesRuntime.FwupOpsTest do
   setup do
     # Even though this can be specified via an option, use the Application environment
     # since that's how it's normally set in practice.
-    Application.put_env(:nerves_runtime, :revert_fw_path, Path.expand("test/fixture/ops.fw"))
+    Application.put_env(:nerves_runtime, :ops_fw_path, Path.expand("test/fixture/ops.fw"))
     :ok
   end
 
@@ -54,7 +54,7 @@ defmodule NervesRuntime.FwupOpsTest do
   end
 
   defp status_ops(status) do
-    Keyword.put(@fwup_options, :env, %{"STATUS" => status})
+    Keyword.put(@fwup_options, :fwup_env, %{"STATUS" => status})
   end
 
   test "status" do
@@ -68,7 +68,7 @@ defmodule NervesRuntime.FwupOpsTest do
   end
 
   test "missing ops.fw" do
-    Application.put_env(:nerves_runtime, :revert_fw_path, "/does/not/exist/missing_ops.fw")
+    Application.put_env(:nerves_runtime, :ops_fw_path, "/does/not/exist/missing_ops.fw")
 
     assert {:error, "ops.fw or revert.fw not found in Nerves system"} =
              FwupOps.validate(@fwup_options)
