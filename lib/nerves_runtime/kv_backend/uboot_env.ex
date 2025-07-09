@@ -22,6 +22,9 @@ defmodule Nerves.Runtime.KVBackend.UBootEnv do
     with {:ok, current_kv} <- UBootEnv.read() do
       merged_kv = Map.merge(current_kv, kv)
       UBootEnv.write(merged_kv)
+    else
+      {:error, :no_valid_blocks} ->
+        Logger.error("No valid U-Boot, so writing cached version")
     end
   end
 end
