@@ -190,7 +190,7 @@ defmodule Nerves.Runtime.FwupOps do
       is_binary(app_path) and File.exists?(app_path) -> {:ok, app_path}
       File.exists?(@ops_fw_path) -> {:ok, @ops_fw_path}
       File.exists?(@old_revert_fw_path) -> {:ok, @old_revert_fw_path}
-      true -> {:error, "ops.fw or revert.fw not found in Nerves system"}
+      true -> {:error, "ops.fw not found in Nerves system (default is #{@ops_fw_path})"}
     end
   end
 
