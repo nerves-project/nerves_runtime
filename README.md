@@ -192,38 +192,53 @@ encrypted firmware storage. See `Nerves.Runtime.FwupOps.prevent_revert/0`.
 
 ### Assisted firmware validation and automatic revert
 
-Nerves firmware updates protect against update corruption and power loss
-midway into the update procedure. However, what happens if the firmware update
-contains bad code that hangs the device or breaks something important like
-networking? Some Nerves systems support tentative runs of new firmware and if
-something goes wrong, they'll revert back.
+Nerves firmware updates protect against update corruption and power loss midway
+into the update procedure. However, what happens if the firmware update contains
+bad code that hangs the device or breaks something important like networking?
+Some Nerves systems support tentative runs of new firmware and if something goes
+wrong, they'll revert back.
 
 At a high level, this involves some additional code from the developer that
-knows what constitutes "working". This could be "is it possible to connect to
-the firmware update server within 5 minutes of boot?"
+knows what constitutes "working". `Nerves.Runtime` comes with a module,
+`Nerves.Runtime.StartupGuard`, that handles this by waiting for all OTP
+applications to start and then validates the new firmware.
 
-Here's the process:
+To use `Nerves.Runtime.StartupGuard`, first check whether your Nerves system
+doesn't automatically validate firmware after it gets written successfully. This
+was previously done on all official systems for simplicity and we're in the
+process of changing that. It's easy to see. Update the firmware to your project.
+Run `Nerves.Runtime.firmware_validation_status/0`. If it's validated and you
+don't have the `Nerves.Runtime.StartupGuard` enabled, then it auto-validates.
+Otherwise, run `Nerves.Runtime.validate_firmware/0`. To enable
+`Nerves.Runtime.StartupGuard` to validate the firmware for you, add the
+following to your project's `target.exs` or `config.exs`:
 
-1. New firmware is installed in the normal manner. The `Nerves.Runtime.KV`
-   variable, `nerves_fw_validated` is set to 0. (The systems `fwup.conf` does
-   this)
-2. The system reboots like normal.
-3. The device starts a five minute reboot timer (your code needs to do this if
-   you want to catch hangs or super-slow boots)
-4. The application attempts to make a connection to the firmware update server.
-5. On a good connection, the application sets `nerves_fw_validated` to 1 by
-   calling `Nerves.Runtime.validate_firmware/0` and cancels the reboot timer.
-6. On error, the reboot timer failing, or a hardware watchdog timeout, the
-   system reboots. The bootloader reverts to the previous firmware.
+```elixir
+config :nerves_runtime, startup_guard_enabled: true
+```
 
-Some Nerves systems support a KV variable called `nerves_fw_autovalidate`. The
-intention of this variable was to make that system support scenarios that
-require validate and ones that don't. If the system supports this variable then
-you should make sure that it is set to 0 (either via a custom fwup.conf or via
-the provisioning hooks for writing serial numbers to MicroSD cards). Support for
-the `nerves_fw_autovalidate` variable will likely go away in the future as steps
-are made to make automatic revert on bad firmware a default feature of Nerves
-rather than an add-on.
+Then add the following to your project's `rel/vm.args.eex`:
+
+```text
+## Require an initialization handshake within 10 minutes
+-env HEART_INIT_TIMEOUT 600
+```
+
+Of course, there's much room for improvement. For example, if your Nerves device
+connects to a firmware update server, the criteria for validating new firmware
+could be connecting to that server.
+
+Recommendations for this process are:
+
+1. Allow for enough time when in a bad state to do remote debug if that's
+   possible. Rebooting immediately can limit diagnostic options when unexpected
+   things happen remotely.
+2. Link the validation code to Nerves Heart. This can protect against failures
+   and hangs that occur before the validation process starts.
+3. Keep the heart callback code as simple as possible since heart is very
+   unforgiving to errors, exceptions, and slow code.
+
+One way to start is to copy/paste `Nerves.Runtime.StartupGuard` and modify.
 
 ### U-Boot assisted automatic revert
 
@@ -247,23 +262,6 @@ environment variable to `"1"` to indicate that boot counting should start.
 `Nerves.Runtime.validate_firmware/0` knows about `upgrade_available`, so when
 you call it to indicate that the firmware is ok, it will set `upgrade_available`
 back to `"0"` and reset `"bootcount"`.
-
-### Best effort automatic revert
-
-Unfortunately, the bootloader for platforms like the Raspberry Pi makes it
-difficult to implement the above mechanism. The following strategy cannot
-protect against kernel and early boot issues, but it can still provide value:
-
-1. Upgrade firmware the normal way. Record that the next boot will be the first
-   one in the application data partition.
-2. On the reboot, if this is the first one, record that the boot happened and
-   revert the firmware with `reboot: false`.  If this is not the first boot,
-   carry on.
-3. When you're happy with the new firmware, revert the firmware again with
-   `reboot: false`. I.e., revert the revert. It is critical that `revert` is
-   only called once.
-
-To make this handle hangs, you'll want to enable a hardware watchdog.
 
 ## Serial numbers
 
@@ -315,7 +313,8 @@ Task             | Description
 
 ## Application environment
 
-This section documents officially supported application environment keys.
+This section documents officially supported application environment keys that
+can be added to your `config.exs`, `target.exs`, or the like.
 
 Most users shouldn't need to modify the application environment for
 `nerves_runtime` except for unit testing. See the next section for testing.
@@ -332,6 +331,7 @@ Key             | Default                             | Description
 `:kv_backend`   | `Nerves.Runtime.KVBackend.UBootEnv` | The backing store for firmware slot and other low level key-value pairs. This is almost always a U-Boot environment block for Nerves
 `:ops_fw_path`  | `"/usr/share/fwup/ops.fw"`          | Path to the `ops.fw` file for passing to `fwup` for firmware status tasks
 `:rngd_args`    | []                                  | Additional arguments for `rngd` if Nerves.Runtime starts it (rare)
+`:startup_guard_enabled` | `false`                    | Check that all OTP applications start up and then validate the firmware if needed. Reboot after 15 minutes if start up isn't successful.
 
 ## Using nerves_runtime in tests
 

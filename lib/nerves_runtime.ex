@@ -264,4 +264,19 @@ defmodule Nerves.Runtime do
     # it's come up so far.
     Function.identity(@mix_target)
   end
+
+  @doc false
+  @spec get_expected_started_apps() :: {:ok, [atom()]} | :error
+  def get_expected_started_apps() do
+    {:ok, [[boot]]} = :init.get_argument(:boot)
+    contents = File.read!("#{boot}.boot")
+    {:script, _name, instructions} = :erlang.binary_to_term(contents)
+
+    apps = for {:apply, {:application, :start_boot, [app | _]}} <- instructions, do: app
+    {:ok, apps}
+  rescue
+    e ->
+      Logger.error("get_expected_started_apps encountered unexpected error: #{inspect(e)}")
+      :error
+  end
 end

@@ -12,6 +12,7 @@ defmodule Nerves.Runtime.Application do
 
   alias Nerves.Runtime.FwupOps
   alias Nerves.Runtime.KV
+  alias Nerves.Runtime.StartupGuard
 
   if Mix.target() != :host do
     require Logger
@@ -23,7 +24,13 @@ defmodule Nerves.Runtime.Application do
 
     options = Application.get_all_env(:nerves_runtime)
     init_module = Keyword.get(options, :init_module, Nerves.Runtime.Init)
-    children = [{FwupOps, options}, {KV, options} | target_children(init_module)]
+
+    startup_guard_children =
+      if options[:startup_guard_enabled], do: [{StartupGuard, options}], else: []
+
+    children =
+      [{FwupOps, options}, {KV, options}] ++
+        startup_guard_children ++ target_children(init_module)
 
     opts = [strategy: :one_for_one, name: Nerves.Runtime.Supervisor]
     Supervisor.start_link(children, opts)

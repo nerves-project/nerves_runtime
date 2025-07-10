@@ -15,8 +15,22 @@ defmodule Nerves.Runtime.MixProject do
       docs: docs(),
       dialyzer: dialyzer(),
       deps: deps(),
-      preferred_cli_env: %{docs: :docs, "hex.build": :docs, "hex.publish": :docs}
+      preferred_cli_env: %{docs: :docs, "hex.build": :docs, "hex.publish": :docs},
+      aliases: [test: &run_test/1]
     ]
+  end
+
+  defp run_test(options) do
+    # Because we mock Erlang modules, we need the `-nostick` flag to avoid errors.
+    # This restarts Erlang to run tests if called without `ERL_FLAGS`.
+    if System.get_env("ERL_FLAGS") == nil do
+      System.cmd("mix", ["test" | options],
+        into: IO.stream(:stdio, :line),
+        env: [{"ERL_FLAGS", "-nostick"}]
+      )
+    else
+      Mix.Task.run("test", options)
+    end
   end
 
   def application do
@@ -49,7 +63,8 @@ defmodule Nerves.Runtime.MixProject do
       {:ex_doc, "~> 0.22", only: :docs, runtime: false},
       {:dialyxir, "~> 1.1", only: :dev, runtime: false},
       {:credo, "~> 1.5", only: :dev, runtime: false},
-      {:credo_binary_patterns, "~> 0.2.2", only: :dev, runtime: false}
+      {:credo_binary_patterns, "~> 0.2.2", only: :dev, runtime: false},
+      {:mimic, "~> 1.7", only: [:dev, :test]}
     ]
   end
 
