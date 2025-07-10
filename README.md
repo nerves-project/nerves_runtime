@@ -299,19 +299,18 @@ Task             | Description
 
 ## Application environment
 
-This section documents officially supported application environment keys.
+This section documents officially supported application environment keys that
+can be added to your `config.exs`, `target.exs`, or the like.
 
-Most users shouldn't need to modify the application environment for
-`nerves_runtime` except for unit testing. See the next section for testing.
-
-Key             | Default                             | Description
---------------- | ----------------------------------- | ------------
-`:boardid_path` | `"/usr/bin/boardid"`                | Path to the `boardid` binary for determining the device's serial number
-`:devpath`      | `/dev/rootdisk0`                    | The block device that firmware is stored on. `/dev/rootdisk0` is a symlink on Nerves to the real location, so this really shouldn't need to be changed.
-`:fwup_env`     | `%{}`                               | Additional environment variables to pass to `fwup`
-`:fwup_path`    | `"fwup"`                            | Path to the `fwup` binary for querying or modifying firmware status
-`:kv_backend`   | `Nerves.Runtime.KVBackend.UBootEnv` | The backing store for firmware slot and other low level key-value pairs. This is almost always a U-Boot environment block for Nerves
-`:ops_fw_path`  | `"/usr/share/fwup/ops.fw"`          | Path to the `ops.fw` file for passing to `fwup` for firmware status tasks
+Key                       | Default                             | Description
+------------------------- | ----------------------------------- | ------------
+`:auto_validate_firmware` | `false`                             | Validate new firmware when the OTP release init script completes. Reboot after 15 minutes if it never completes.
+`:boardid_path`           | `"/usr/bin/boardid"`                | Path to the `boardid` binary for determining the device's serial number (useful for unit tests)
+`:devpath`                | `/dev/rootdisk0`                    | The block device that firmware is stored on. `/dev/rootdisk0` is a symlink on Nerves to the real location, so this really shouldn't need to be changed. (useful for unit tests)
+`:fwup_env`               | `%{}`                               | Additional environment variables to pass to `fwup`. (useful for unit tests)
+`:fwup_path`              | `"fwup"`                            | Path to the `fwup` binary for querying or modifying firmware status. (useful for unit tests)
+`:kv_backend`             | `Nerves.Runtime.KVBackend.UBootEnv` | The backing store for firmware slot and other low level key-value pairs. This is almost always a U-Boot environment block for Nerves. (useful for unit tests)
+`:ops_fw_path`            | `"/usr/share/fwup/ops.fw"`          | Path to the `ops.fw` file for passing to `fwup` for firmware status tasks. (useful for unit tests)
 
 ## Using nerves_runtime in tests
 
