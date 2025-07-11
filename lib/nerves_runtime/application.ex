@@ -21,6 +21,11 @@ defmodule Nerves.Runtime.Application do
     load_services()
 
     options = Application.get_all_env(:nerves_runtime)
+
+    if options[:auto_validate_firmware] do
+      AutoValidate.register_callback(options)
+    end
+
     children = [{FwupOps, options}, {KV, options}, {AutoValidate, options} | target_children()]
 
     opts = [strategy: :one_for_one, name: Nerves.Runtime.Supervisor]
