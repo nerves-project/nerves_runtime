@@ -155,7 +155,7 @@ defmodule Nerves.Runtime do
   Normally options are not passed. See `t:Nerves.Runtime.FwupOps.options/0` for
   modifying the behavior of `fwup`.
   """
-  @spec validate_firmware(FwupOps.options()) :: :ok
+  @spec validate_firmware(FwupOps.options()) :: :ok | {:error, any()}
   def validate_firmware(opts \\ []) do
     with {:error, reason} <- FwupOps.validate(opts) do
       Logger.error("Using old validation logic due to ops.fw error: #{inspect(reason)}")
