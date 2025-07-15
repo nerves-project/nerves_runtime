@@ -65,9 +65,10 @@ defmodule Nerves.Runtime.AutoValidate do
 
   Keep in mind that the heart callback is totally unforgiving to errors and
   function calls taking too long. Making it too complicated can backfire and
-  cause inadvertent reboots. If using this as a template, consider summarizing
-  status in a separate GenServer and checking it here. The Alarmist library may
-  be helpful too.
+  cause inadvertent reboots. Rebooting too quickly on errors can impact your
+  ability debug partial failures. If using this code as a template, it's
+  highly recommended to delegate the complexity to a separate, supervised
+  GenServer that can be polled, but protect the call to the poll function.
   """
 
   require Logger
@@ -84,7 +85,7 @@ defmodule Nerves.Runtime.AutoValidate do
       # Let Nerves Heart know that the callback was registered successfully
       Nerves.Runtime.Heart.init_complete()
     else
-      Logger.error("Failed to register heart callback")
+      Logger.error("Unexpected error registering heart callback. System may reboot when heart's init handshake expires.")
     end
 
     :ok
