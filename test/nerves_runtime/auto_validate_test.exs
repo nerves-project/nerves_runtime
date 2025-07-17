@@ -38,113 +38,49 @@ defmodule Nerves.Runtime.AutoValidateTest do
     end
   end
 
-  test "run/1 sets up heart callback" do
-    Mimic.stub(:heart, :set_callback, fn _m, _f -> :ok end)
-    Mimic.stub(:heart, :clear_callback, fn -> :ok end)
-    Mimic.stub(Nerves.Runtime, :get_expected_started_apps, fn -> {:ok, []} end)
+  describe "firmware health checks" do
+    test "run/1 sets up heart callback and clears on success" do
+      # Expect the heart-related calls
+      Mimic.expect(:heart, :set_callback, fn m, f ->
+        assert m == Nerves.Runtime.AutoValidate and f == :heart_check
+        :ok
+      end)
 
-    Mimic.stub(Nerves.Runtime.Heart, :init_complete, fn -> :ok end)
-    Mimic.stub(Nerves.Runtime, :firmware_validation_status, fn -> :unvalidated end)
-    Mimic.stub(Nerves.Runtime, :validate_firmware, fn -> :ok end)
+      Mimic.expect(:heart, :clear_callback, fn -> :ok end)
+      Mimic.expect(Nerves.Runtime.Heart, :init_complete, fn -> :ok end)
 
-    assert AutoValidate.run([]) == :ok
+      # Don't check the others in this test
+      Mimic.stub(Nerves.Runtime, :get_expected_started_apps, fn -> {:ok, []} end)
+      Mimic.stub(Nerves.Runtime, :firmware_validation_status, fn -> :validated end)
 
-    Mimic.verify!()
+      _ =
+        capture_log(fn ->
+          assert AutoValidate.run([]) == :ok
+        end)
+
+      Mimic.verify!()
+    end
+
+    test "run/1 retries getting the expected started apps" do
+      # Standard heart callbacks
+      Mimic.expect(:heart, :set_callback, fn _m, _f -> :ok end)
+      Mimic.expect(:heart, :clear_callback, fn -> :ok end)
+      Mimic.expect(Nerves.Runtime.Heart, :init_complete, fn -> :ok end)
+
+      # Fail the first attempt
+      Mimic.expect(Nerves.Runtime, :get_expected_started_apps, 1, fn -> :error end)
+      Mimic.expect(Nerves.Runtime, :get_expected_started_apps, fn ->        {:ok, []}      end)
+
+      Mimic.expect(Nerves.Runtime.Heart, :init_complete, fn -> :ok end)
+
+      _ =
+        capture_log(fn ->
+          assert AutoValidate.run([]) == :ok
+        end)
+
+      Mimic.verify!()
+    end
   end
-
-  # describe "register_callback/1" do
-  #   test "always returns :ok" do
-  #     # We can't easily test the heart interaction due to sticky modules,
-  #     # but we can verify the function doesn't crash and returns :ok
-  #     # Skip the actual heart call since we can't mock it
-  #     # assert AutoValidate.register_callback([]) == :ok
-
-  #     # Instead, test that the function is callable
-  #     assert is_function(&AutoValidate.register_callback/1)
-  #   end
-  # end
-
-  # describe "check/0 with mocked dependencies" do
-  #   # Since we can't mock :init and :erlang easily, we'll test individual logic components
-  #   # by testing what we can control and using module attributes for constants
-
-  #   test "timeout calculation works correctly" do
-  #     # Test the minute conversion logic
-  #     minute_in_ms = 60 * 1000
-  #     assert minute_in_ms == 60_000
-
-  #     # Simulate uptime calculations
-  #     two_minutes = 2 * minute_in_ms
-  #     fifteen_minutes = 15 * minute_in_ms
-
-  #     assert div(two_minutes, minute_in_ms) == 2
-  #     assert div(fifteen_minutes, minute_in_ms) == 15
-  #   end
-
-  #   test "broken apps logic with controlled inputs" do
-  #     # Copy modules to enable mocking with Mimic
-  #     Application |> copy()
-
-  #     # Set up expected apps in cache
-  #     expected_apps = [:kernel, :stdlib, :my_app]
-  #     Process.put(@cache_key, {:ok, expected_apps})
-
-  #     # Mock actual started apps (missing :my_app)
-  #     Application
-  #     |> stub(:started_applications, fn ->
-  #       [{:kernel, :description, :version}, {:stdlib, :description, :version}]
-  #     end)
-
-  #     # We can't easily test the full check/0 function due to sticky modules,
-  #     # but we can test the broken apps logic indirectly
-  #     started_apps = Application.started_applications() |> Enum.map(&elem(&1, 0))
-  #     broken = expected_apps -- started_apps
-
-  #     assert broken == [:my_app]
-  #   end
-
-  #   test "caching behavior with process dictionary" do
-  #     # Test the caching mechanism directly
-  #     test_fun = fn -> {:ok, [:test_app]} end
-
-  #     # First call should execute function and cache result
-  #     refute Process.get(@cache_key)
-
-  #     # Simulate the caching logic from the module
-  #     case Process.get(@cache_key) do
-  #       r when r in [nil, :error] ->
-  #         result = test_fun.()
-  #         Process.put(@cache_key, result)
-  #         assert result == {:ok, [:test_app]}
-  #     end
-
-  #     # Verify cached value
-  #     assert Process.get(@cache_key) == {:ok, [:test_app]}
-
-  #     # Second access should use cache (we can verify the cache is used)
-  #     cached_result = Process.get(@cache_key)
-  #     assert cached_result == {:ok, [:test_app]}
-  #   end
-
-  #   test "warning suppression logic" do
-  #     # Test the warning deduplication logic
-  #     current_minute = 5
-
-  #     # First warning for this minute
-  #     refute Process.get(@warned_key)
-  #     Process.put(@warned_key, current_minute)
-  #     assert Process.get(@warned_key) == current_minute
-
-  #     # Same minute should be suppressed (this simulates the check in the module)
-  #     should_warn = Process.get(@warned_key) != current_minute
-  #     refute should_warn
-
-  #     # Different minute should trigger warning
-  #     next_minute = 6
-  #     should_warn_next = Process.get(@warned_key) != next_minute
-  #     assert should_warn_next
-  #   end
-  # end
 
   # describe "boot script parsing" do
   #   test "handles mixed instructions" do
