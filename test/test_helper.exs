@@ -5,6 +5,7 @@
 # SPDX-License-Identifier: Apache-2.0
 
 Mimic.copy(:heart)
+Mimic.copy(Application)
 Mimic.copy(Nerves.Runtime)
 Mimic.copy(Nerves.Runtime.AutoValidate)
 Mimic.copy(Nerves.Runtime.Heart)

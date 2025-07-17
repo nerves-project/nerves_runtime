@@ -70,6 +70,7 @@ defmodule Nerves.Runtime.AutoValidate do
   highly recommended to delegate the complexity to a separate, supervised
   GenServer that can be polled, but protect the call to the poll function.
   """
+  alias Nerves.Runtime
 
   use Task, restart: :transient
   require Logger
@@ -86,18 +87,22 @@ defmodule Nerves.Runtime.AutoValidate do
 
   @doc false
   @spec run(keyword()) :: :ok
-  def run(_opts) do
+  def run(opts) do
+    retry_delay = Keyword.get(opts, :retry_delay, @retry_delay)
+
     # Register with heart to bullet proof against hangs or other weirdness happening
     # in this code.
     :heart.set_callback(__MODULE__, :heart_check)
     Nerves.Runtime.Heart.init_complete()
 
     # Wait for all of the applications specified in the release to start.
-    {:ok, expected_apps} = repeat_while(&Nerves.Runtime.get_expected_started_apps/0, :error)
-    repeat_until(fn -> all_applications_started?(expected_apps) end)
+    {:ok, expected_apps} =
+      repeat_while(&Nerves.Runtime.get_expected_started_apps/0, :error, 10, retry_delay)
+
+    repeat_until(fn -> all_applications_started?(expected_apps) end, 10, retry_delay)
 
     # Try getting the firmware validation status. If :unknown, hope.
-    status = repeat_while(&Nerves.Runtime.firmware_validation_status/0, :unknown)
+    status = repeat_while(&Nerves.Runtime.firmware_validation_status/0, :unknown, 10, retry_delay)
 
     # Validate or not.
     if status == :unvalidated do
@@ -112,19 +117,27 @@ defmodule Nerves.Runtime.AutoValidate do
     :heart.clear_callback()
   end
 
-  defp repeat_until(fun) do
+  defp repeat_until(_fun, 0, _retry_delay) do
+    raise RuntimeError, "Exceeded maximum retries"
+  end
+
+  defp repeat_until(fun, retries, retry_delay) do
     if !fun.() do
-      Process.sleep(@retry_delay)
-      repeat_until(fun)
+      Process.sleep(retry_delay)
+      repeat_until(fun, retries - 1, retry_delay)
     end
   end
 
-  defp repeat_while(fun, unwanted_result) do
+  defp repeat_while(_fun, _unwanted_result, 0, _retry_delay) do
+    raise RuntimeError, "Exceeded maximum retries"
+  end
+
+  defp repeat_while(fun, unwanted_result, retries, retry_delay) do
     result = fun.()
 
     if result == unwanted_result do
-      Process.sleep(@retry_delay)
-      repeat_while(fun, unwanted_result)
+      Process.sleep(retry_delay)
+      repeat_while(fun, unwanted_result, retries - 1, retry_delay)
     else
       result
     end

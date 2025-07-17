@@ -55,7 +55,7 @@ defmodule Nerves.Runtime.AutoValidateTest do
 
       _ =
         capture_log(fn ->
-          assert AutoValidate.run([]) == :ok
+          assert AutoValidate.run(retry_delay: 1) == :ok
         end)
 
       Mimic.verify!()
@@ -69,13 +69,21 @@ defmodule Nerves.Runtime.AutoValidateTest do
 
       # Fail the first attempt
       Mimic.expect(Nerves.Runtime, :get_expected_started_apps, 1, fn -> :error end)
-      Mimic.expect(Nerves.Runtime, :get_expected_started_apps, fn ->        {:ok, []}      end)
+      Mimic.expect(Nerves.Runtime, :get_expected_started_apps, fn -> {:ok, [:fake_app]} end)
 
-      Mimic.expect(Nerves.Runtime.Heart, :init_complete, fn -> :ok end)
+      # Require a retry to get all started applications
+      Mimic.expect(Application, :started_applications, fn -> [] end)
+
+      Mimic.expect(Application, :started_applications, fn ->
+        [{:fake_app, ~c"FakeApp", ~c"0.0.1"}]
+      end)
+
+      # Assume validated
+      Mimic.stub(Nerves.Runtime, :firmware_validation_status, fn -> :validated end)
 
       _ =
         capture_log(fn ->
-          assert AutoValidate.run([]) == :ok
+          assert AutoValidate.run(retry_delay: 1) == :ok
         end)
 
       Mimic.verify!()
