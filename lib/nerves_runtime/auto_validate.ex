@@ -71,105 +71,110 @@ defmodule Nerves.Runtime.AutoValidate do
   GenServer that can be polled, but protect the call to the poll function.
   """
 
+  use Task, restart: :transient
   require Logger
 
-  @start_warning_minutes 2
+  @retry_delay to_timeout(second: 10)
   @give_up_minutes 15
+  @start_warning_minutes 2
 
-  @warned_key Module.concat(__MODULE__, "Warned")
-  @cache_key Module.concat(__MODULE__, "Cache")
-
-  @spec register_callback(Keyword.t()) :: :ok
-  def register_callback(_opts) do
-    if :heart.set_callback(__MODULE__, :check) == :ok do
-      # Let Nerves Heart know that the callback was registered successfully
-      Nerves.Runtime.Heart.init_complete()
-    else
-      Logger.error("Unexpected error registering heart callback. System may reboot when heart's init handshake expires.")
-    end
-
-    :ok
+  @doc false
+  @spec start_link(keyword()) :: {:ok, pid()}
+  def start_link(opts) do
+    Task.start_link(__MODULE__, :run, [opts])
   end
 
   @doc false
-  def check() do
-    uptime_minutes = get_uptime() |> div(to_timeout(minute: 1))
+  @spec run(keyword()) :: :ok
+  def run(_opts) do
+    # Register with heart to bullet proof against hangs or other weirdness happening
+    # in this code.
+    :heart.set_callback(__MODULE__, :heart_check)
+    Nerves.Runtime.Heart.init_complete()
 
-    cond do
-      :init.get_status() == {:started, :started} && broken_apps() == [] ->
-        validate_if_needed()
-        :ok
+    # Wait for all of the applications specified in the release to start.
+    {:ok, expected_apps} = repeat_while(&Nerves.Runtime.get_expected_started_apps/0, :error)
+    repeat_until(fn -> all_applications_started?(expected_apps) end)
 
-      uptime_minutes >= @give_up_minutes ->
-        Logger.error("Giving up and rebooting due to unstarted apps #{inspect(broken_apps())}")
+    # Try getting the firmware validation status. If :unknown, hope.
+    status = repeat_while(&Nerves.Runtime.firmware_validation_status/0, :unknown)
 
-        :error
-
-      uptime_minutes > @start_warning_minutes and Process.get(@warned_key) != uptime_minutes ->
-        Logger.warning(
-          "System not healthy due to unstarted apps: #{inspect(broken_apps())} Check logs. Rebooting in #{@give_up_minutes - uptime_minutes} minutes if unfixed"
-        )
-
-        Process.put(@warned_key, uptime_minutes)
-        :ok
-
-      true ->
-        # Try again later
-        :ok
-    end
-  end
-
-  defp validate_if_needed() do
-    if Nerves.Runtime.firmware_validation_status() == :validated do
-      # Need to call in another thread since we're currently in the heart
-      # process.
-      Logger.debug("Firmware validation confirmed")
-      spawn(&:heart.clear_callback/0)
-      Process.put(@warned_key, nil)
-      Process.put(@cache_key, nil)
-      :ok
+    # Validate or not.
+    if status == :unvalidated do
+      Logger.info("Firmware not validated. Validating now...")
+      :ok = Nerves.Runtime.validate_firmware()
+      Logger.info("Firmware validated successfully")
     else
-      result = Nerves.Runtime.validate_firmware()
+      Logger.info("Firmware valid and all applications started successfully")
+    end
 
-      if result == :ok do
-        Logger.info("Firmware validated")
-      else
-        Logger.error("Firmware validation failed! (#{inspect(result)})")
-      end
+    # Stop the heart callback since all is good now
+    :heart.clear_callback()
+  end
+
+  defp repeat_until(fun) do
+    if !fun.() do
+      Process.sleep(@retry_delay)
+      repeat_until(fun)
     end
   end
 
-  defp get_uptime() do
-    {total, _last_call} = :erlang.statistics(:wall_clock)
-    total
-  end
+  defp repeat_while(fun, unwanted_result) do
+    result = fun.()
 
-  defp broken_apps() do
-    with {:ok, expected} <- cached(&get_expected_started_apps/0) do
-      expected -- actual_started_apps()
-    end
-  end
-
-  defp cached(fun) do
-    with r when r in [nil, :error] <- Process.get(@cache_key) do
-      result = fun.()
-      Process.put(@cache_key, result)
+    if result == unwanted_result do
+      Process.sleep(@retry_delay)
+      repeat_while(fun, unwanted_result)
+    else
       result
     end
   end
 
-  defp get_expected_started_apps() do
-    {:ok, [[boot]]} = :init.get_argument(:boot)
-    contents = File.read!("#{boot}.boot")
-    {:script, _name, instructions} = :erlang.binary_to_term(contents)
+  @doc false
+  @spec heart_check() :: :ok | :error
+  def heart_check() do
+    uptime_minutes = get_uptime_minutes()
 
-    apps = for {:apply, {:application, :start_boot, [app | _]}} <- instructions, do: app
-    {:ok, apps}
-  rescue
-    _ -> :error
+    do_heart_check(uptime_minutes)
   end
 
-  defp actual_started_apps() do
-    for {app, _, _} <- Application.started_applications(), do: app
+  def do_heart_check(uptime_minutes) do
+    cond do
+      uptime_minutes >= @give_up_minutes ->
+        Logger.error("Took too long to validate firmware. Rebooting.")
+        :error
+
+      uptime_minutes < @start_warning_minutes ->
+        :ok
+
+      uptime_minutes != Process.get(:last_warning_minutes) ->
+        Logger.warning(
+          "Firmware not validated. Check logs. Rebooting in #{@give_up_minutes - uptime_minutes} minutes if unfixed."
+        )
+
+        Process.put(:last_warning_minutes, uptime_minutes)
+        :ok
+
+      true ->
+        :ok
+    end
+  end
+
+  defp get_uptime_minutes() do
+    {total, _last_call} = :erlang.statistics(:wall_clock)
+    div(total, 60_000)
+  end
+
+  defp all_applications_started?(expected_apps) do
+    actual_apps = for {app, _, _} <- Application.started_applications(), do: app
+
+    unstarted_apps = expected_apps -- actual_apps
+
+    if unstarted_apps != [] do
+      Logger.warning("Waiting on the following applications to start: #{inspect(unstarted_apps)}")
+      false
+    else
+      true
+    end
   end
 end

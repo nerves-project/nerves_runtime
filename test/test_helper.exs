@@ -4,6 +4,9 @@
 #
 # SPDX-License-Identifier: Apache-2.0
 
-Logger.configure(level: :error)
+Mimic.copy(:heart)
+Mimic.copy(Nerves.Runtime)
+Mimic.copy(Nerves.Runtime.AutoValidate)
+Mimic.copy(Nerves.Runtime.Heart)
 
 ExUnit.start()
