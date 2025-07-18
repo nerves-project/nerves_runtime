@@ -189,7 +189,7 @@ defmodule Nerves.Runtime.KV do
   """
   @spec get_active(String.t()) :: String.t() | nil
   def get_active(key) when is_binary(key) do
-    GenServer.call(__MODULE__, {:get_active, key})
+    safe_call({:get_active, key}, nil)
   end
 
   @doc """
@@ -197,7 +197,7 @@ defmodule Nerves.Runtime.KV do
   """
   @spec get(String.t()) :: String.t() | nil
   def get(key) when is_binary(key) do
-    GenServer.call(__MODULE__, {:get, key})
+    safe_call({:get, key}, nil)
   end
 
   @doc """
@@ -205,7 +205,7 @@ defmodule Nerves.Runtime.KV do
   """
   @spec get_all_active() :: string_map()
   def get_all_active() do
-    GenServer.call(__MODULE__, :get_all_active)
+    safe_call(:get_all_active, %{})
   end
 
   @doc """
@@ -213,39 +213,39 @@ defmodule Nerves.Runtime.KV do
   """
   @spec get_all() :: string_map()
   def get_all() do
-    GenServer.call(__MODULE__, :get_all)
+    safe_call(:get_all, %{})
   end
 
   @doc """
   Write a key-value pair to the firmware metadata
   """
-  @spec put(String.t(), String.t()) :: :ok
+  @spec put(String.t(), String.t()) :: :ok | {:error, any()}
   def put(key, value) when is_binary(key) and is_binary(value) do
-    GenServer.call(__MODULE__, {:put, %{key => value}})
+    put(%{key => value})
   end
 
   @doc """
   Write a collection of key-value pairs to the firmware metadata
   """
-  @spec put(string_map()) :: :ok
+  @spec put(string_map()) :: :ok | {:error, any()}
   def put(kv) when is_map(kv) do
-    GenServer.call(__MODULE__, {:put, kv})
+    safe_call({:put, kv}, {:error, "Nerves.Runtime not running"})
   end
 
   @doc """
   Write a key-value pair to the active firmware slot
   """
-  @spec put_active(String.t(), String.t()) :: :ok
+  @spec put_active(String.t(), String.t()) :: :ok | {:error, any()}
   def put_active(key, value) when is_binary(key) and is_binary(value) do
-    GenServer.call(__MODULE__, {:put_active, %{key => value}})
+    put_active(%{key => value})
   end
 
   @doc """
   Write a collection of key-value pairs to the active firmware slot
   """
-  @spec put_active(string_map()) :: :ok
+  @spec put_active(string_map()) :: :ok | {:error, any()}
   def put_active(kv) when is_map(kv) do
-    GenServer.call(__MODULE__, {:put_active, kv})
+    safe_call({:put_active, kv}, {:error, "Nerves.Runtime not running"})
   end
 
   @impl GenServer
@@ -291,6 +291,14 @@ defmodule Nerves.Runtime.KV do
 
   def handle_call(:reload, _from, s) do
     {:reply, :ok, load(s)}
+  end
+
+  # Protect against KV functions being called in places where raising
+  # is handled poorly, since none of these functions are expected to fail.
+  defp safe_call(message, error_result) do
+    GenServer.call(__MODULE__, message)
+  catch
+    :exit, {:noproc, _} -> error_result
   end
 
   defp active(key, s) do
