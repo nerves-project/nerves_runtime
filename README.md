@@ -215,7 +215,7 @@ could be connecting to that server.
 Recommendations for this process are:
 
 1. Allow for enough time when in a bad state to do remote debug if that's
-   possible. Rebooting immediately can limit diagnostic options when unexpect
+   possible. Rebooting immediately can limit diagnostic options when unexpected
    things happen remotely.
 2. Link the validation code to Nerves Heart. This can protect against failures
    and hangs that occur before the validation process starts.
