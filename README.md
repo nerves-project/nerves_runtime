@@ -193,7 +193,7 @@ was previously done on all official systems for simplicity and we're in the
 process of changing that. It's easy to see. Update the firmware to your project.
 Run `Nerves.Runtime.firmware_validation_status/0`. If it's validated and you
 don't have the `Nerves.Runtime.StartupGuard` enabled, then it auto-validates.
-Otherwise, run `Nerves.Runteim.validate_firmware/0`. To enable
+Otherwise, run `Nerves.Runtime.validate_firmware/0`. To enable
 `Nerves.Runtime.StartupGuard` to validate the firmware for you, add the
 following to your project's `target.exs` or `config.exs`:
 
