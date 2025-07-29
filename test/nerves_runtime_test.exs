@@ -74,11 +74,13 @@ defmodule NervesRuntimeTest do
     test "firmware can be validated" do
       KV.put(%{"upgrade_available" => nil, "bootcount" => nil, "nerves_fw_validated" => "0"})
       refute Nerves.Runtime.firmware_valid?()
+      assert Nerves.Runtime.firmware_validation_status() == :unvalidated
       assert Nerves.Runtime.firmware_slots() == %{active: "a", next: "b"}
 
       Nerves.Runtime.validate_firmware()
 
       assert Nerves.Runtime.firmware_valid?()
+      assert Nerves.Runtime.firmware_validation_status() == :validated
       assert KV.get("nerves_fw_validated") == "1"
       assert Nerves.Runtime.firmware_slots() == %{active: "a", next: "a"}
 
@@ -90,11 +92,13 @@ defmodule NervesRuntimeTest do
     test "firmware validation using U-Boot bootcount" do
       KV.put(%{"upgrade_available" => "1", "bootcount" => "1", "nerves_fw_validated" => nil})
       refute Nerves.Runtime.firmware_valid?()
+      assert Nerves.Runtime.firmware_validation_status() == :unvalidated
       assert Nerves.Runtime.firmware_slots() == %{active: "a", next: "b"}
 
       Nerves.Runtime.validate_firmware()
 
       assert Nerves.Runtime.firmware_valid?()
+      assert Nerves.Runtime.firmware_validation_status() == :validated
       assert KV.get("upgrade_available") == "0"
       assert KV.get("bootcount") == "0"
       assert Nerves.Runtime.firmware_slots() == %{active: "a", next: "a"}
@@ -106,6 +110,7 @@ defmodule NervesRuntimeTest do
     test "firmware valid when not using firmware validity" do
       KV.put(%{"nerves_fw_validated" => nil})
       assert Nerves.Runtime.firmware_valid?()
+      assert Nerves.Runtime.firmware_validation_status() == :unknown
       assert Nerves.Runtime.firmware_slots() == %{active: "a", next: "a"}
     end
   end
@@ -121,6 +126,7 @@ defmodule NervesRuntimeTest do
       assert KV.get("b.nerves_fw_validated") == nil
 
       assert Nerves.Runtime.firmware_valid?()
+      assert Nerves.Runtime.firmware_validation_status() == :validated
       assert Nerves.Runtime.firmware_slots() == %{active: "a", next: "a"}
       assert Nerves.Runtime.validate_firmware()
 
@@ -129,6 +135,7 @@ defmodule NervesRuntimeTest do
       assert KV.get("a.nerves_fw_validated") == "1"
       assert KV.get("b.nerves_fw_validated") == nil
       assert Nerves.Runtime.firmware_valid?()
+      assert Nerves.Runtime.firmware_validation_status() == :validated
       assert Nerves.Runtime.firmware_slots() == %{active: "a", next: "a"}
     end
 
@@ -141,10 +148,12 @@ defmodule NervesRuntimeTest do
       # Simulate booting "b" for the first time
       KV.put("nerves_fw_active", "b")
       refute Nerves.Runtime.firmware_valid?()
+      assert Nerves.Runtime.firmware_validation_status() == :unvalidated
       assert Nerves.Runtime.firmware_slots() == %{active: "b", next: "a"}
 
       # Validate
       assert Nerves.Runtime.validate_firmware()
+      assert Nerves.Runtime.firmware_validation_status() == :validated
       assert Nerves.Runtime.firmware_slots() == %{active: "b", next: "b"}
 
       # Check that there was no change
