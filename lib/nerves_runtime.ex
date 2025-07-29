@@ -4,6 +4,7 @@
 # SPDX-FileCopyrightText: 2018 Michał Kalbarczyk
 # SPDX-FileCopyrightText: 2020 Connor Rigby
 # SPDX-FileCopyrightText: 2020 Jon Carstens
+# SPDX-FileCopyrightText: 2025 Josh Kalderimis
 #
 # SPDX-License-Identifier: Apache-2.0
 defmodule Nerves.Runtime do
@@ -184,6 +185,19 @@ defmodule Nerves.Runtime do
       :unvalidated -> false
       :unknown -> true
     end
+  end
+
+  @doc """
+  Return whether the previous firmware was reverted
+
+  Support for `nerves_fw_reverted` is new and requires Nerves systems to
+  implement the KV markers in Fwup and/or U-Boot.
+
+  If `nerves_fw_reverted` is not set, it is assumed that the firmware was not reverted.
+  """
+  @spec firmware_reverted?() :: boolean()
+  def firmware_reverted?() do
+    KV.get("nerves_fw_reverted") == "1"
   end
 
   defp validation_status() do

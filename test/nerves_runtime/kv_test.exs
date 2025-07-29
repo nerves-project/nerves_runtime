@@ -1,6 +1,7 @@
 # SPDX-FileCopyrightText: 2017 Justin Schneck
 # SPDX-FileCopyrightText: 2018 Frank Hunleth
 # SPDX-FileCopyrightText: 2022 Jon Carstens
+# SPDX-FileCopyrightText: 2025 Josh Kalderimis
 #
 # SPDX-License-Identifier: Apache-2.0
 defmodule Nerves.Runtime.KVTest do
@@ -38,6 +39,7 @@ defmodule Nerves.Runtime.KVTest do
     "b.nerves_fw_version" => "0.1.1",
     "nerves_fw_active" => "b",
     "nerves_fw_devpath" => "/dev/mmcblk0",
+    "nerves_fw_reverted" => "0",
     "nerves_serial_number" => "123456"
   }
 

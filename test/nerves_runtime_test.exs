@@ -1,5 +1,6 @@
 # SPDX-FileCopyrightText: 2017 Frank Hunleth
 # SPDX-FileCopyrightText: 2017 Justin Schneck
+# SPDX-FileCopyrightText: 2025 Josh Kalderimis
 #
 # SPDX-License-Identifier: Apache-2.0
 defmodule NervesRuntimeTest do
@@ -153,6 +154,19 @@ defmodule NervesRuntimeTest do
       assert KV.get("b.nerves_fw_validated") == "1"
       assert Nerves.Runtime.firmware_valid?()
       assert Nerves.Runtime.firmware_slots() == %{active: "b", next: "b"}
+    end
+  end
+
+  describe "firmware reverted" do
+    test "firmware_reverted?" do
+      # no value for `nerves_fw_reverted` exists
+      refute Nerves.Runtime.firmware_reverted?()
+
+      KV.put(%{"nerves_fw_reverted" => "0"})
+      refute Nerves.Runtime.firmware_reverted?()
+
+      KV.put(%{"nerves_fw_reverted" => "1"})
+      assert Nerves.Runtime.firmware_reverted?()
     end
   end
 

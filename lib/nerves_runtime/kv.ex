@@ -4,6 +4,7 @@
 # SPDX-FileCopyrightText: 2018 Connor Rigby
 # SPDX-FileCopyrightText: 2019 Jon Carstens
 # SPDX-FileCopyrightText: 2019 Troels Brødsgaard
+# SPDX-FileCopyrightText: 2025 Josh Kalderimis
 #
 # SPDX-License-Identifier: Apache-2.0
 defmodule Nerves.Runtime.KV do
@@ -68,14 +69,15 @@ defmodule Nerves.Runtime.KV do
         "b.nerves_fw_version" => "0.1.1",
         "nerves_fw_active" => "b",
         "nerves_fw_devpath" => "/dev/mmcblk0",
+        "nerves_fw_reverted" => "0",
         "nerves_serial_number" => "123456"
       }
 
   Parts of the firmware metadata are global, while others pertain to a
   specific firmware slot. This is indicated by the key - data which describes
   firmware of a specific slot have keys prefixed with the name of the
-  firmware slot. In the above example, `"nerves_fw_active"` and
-  `"nerves_serial_number"` are global, while `"a.nerves_fw_version"` and
+  firmware slot. In the above example, `"nerves_fw_active"`, `"nerves_fw_reverted"`,
+  and `"nerves_serial_number"` are global, while `"a.nerves_fw_version"` and
   `"b.nerves_fw_version"` apply to the "a" and "b" firmware slots,
   respectively.
 
