@@ -12,6 +12,7 @@ defmodule Nerves.Runtime.Application do
 
   alias Nerves.Runtime.FwupOps
   alias Nerves.Runtime.KV
+  alias Nerves.Runtime.StartupGuard
 
   require Logger
 
@@ -20,7 +21,11 @@ defmodule Nerves.Runtime.Application do
     load_services()
 
     options = Application.get_all_env(:nerves_runtime)
-    children = [{FwupOps, options}, {KV, options} | target_children()]
+
+    startup_guard_children =
+      if options[:startup_guard_enabled], do: [{StartupGuard, options}], else: []
+
+    children = [{FwupOps, options}, {KV, options}] ++ startup_guard_children ++ target_children()
 
     opts = [strategy: :one_for_one, name: Nerves.Runtime.Supervisor]
     Supervisor.start_link(children, opts)
