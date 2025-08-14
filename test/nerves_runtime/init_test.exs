@@ -7,24 +7,29 @@ defmodule Nerves.Runtime.InitTest do
   doctest Nerves.Runtime.Init
 
   alias Nerves.Runtime.Init
+  alias Nerves.Runtime.MountInfo
 
   test "usual mounted or unmounted results" do
-    mounts = """
-    /dev/root on / type squashfs (ro,relatime)
-    /dev/mmcblk0p4 on /root type f2fs (rw,nodev,relatime,background_gc=on,discard,no_heap,inline_data,flush_merge,extent_cache,mode=adaptive,active_logs=6,fsync_mode=posix)
+    mount_output = """
+    13 1 179:2 / / ro,relatime - squashfs /dev/root ro
+    21 13 179:4 / /root rw,nodev,relatime - f2fs /dev/mmcblk0p4 rw,lazytime,background_gc=on,discard,no_heap,inline_data,inline_dentry,flush_merge,extent_cache,mode=adaptive,active_logs=6,alloc_mode=reuse,fsync_mode=posixs
     """
 
-    assert :mounted == Init.parse_mount_state("/dev/mmcblk0p4", "/root", mounts)
+    mounts = MountInfo.parse(mount_output)
 
-    assert :unmounted == Init.parse_mount_state("/dev/mmcblk0p3", "/root", mounts)
+    assert :mounted == Init.parse_mount_state(mounts, "/root")
+
+    assert :unmounted == Init.parse_mount_state(mounts, "/nonexistent")
   end
 
   test "mounted read only when should be read-write" do
-    mounts = """
-    /dev/mmcblk0p4 on /root type f2fs (ro,nodev,relatime)
+    mount_output = """
+    21 13 179:4 / /root ro,nodev,relatime - f2fs /dev/mmcblk0p4 ro,lazytime,background_gc=on,discard,no_heap,inline_data,inline_dentry,flush_merge,extent_cache,mode=adaptive,active_logs=6,alloc_mode=reuse,fsync_mode=posix
     """
 
+    mounts = MountInfo.parse(mount_output)
+
     assert :mounted_with_error ==
-             Init.parse_mount_state("/dev/mmcblk0p4", "/root", mounts)
+             Init.parse_mount_state(mounts, "/root")
   end
 end
