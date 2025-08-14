@@ -11,7 +11,8 @@ path = [
  "mix.exs",
  "mix.lock",
  "NOTICE",
- "REUSE.toml"
+ "REUSE.toml",
+ "test/fixture/proc_self_mountinfo/*"
 ]
 precedence = "aggregate"
 SPDX-FileCopyrightText = "None"

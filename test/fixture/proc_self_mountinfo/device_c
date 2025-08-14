@@ -1,0 +1,9 @@
+12 15 0:5 / /dev rw,nosuid,noexec,relatime - devtmpfs devtmpfs rw,size=1024k,nr_inodes=28857,mode=755
+15 1 254:0 / / ro,relatime - squashfs /dev/dm-0 ro,errors=continue
+14 15 0:12 / /proc rw,nosuid,nodev,noexec,relatime - proc proc rw
+16 15 0:11 / /sys rw,nosuid,nodev,noexec,relatime - sysfs sysfs rw
+17 12 0:13 / /dev/pts rw,nosuid,noexec,relatime - devpts devpts rw,gid=5,mode=620,ptmxmode=000
+18 15 0:14 / /tmp rw,nosuid,nodev,noexec,relatime - tmpfs tmpfs rw,size=24836k
+19 15 0:15 / /run rw,nosuid,nodev,noexec,relatime - tmpfs tmpfs rw,size=12420k,mode=755
+20 16 0:16 / /sys/fs/pstore rw,nosuid,nodev,noexec,relatime - pstore pstore rw
+21 15 254:1 / /root rw,relatime - f2fs /dev/dm-1 rw,lazytime,background_gc=on,nogc_merge,nodiscard,inline_data,inline_dentry,flush_merge,barrier,extent_cache,mode=adaptive,active_logs=6,alloc_mode=reuse,checkpoint_merge,fsync_mode=posix,memory=normal,errors=continue

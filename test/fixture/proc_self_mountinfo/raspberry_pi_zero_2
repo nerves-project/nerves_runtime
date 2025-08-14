@@ -1,0 +1,13 @@
+16 1 179:2 / / ro,relatime - squashfs /dev/root ro,errors=continue
+17 16 0:5 / /dev rw,nosuid,noexec,relatime - devtmpfs devtmpfs rw,size=1024k,nr_inodes=30724,mode=755
+18 16 0:15 / /proc rw,nosuid,nodev,noexec,relatime - proc proc rw
+19 16 0:16 / /sys rw,nosuid,nodev,noexec,relatime - sysfs sysfs rw
+20 17 0:17 / /dev/pts rw,nosuid,noexec,relatime - devpts devpts rw,gid=5,mode=620,ptmxmode=000
+21 16 0:18 / /tmp rw,nosuid,nodev,noexec,relatime - tmpfs tmpfs rw,size=31236k
+22 16 0:19 / /run rw,nosuid,nodev,noexec,relatime - tmpfs tmpfs rw,size=15620k,mode=755
+23 16 179:1 / /boot ro,nosuid,nodev,noexec,relatime - vfat /dev/mmcblk0p1 ro,fmask=0022,dmask=0022,codepage=437,iocharset=iso8859-1,shortname=mixed,errors=remount-ro
+24 16 179:3 / /root rw,nodev,relatime - ext4 /dev/mmcblk0p3 rw
+25 19 0:14 / /sys/kernel/config rw,nosuid,nodev,noexec,relatime - configfs configfs rw
+26 19 0:20 / /sys/fs/pstore rw,nosuid,nodev,noexec,relatime - pstore pstore rw
+27 19 0:21 / /sys/fs/cgroup rw,nosuid,nodev,noexec,relatime - tmpfs tmpfs rw,size=1024k,mode=755
+28 27 0:22 / /sys/fs/cgroup/cpu rw,nosuid,nodev,noexec,relatime - cgroup cpu rw,cpu

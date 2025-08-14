@@ -5,6 +5,7 @@
 # SPDX-FileCopyrightText: 2018 Michał Kalbarczyk
 # SPDX-FileCopyrightText: 2019 Connor Rigby
 # SPDX-FileCopyrightText: 2020 Jon Carstens
+# SPDX-FileCopyrightText: 2025 Liv Cella
 #
 # SPDX-License-Identifier: Apache-2.0
 defmodule Nerves.Runtime.Init do
@@ -33,7 +34,7 @@ defmodule Nerves.Runtime.Init do
 
   alias Nerves.Runtime
   alias Nerves.Runtime.KV
-  alias Nerves.Runtime.MountParser
+  alias Nerves.Runtime.MountInfo
 
   require Logger
 
@@ -92,28 +93,19 @@ defmodule Nerves.Runtime.Init do
   end
 
   defp mounted_state(s) do
-    {mount_output, 0} = Runtime.cmd("mount", [], :return)
-
-    %{s | mounted: parse_mount_state(s.devpath, s.target, mount_output)}
+    %{s | mounted: MountInfo.get_mounts!() |> parse_mount_state(s.target)}
   end
 
   @doc false
-  @spec parse_mount_state(String.t(), String.t(), String.t()) ::
+  @spec parse_mount_state(MountInfo.mount_info(), String.t()) ::
           :mounted | :mounted_with_error | :unmounted
-  def parse_mount_state(devpath, target, mount_output) do
-    mounts = MountParser.parse(mount_output)
+  def parse_mount_state(mounts, target) do
+    info = MountInfo.find_by_mount_point(mounts, target)
 
-    case Map.get(mounts, target) do
-      %{device: ^devpath, flags: flags} ->
-        if "rw" in flags do
-          :mounted
-        else
-          # Mounted as read only
-          :mounted_with_error
-        end
-
-      _ ->
-        :unmounted
+    cond do
+      info == nil -> :unmounted
+      MountInfo.read_only?(info) -> :mounted_with_error
+      true -> :mounted
     end
   end
 
