@@ -1,5 +1,6 @@
 # SPDX-FileCopyrightText: 2017 Justin Schneck
 # SPDX-FileCopyrightText: 2021 Frank Hunleth
+# SPDX-FileCopyrightText: 2025 Liv Cella
 #
 # SPDX-License-Identifier: Apache-2.0
 defmodule Nerves.Runtime.InitTest do

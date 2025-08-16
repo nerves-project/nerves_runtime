@@ -1,4 +1,5 @@
 # SPDX-FileCopyrightText: 2022 Frank Hunleth
+# SPDX-FileCopyrightText: 2025 Liv Cella
 #
 # SPDX-License-Identifier: Apache-2.0
 defmodule Nerves.Runtime.MountInfoTest do
