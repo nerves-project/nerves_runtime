@@ -93,13 +93,13 @@ defmodule Nerves.Runtime.Init do
   end
 
   defp mounted_state(s) do
-    %{s | mounted: MountInfo.get_mounts!() |> parse_mount_state(s.target)}
+    %{s | mounted: MountInfo.get_mounts!() |> mount_point_state(s.target)}
   end
 
   @doc false
-  @spec parse_mount_state(MountInfo.mount_info(), String.t()) ::
+  @spec mount_point_state(MountInfo.mount_info(), String.t()) ::
           :mounted | :mounted_with_error | :unmounted
-  def parse_mount_state(mounts, target) do
+  def mount_point_state(mounts, target) do
     info = MountInfo.find_by_mount_point(mounts, target)
 
     cond do

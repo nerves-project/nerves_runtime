@@ -18,9 +18,9 @@ defmodule Nerves.Runtime.InitTest do
 
     mounts = MountInfo.parse(mount_output)
 
-    assert :mounted == Init.parse_mount_state(mounts, "/root")
+    assert :mounted == Init.mount_point_state(mounts, "/root")
 
-    assert :unmounted == Init.parse_mount_state(mounts, "/nonexistent")
+    assert :unmounted == Init.mount_point_state(mounts, "/nonexistent")
   end
 
   test "mounted read only when should be read-write" do
@@ -31,6 +31,6 @@ defmodule Nerves.Runtime.InitTest do
     mounts = MountInfo.parse(mount_output)
 
     assert :mounted_with_error ==
-             Init.parse_mount_state(mounts, "/root")
+             Init.mount_point_state(mounts, "/root")
   end
 end
