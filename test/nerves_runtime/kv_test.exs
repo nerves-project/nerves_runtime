@@ -122,6 +122,13 @@ defmodule Nerves.Runtime.KVTest do
     assert KV.get("nerves_serial_number") == "123456"
   end
 
+  @tag kv_options: [
+         kv_backend: {Nerves.Runtime.KVBackend.InMemory, contents: %{}}
+       ]
+  test "sync active fw information" do
+    assert KV.get("nerves_fw_active") == "a"
+  end
+
   @tag kv_options: [{:modules, [{Nerves.Runtime.KV.Mock, %{"key" => "value"}}]}]
   test "old modules configuration" do
     assert KV.get("key") == "value"
@@ -139,8 +146,8 @@ defmodule Nerves.Runtime.KVTest do
   end
 
   @tag kv_options: [kv_backend: Nerves.Runtime.KVBackend.InMemory]
-  test "empty configuration" do
-    assert KV.get_all() == %{}
+  test "empty configuration includes calculated nerves_fw_active value" do
+    assert KV.get_all() == %{"nerves_fw_active" => "a"}
   end
 
   @tag kv_options: [kv_backend: Nerves.Runtime.KVBackend.BadBad]

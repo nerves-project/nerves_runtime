@@ -332,7 +332,19 @@ defmodule Nerves.Runtime.KV do
         {:error, _reason} -> s.contents["nerves_fw_active"] || "a"
       end
 
-    %{s | active: active}
+    sync_active_partition(%{s | active: active})
+  end
+
+  # "nerves_fw_active" is in sync with active, noop
+  defp sync_active_partition(%{active: active, contents: %{"nerves_fw_active" => fw}} = state)
+       when active == fw,
+       do: state
+
+  # "nerves_fw_active" is out of sync and needs updating
+  defp sync_active_partition(%{active: active, contents: contents} = s) do
+    Logger.debug("Nerves.Runtime.KV 'nerves_fw_active' is out of sync, updating to '#{active}'")
+    :ok = s.backend.save(%{"nerves_fw_active" => active}, s.backend_opts)
+    %{s | contents: Map.put(contents, "nerves_fw_active", active)}
   end
 
   defguardp is_module(v) when is_atom(v) and not is_nil(v)
