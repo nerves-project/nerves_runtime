@@ -1,5 +1,39 @@
 # Changelog
 
+## v0.13.9 - 2025-09-18
+
+* Changes
+  * Document application config keys. These are now official. If you had been
+    modifying the application config for regression tests, note that the `:env`
+    key is now `:fwup_env` and `:revert_fw_path` is now `ops_fw_path`.
+
+  * Add `Nerves.Runtime.firmware_slots/0` to return a map indicating the
+    currently running slot and the one that will be run on next boot. Please
+    update any calls to get `"nerves_fw_active"` directly from
+    `Nerves.Runtime.KV` since the new `firmware_slots/0` is more accurate and
+    handles more scenarios on Nerves devices.
+
+  * Add `firmware_validation_status/0` to allow callers to know whether the
+    status is really unknown. This isn't possible with `firmware_valid?/0` which
+    is problematic since unknown could mean that the U-Boot environment is
+    unreadable and a fix is needed. Instead `firmware_valid?/0` returns `true`
+    in that case since this could be an old Nerves device without validation.
+
+  * Replace call to Busybox `mount` to determine filesystem read-only status
+    with a module that reads `/proc/self/mountinfo`.
+
+  * Expose mount information via `Nerves.Runtime.MountInfo`. If you had been
+    using `MountParser`, please update your calls. `MountParser` was not
+    intended to be public API (@moduledoc false) and was removed.
+
+  * Serialize calls to `fwup` to reduce chance of accidental eMMC/MicroSD
+    corruption
+
+  * Bulletproof many functions to return errors if the `:nerves_runtime`
+    application stops. This can happen when the device is not in a good state
+    and raising in NervesRuntime KV and FwupOps functions made things worse.
+    This should be a rare case.
+
 ## v0.13.8 - 2025-03-24
 
 This release has many updates, but none of them are expected to be noticeable to
