@@ -53,7 +53,9 @@ defmodule Nerves.Runtime.KVTest do
     options =
       context[:kv_options] || [kv_backend: {Nerves.Runtime.KVBackend.InMemory, contents: @kv}]
 
-    start_supervised!({KV, options})
+    if !context[:dont_start] do
+      start_supervised!({KV, options})
+    end
 
     :ok
   end
@@ -146,5 +148,18 @@ defmodule Nerves.Runtime.KVTest do
   @tag kv_options: [kv_backend: Nerves.Runtime.KVBackend.BadBad]
   test "bad configuration reverts to empty" do
     assert KV.get_all() == %{}
+  end
+
+  @tag dont_start: true
+  test "application stopped" do
+    assert KV.get("nerves_serial_number") == nil
+    assert KV.get_active("nerves_fw_version") == nil
+    assert KV.get_all() == %{}
+    assert KV.get_all_active() == %{}
+
+    assert KV.reload() == :ok
+
+    assert {:error, "Nerves.Runtime not running"} = KV.put("test_key", "test_value")
+    assert {:error, "Nerves.Runtime not running"} = KV.put_active("test_key", "test_value")
   end
 end

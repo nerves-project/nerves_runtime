@@ -98,4 +98,12 @@ defmodule NervesRuntime.FwupOpsTest do
       assert {:error, "status error"} = FwupOps.status(context.fwup_options)
     end
   end
+
+  describe "catastrophic failures" do
+    test "application stopped", context do
+      Application.stop(:nerves_runtime)
+      assert {:error, "FwupOps server not running"} = FwupOps.status(context.fwup_options)
+      Application.start(:nerves_runtime)
+    end
+  end
 end

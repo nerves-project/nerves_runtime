@@ -181,7 +181,7 @@ defmodule Nerves.Runtime.KV do
   """
   @spec reload() :: :ok
   def reload() do
-    GenServer.call(__MODULE__, :reload)
+    safe_call(:reload, :ok)
   end
 
   @doc """
