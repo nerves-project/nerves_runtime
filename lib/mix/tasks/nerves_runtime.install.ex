@@ -93,7 +93,7 @@ if Code.ensure_loaded?(Igniter) do
       |> Igniter.Project.Config.configure(
         "host.exs",
         :nerves_runtime,
-        [:kw_backend],
+        [:kv_backend],
         {:code, kv_backend_config}
       )
     end
