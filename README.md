@@ -71,6 +71,21 @@ the application partition. The following variables are important:
 * `[partition].nerves_fw_application_part0_target` - where the partition should
   be mounted (e.g. `/root` or `/mnt/appdata`)
 
+This default behavior is handled by `Nerves.Runtime.Init`. To override it with your
+own you can configure a different module that is a GenServer with no options:
+
+```elixir
+config :nerves_runtime,
+  init_module: MyApp.FilesystemInit
+```
+
+Or you can disable it:
+
+```elixir
+config :nerves_runtime,
+  init_module: nil
+```
+
 ## Nerves System and Firmware Metadata
 
 All official Nerves systems maintain a list of key-value pairs for tracking
@@ -357,4 +372,3 @@ All original source code in this project is licensed under Apache-2.0.
 
 Additionally, this project follows the [REUSE recommendations](https://reuse.software)
 and labels so that licensing and copyright are clear at the file level.
-
