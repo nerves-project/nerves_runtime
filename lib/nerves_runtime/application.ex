@@ -20,21 +20,29 @@ defmodule Nerves.Runtime.Application do
     load_services()
 
     options = Application.get_all_env(:nerves_runtime)
-    children = [{FwupOps, options}, {KV, options} | target_children()]
+    init_module = Keyword.get(options, :init_module, Nerves.Runtime.Init)
+    children = [{FwupOps, options}, {KV, options} | target_children(init_module)]
 
     opts = [strategy: :one_for_one, name: Nerves.Runtime.Supervisor]
     Supervisor.start_link(children, opts)
   end
 
   if Mix.target() == :host do
-    defp target_children(), do: []
+    defp target_children(_), do: []
     defp load_services(), do: :ok
   else
-    defp target_children() do
+    defp target_children(nil) do
+      [
+        NervesLogging.KmsgTailer,
+        NervesLogging.SyslogTailer
+      ]
+    end
+
+    defp target_children(init_module) do
       [
         NervesLogging.KmsgTailer,
         NervesLogging.SyslogTailer,
-        Nerves.Runtime.Init
+        init_module
       ]
     end
 
