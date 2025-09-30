@@ -46,11 +46,23 @@ defmodule Nerves.Runtime.Application do
       # numbers.
       # On systems with no hardware random number generation, or where rngd is
       # not installed, haveged is tried as an alternative.
-      try_entropy_generator("rngd") || try_entropy_generator("haveged")
+      # Skip these checks if on a modern kernel.
+      # - https://blogs.oracle.com/linux/post/entropyavail-256-is-good-enough-for-everyone
+      kernel_6_0_or_higher?() || try_entropy_generator("rngd") || try_entropy_generator("haveged")
 
       _ = try_load_sysctl_conf()
 
       :ok
+    end
+
+    defp kernel_6_0_or_higher?() do
+      with {:ok, contents} <- File.read("/proc/sys/kernel/osrelease"),
+           trimmed = String.trim(contents),
+           {:ok, version} <- Version.parse(trimmed) do
+        Version.match?(version, ">= 6.0.0")
+      else
+        _ -> false
+      end
     end
 
     defp try_entropy_generator(name) do
