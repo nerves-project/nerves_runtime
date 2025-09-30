@@ -46,7 +46,9 @@ defmodule Nerves.Runtime.Application do
       # numbers.
       # On systems with no hardware random number generation, or where rngd is
       # not installed, haveged is tried as an alternative.
-      try_entropy_generator("rngd") || try_entropy_generator("haveged")
+      # Allow for these checks to be skipped if desired.
+      Application.get_env(:nerves_runtime, :skip_entropy_generator_checks, false) ||
+        try_entropy_generator("rngd") || try_entropy_generator("haveged")
 
       _ = try_load_sysctl_conf()
 
