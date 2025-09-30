@@ -57,8 +57,9 @@ defmodule Nerves.Runtime.Application do
       path = "/usr/sbin/#{name}"
 
       if File.exists?(path) do
+        args = Application.get_env(:nerves_runtime, String.to_atom("#{name}_args"), [])
         # Launch rngd/haveged. They daemonize themselves so this should return quickly.
-        case System.cmd(path, []) do
+        case System.cmd(path, args) do
           {_, 0} ->
             true
 
