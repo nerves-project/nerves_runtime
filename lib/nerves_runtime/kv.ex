@@ -160,7 +160,8 @@ defmodule Nerves.Runtime.KV do
           backend: module(),
           backend_opts: keyword(),
           contents: string_map(),
-          active: String.t()
+          active: String.t(),
+          invalid?: boolean()
         }
 
   @doc """
@@ -251,37 +252,58 @@ defmodule Nerves.Runtime.KV do
   @impl GenServer
   def init(init_opts) do
     {backend, backend_opts} = normalize_kv_backend(init_opts[:kv_backend], init_opts)
-    s = %{backend: backend, backend_opts: backend_opts, contents: %{}, active: "a"} |> load()
+
+    s = %{
+      backend: backend,
+      backend_opts: backend_opts,
+      contents: %{},
+      active: "a",
+      invalid?: true
+    }
+
     {:ok, s}
   end
 
   @impl GenServer
   def handle_call({:get_active, key}, _from, s) do
+    s = refresh(s)
     {:reply, active(key, s), s}
   end
 
   def handle_call({:get, key}, _from, s) do
+    s = refresh(s)
     {:reply, Map.get(s.contents, key), s}
   end
 
   def handle_call(:get_all_active, _from, s) do
+    s = refresh(s)
     active = s.active <> "."
     reply = filter_trim_active(s, active)
     {:reply, reply, s}
   end
 
   def handle_call(:get_all, _from, s) do
+    s = refresh(s)
     {:reply, s.contents, s}
   end
 
   def handle_call({:put, kv}, _from, s) do
+    s = refresh(s)
     {reply, s} = do_put(kv, s)
 
     # Putting generic, non-slot-specific keys could change the active slot logic.
-    {:reply, reply, refresh_active(s)}
+    if Map.has_key?(kv, "nerves_fw_active") do
+      # The simplest option is to just force a refresh next time. If someone is
+      # actually doing this, they should be rebooting anyway.
+      {:reply, reply, %{s | invalid?: true}}
+    else
+      {:reply, reply, s}
+    end
   end
 
   def handle_call({:put_active, kv}, _from, s) do
+    s = refresh(s)
+
     {reply, s} =
       Map.new(kv, fn {key, value} -> {"#{s.active}.#{key}", value} end)
       |> do_put(s)
@@ -290,7 +312,7 @@ defmodule Nerves.Runtime.KV do
   end
 
   def handle_call(:reload, _from, s) do
-    {:reply, :ok, load(s)}
+    {:reply, :ok, %{s | invalid?: true}}
   end
 
   # Protect against KV functions being called in places where raising
@@ -306,9 +328,8 @@ defmodule Nerves.Runtime.KV do
   end
 
   defp filter_trim_active(s, active) do
-    Enum.filter(s.contents, fn {k, _} ->
-      String.starts_with?(k, active)
-    end)
+    s.contents
+    |> Enum.filter(fn {k, _} -> String.starts_with?(k, active) end)
     |> Enum.map(fn {k, v} -> {String.replace_leading(k, active, ""), v} end)
     |> Enum.into(%{})
   end
@@ -320,27 +341,33 @@ defmodule Nerves.Runtime.KV do
     end
   end
 
-  defp load(s) do
+  defp refresh(%{invalid?: false} = s) do
+    s
+  end
+
+  defp refresh(s) do
     {:ok, contents} = s.backend.load(s.backend_opts)
 
-    %{s | contents: contents} |> refresh_active()
+    %{s | contents: contents, active: refresh_active_slot(contents), invalid?: false}
   rescue
     error ->
       Logger.error(
         "Nerves.Runtime.KV load error (#{inspect(s.backend)},#{inspect(s.backend_opts)}). Reverting to in-memory store: #{inspect(error)}"
       )
 
-      %{s | backend: Nerves.Runtime.KVBackend.InMemory, backend_opts: [contents: s.contents]}
+      %{
+        s
+        | backend: Nerves.Runtime.KVBackend.InMemory,
+          backend_opts: [contents: s.contents],
+          invalid?: false
+      }
   end
 
-  defp refresh_active(s) do
-    active =
-      case FwupOps.status() do
-        {:ok, %{active: active}} -> active
-        {:error, _reason} -> s.contents["nerves_fw_active"] || "a"
-      end
-
-    %{s | active: active}
+  defp refresh_active_slot(contents) do
+    case FwupOps.status() do
+      {:ok, %{active: active}} -> active
+      {:error, _reason} -> contents["nerves_fw_active"] || "a"
+    end
   end
 
   defguardp is_module(v) when is_atom(v) and not is_nil(v)
