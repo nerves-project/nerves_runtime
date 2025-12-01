@@ -9,6 +9,8 @@ defmodule Nerves.Runtime.OutputLoggerTest do
   alias Nerves.Runtime.OutputLogger
 
   test "logs" do
+    Application.put_env(:elixir, :ansi_enabled, false)
+
     logs =
       capture_log(fn ->
         c = OutputLogger.new(:error)
@@ -19,5 +21,7 @@ defmodule Nerves.Runtime.OutputLoggerTest do
     assert logs =~ "[error] ghi\n"
     assert logs =~ "[error] jkl\n"
     assert logs =~ "[error] abc\n"
+
+    Application.delete_env(:elixir, :ansi_enabled)
   end
 end
