@@ -1,5 +1,21 @@
 # Changelog
 
+## v0.13.10 - 2025-12-01
+
+* Changes
+  * Support overriding or disabling data partition initialization. See the
+    `:init_module` option documentation.
+  * Support passing extra options to `fwup` to enable `fwup` to run third party
+    programs. See the `:fwup_extra_options` option documentation.
+  * Defer Nerves KV loading until actually needed. This removes many unnecessary
+    loads, but most importantly defers work that could potentially fail from
+    early initialization. This allows it to fail in places that are easier to
+    debug.
+  * Support passing arguments to `rngd` and `haveged` if you're using them. See
+    `rngd_args` and `haveged_args` in the application config. This is a rare
+    use case especially since Linux kernels have improved their support for
+    early entropy.
+
 ## v0.13.9 - 2025-09-18
 
 * Changes
