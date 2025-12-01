@@ -26,6 +26,7 @@ defmodule Nerves.Runtime.FwupOps do
 
   * `:devpath` - The location of the storage device (defaults to `"/dev/rootdisk0"`)
   * `:fwup_env` - Additional environment variables to pass to `fwup`
+  * `:fwup_extra_options` - Additional command line options to pass to `fwup` (e.g., `["--unsafe"]`)
   * `:fwup_path` - The path to the `fwup` utility
   * `:ops_fw_path` - The path to the `ops.fw` file (defaults to `"/usr/share/fwup/ops.fw"`)
   * `:reboot` - Call `Nerves.Runtime.reboot/0` after running (defaults to
@@ -34,6 +35,7 @@ defmodule Nerves.Runtime.FwupOps do
   @type options() :: [
           devpath: String.t(),
           fwup_env: %{String.t() => String.t()},
+          fwup_extra_options: [String.t()],
           fwup_path: String.t(),
           ops_fw_path: String.t(),
           reboot: boolean()
@@ -151,7 +153,8 @@ defmodule Nerves.Runtime.FwupOps do
 
   @impl GenServer
   def init(init_args) do
-    specified_options = Keyword.take(init_args, [:devpath, :fwup_env, :fwup_path, :ops_fw_path])
+    specified_options =
+      Keyword.take(init_args, [:devpath, :fwup_env, :fwup_extra_options, :fwup_path, :ops_fw_path])
 
     {:ok, specified_options}
   end
@@ -172,19 +175,22 @@ defmodule Nerves.Runtime.FwupOps do
   defp run_fwup(task, opts) do
     with {:ok, ops_fw} <- ops_fw_path(opts),
          {:ok, fwup} <- fwup_path(opts) do
-      params = [
-        "-a",
-        "-i",
-        ops_fw,
-        "-t",
-        task,
-        "-d",
-        opts[:devpath],
-        "-q",
-        "-U",
-        "--enable-trim",
-        "--framing"
-      ]
+      extra_opts = Keyword.get(opts, :fwup_extra_options, [])
+
+      params =
+        [
+          "-a",
+          "-i",
+          ops_fw,
+          "-t",
+          task,
+          "-d",
+          opts[:devpath],
+          "-q",
+          "-U",
+          "--enable-trim",
+          "--framing"
+        ] ++ extra_opts
 
       case System.cmd(fwup, params, env: opts[:fwup_env]) do
         {results, 0} -> {:ok, results}
