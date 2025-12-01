@@ -324,6 +324,7 @@ Key             | Default                             | Description
 `:boardid_path` | `"/usr/bin/boardid"`                | Path to the `boardid` binary for determining the device's serial number
 `:devpath`      | `/dev/rootdisk0`                    | The block device that firmware is stored on. `/dev/rootdisk0` is a symlink on Nerves to the real location, so this really shouldn't need to be changed.
 `:fwup_env`     | `%{}`                               | Additional environment variables to pass to `fwup`
+`:fwup_extra_options` | []                            | Additional command line options to pass to `fwup` (e.g., `["--unsafe"]`)
 `:fwup_path`    | `"fwup"`                            | Path to the `fwup` binary for querying or modifying firmware status
 `:haveged_args` | []                                  | Additional arguments for `haveged` if Nerves.Runtime starts it (rare)
 `:init_module`  | `Nerves.Runtime.Init`               | Override data partition initialization. Set to `nil` to disable
