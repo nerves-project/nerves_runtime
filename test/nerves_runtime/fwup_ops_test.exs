@@ -106,4 +106,17 @@ defmodule NervesRuntime.FwupOpsTest do
       Application.start(:nerves_runtime)
     end
   end
+
+  describe "fwup_extra_opts" do
+    @describetag ops_fw: "ops-execute-unsafe.fw"
+    test "execute fails without unsafe", context do
+      assert {:error, "execute requires --unsafe"} = FwupOps.validate(context.fwup_options)
+    end
+
+    test "execute succeeds with unsafe", context do
+      opts = Keyword.put(context.fwup_options, :fwup_extra_options, ["--unsafe"])
+      assert :ok = FwupOps.validate(opts)
+      assert read_output(context) == ""
+    end
+  end
 end

@@ -30,6 +30,7 @@ path = [
  "test/fixture/ops-fail.fw",
  "test/fixture/ops-status.fw",
  "test/fixture/ops.fw",
+ "test/fixture/ops-execute-unsafe.fw",
 ]
 precedence = "aggregate"
 SPDX-FileCopyrightText = "None"
