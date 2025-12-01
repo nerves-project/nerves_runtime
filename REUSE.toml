@@ -5,6 +5,7 @@ path = [
  ".circleci/config.yml",
  ".credo.exs",
  ".formatter.exs",
+ ".github/CODEOWNERS",
  ".github/dependabot.yml",
  ".gitignore",
  "CHANGELOG.md",
