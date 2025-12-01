@@ -325,8 +325,10 @@ Key             | Default                             | Description
 `:devpath`      | `/dev/rootdisk0`                    | The block device that firmware is stored on. `/dev/rootdisk0` is a symlink on Nerves to the real location, so this really shouldn't need to be changed.
 `:fwup_env`     | `%{}`                               | Additional environment variables to pass to `fwup`
 `:fwup_path`    | `"fwup"`                            | Path to the `fwup` binary for querying or modifying firmware status
+`:haveged_args` | []                                  | Additional arguments for `haveged` if Nerves.Runtime starts it (rare)
 `:kv_backend`   | `Nerves.Runtime.KVBackend.UBootEnv` | The backing store for firmware slot and other low level key-value pairs. This is almost always a U-Boot environment block for Nerves
 `:ops_fw_path`  | `"/usr/share/fwup/ops.fw"`          | Path to the `ops.fw` file for passing to `fwup` for firmware status tasks
+`:rngd_args`    | []                                  | Additional arguments for `rngd` if Nerves.Runtime starts it (rare)
 
 ## Using nerves_runtime in tests
 
