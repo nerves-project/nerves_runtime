@@ -113,7 +113,7 @@ defmodule Nerves.Runtime.MountInfoTest do
     if File.exists?("/proc/self/mountinfo") do
       mounts = MountInfo.get_mounts!()
       assert is_list(mounts)
-      assert length(mounts) > 0
+      refute Enum.empty?(mounts)
 
       root_mount = Enum.find(mounts, fn m -> m.mount_point == "/" end)
       assert root_mount != nil
