@@ -30,7 +30,7 @@ defmodule Nerves.Runtime.Init do
   generate a UUID. Look into hardcoding UUIDs or enabling a hw random number
   generator to increase entropy.
 
-  This GenServer is started by default. It can be prevented or overriden by
+  This GenServer is started by default. It can be prevented or overridden by
   setting the config option `:init_module` to another module or `nil`. This
   allows customizing application filesystem initialization:
 
