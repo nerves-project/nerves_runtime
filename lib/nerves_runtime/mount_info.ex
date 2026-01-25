@@ -8,7 +8,6 @@ defmodule Nerves.Runtime.MountInfo do
   Mount information is parsed from /proc/self/mountinfo. For complete field
   descriptions, see the [Linux manual](https://man7.org/linux/man-pages/man5/proc_pid_mountinfo.5.html).
   """
-  require Logger
 
   @typedoc """
   A list of mount records
