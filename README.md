@@ -105,16 +105,16 @@ Global Nerves metadata includes the following:
 
 Key                 | Build Environment Variable   | Example Value    | Description
 ------------------- | ---------------------------- | ---------------- | -----------
-`nerves_fw_active`  | N/A                          | `"a"`            | This key holds the prefix that identifies the active firmware metadata. In this example, all keys starting with `"a."` hold information about the running firmware.
+`nerves_fw_active`  | N/A                          | `"a"`            | If used, this key holds the prefix that identifies the active firmware metadata. In this example, the running firmware is in slot "a" and all keys starting with `"a."` hold information about it.
 `nerves_fw_devpath` | `NERVES_FW_DEVPATH`          | `"/dev/mmcblk0"` | This is the primary storage device for the firmware.
 `nerves_serial_number` | N/A                       | `"12345abc"`     | This is a text serial number. See [Serial numbers](#serial_numbers) for details.
-`nerves_fw_validated` | N/A                        | `0`              | Set to "1" to indicate that the currently running firmware is valid. (Only supported on some platforms)
+`nerves_fw_validated` | N/A                        | `0`              | Deprecated. If used, this key indicates whether the active firmware is valid ("1"). Use the firmware slot-specific key instead (i.e. `a.nerves_fw_validated`)
 `nerves_fw_autovalidate` | N/A                     | `1`              | Set to "1" to indicate that firmware updates are valid without any additional checks.  (Only supported on some platforms)
 `upgrade_available` | N/A                          | `0`              | If using the U-Boot bootloader AND U-Boot's `bootcount` feature, then the `upgrade_available` variable is used instead of `nerves_fw_validated` (it has the opposite meaning)
 `bootcount`         | N/A                          | `1`              | If using the U-Boot bootloader AND U-Boot's `bootcount` feature, then this is the number of times an unvalidated firmware has been booted.
 `bootlimit`         | N/A                          | `1`              | If using the U-Boot bootloader AND U-Boot's `bootcount` feature, then this is the max number of tries for unvalidated firmware.
 
-Firmware-specific Nerves metadata includes the following:
+Firmware slot Nerves metadata includes the following:
 
 Key                                   | Example Value     | Description
 :------------------------------------ | :---------------- | :----------
@@ -129,6 +129,7 @@ Key                                   | Example Value     | Description
 `nerves_fw_version`                   | `"1.0.0"`         | The project's version
 `nerves_fw_vcs_identifier`            | `"bdeead38..."`   | A `git` SHA or other identifier (optional)
 `nerves_fw_misc`                      | `"anything..."`   | Any application info that doesn't fit in another field (optional)
+`nerves_fw_validated`                 | `0`               | If present, this key indicates that the firmware in this slot is valid ("1"). Firmware supporting this feature will boot the first time as invalid ("0") and then if not marked valid, will boot to the other slot.
 
 Note that the keys are stored in the environment block prefixed by the firmware
 slot for which they pertain. For example, `a.nerves_fw_description` is the
