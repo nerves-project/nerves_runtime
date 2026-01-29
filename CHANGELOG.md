@@ -1,5 +1,29 @@
 # Changelog
 
+## v0.13.11 - 2026-01-29
+
+This change adds a simple firmware validator for Nerves devices that validate
+their firmware the first time it's run. It's optional and the default is to not
+use it. This is useful for all Nerves systems that require validation on boot
+and is intended to ease the change on the Raspberry Pi "2.0" Nerves systems.
+
+The simple firmware validator only checks that all OTP applications have started
+up successfully. If you already have a firmware validator, you can just ignore
+this.
+
+If you don't know if you need a firmware validator, you likely don't since your
+device boots with the assumption that the firmware will work. If you need to run
+`fw_validate` or `Nerves.Runtime.validate_firmware/0` every time you load new
+firmware, then you'll want some code to do it automatically and this is an
+option.
+
+See the main README.md and `Nerves.Runtime.StartupGuard` for integration with
+your project.
+
+* Changes
+  * Add `Nerves.Runtime.StartupGuard`
+  * Fix new Elixir 1.20 warnings
+
 ## v0.13.10 - 2025-12-01
 
 * Changes
