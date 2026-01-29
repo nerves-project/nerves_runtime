@@ -72,7 +72,7 @@ defmodule Nerves.Runtime.StartupGuard do
 
   1. If getting the log message about exceeding the number of retries for
      getting firmware validation status, then
-     `Nerves.Runtime.firmware_validation_status/0 is returning `:unknown`. This
+     `Nerves.Runtime.firmware_validation_status/0` is returning `:unknown`. This
      is probably due to the Nerves system's `fwup.conf` not
      initializing `<slot>.nerves_fw_validated` to `0` (or `1` if always valid).
   2. If falling back without logs, try installing `ramoops_logger` to capture
