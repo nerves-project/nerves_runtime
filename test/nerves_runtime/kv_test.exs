@@ -96,6 +96,15 @@ defmodule Nerves.Runtime.KVTest do
     assert KV.get("test_key2") == "test_value2"
   end
 
+  test "delete/1" do
+    assert :ok = KV.put(%{"test_key1" => "test_value1", "test_key2" => "test_value2"})
+    assert :ok = KV.delete("test_key1")
+
+    all = KV.get_all()
+    refute Map.has_key?(all, "test_key1")
+    assert Map.has_key?(all, "test_key2")
+  end
+
   test "put_active/2" do
     assert :ok = KV.put_active("active_test_key", "active_test_value")
     assert KV.get_active("active_test_key") == "active_test_value"
@@ -110,6 +119,24 @@ defmodule Nerves.Runtime.KVTest do
 
     assert KV.get_active("active_test_key1") == "active_test_value1"
     assert KV.get_active("active_test_key2") == "active_test_value2"
+  end
+
+  test "delete_active/1" do
+    assert :ok =
+             KV.put_active(%{
+               "active_test_key1" => "active_test_value1",
+               "active_test_key2" => "active_test_value2"
+             })
+
+    assert :ok = KV.delete_active("active_test_key1")
+
+    all = KV.get_all()
+    refute Map.has_key?(all, "b.active_test_key1")
+    assert Map.has_key?(all, "b.active_test_key2")
+
+    # These should never have existed, but sanity check.
+    refute Map.has_key?(all, "a.active_test_key1")
+    refute Map.has_key?(all, "a.active_test_key1")
   end
 
   test "reload/1" do

@@ -23,7 +23,7 @@ defmodule Nerves.Runtime.KVBackend.UBootEnv do
   def save(%{} = kv, options) do
     with {:ok, config} <- options_to_uboot_config(options),
          {:ok, current_kv} <- UBootEnv.read(config) do
-      merged_kv = Map.merge(current_kv, kv)
+      merged_kv = current_kv |> Map.merge(kv) |> Map.filter(fn {_, v} -> v != nil end)
       UBootEnv.write(merged_kv, config)
     end
   end

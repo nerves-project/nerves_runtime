@@ -249,6 +249,22 @@ defmodule Nerves.Runtime.KV do
     safe_call({:put_active, kv}, {:error, "Nerves.Runtime not running"})
   end
 
+  @doc """
+  Delete the specified key
+  """
+  @spec delete(String.t()) :: :ok
+  def delete(key) when is_binary(key) do
+    put(%{key => nil})
+  end
+
+  @doc """
+  Delete the specified key from the active firmware slot's metadata
+  """
+  @spec delete_active(String.t()) :: :ok
+  def delete_active(key) when is_binary(key) do
+    put_active(%{key => nil})
+  end
+
   @impl GenServer
   def init(init_opts) do
     {backend, backend_opts} = normalize_kv_backend(init_opts[:kv_backend], init_opts)
@@ -335,8 +351,10 @@ defmodule Nerves.Runtime.KV do
   end
 
   defp do_put(kv, s) do
+    resulting_contents = s.contents |> Map.merge(kv) |> Map.reject(fn {_, v} -> is_nil(v) end)
+
     case s.backend.save(kv, s.backend_opts) do
-      :ok -> {:ok, %{s | contents: Map.merge(s.contents, kv)}}
+      :ok -> {:ok, %{s | contents: resulting_contents}}
       error -> {error, s}
     end
   end
