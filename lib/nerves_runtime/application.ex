@@ -14,9 +14,7 @@ defmodule Nerves.Runtime.Application do
   alias Nerves.Runtime.KV
   alias Nerves.Runtime.StartupGuard
 
-  if Mix.target() != :host do
-    require Logger
-  end
+  require Logger
 
   @impl Application
   def start(_type, _args) do
