@@ -1,5 +1,11 @@
 # Changelog
 
+## v0.13.12 - 2026-01-30
+
+* Changes
+  * Partially revert Elixir 1.20 warning fix in v0.13.11 that caused a different
+    issue. This fixes a missing `require Logger` on non-host targets.
+
 ## v0.13.11 - 2026-01-29
 
 This change adds a simple firmware validator for Nerves devices that validate
