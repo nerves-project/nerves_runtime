@@ -24,10 +24,29 @@ defmodule Nerves.Runtime.Power do
   # functions take a surprisingly long time.
   @timeout_before_halt :timer.minutes(10)
 
+  @reboot_param_path "/run/reboot-param"
+
   # Delegated from Nerves.Runtime
   @doc false
-  @spec reboot() :: no_return()
-  def reboot(), do: run_command(:reboot)
+  @spec reboot(String.t()) :: no_return()
+  def reboot("") do
+    run_command(:reboot)
+  end
+
+  def reboot(args) when is_binary(args) do
+    case File.write(@reboot_param_path, args, [:write, :exclusive]) do
+      :ok ->
+        :ok
+
+      {:error, :eexist} ->
+        Logger.warning("Reboot params already set. Ignoring new one, #{inspect(args)}")
+
+      {:error, reason} ->
+        Logger.warning("Error opening reboot params file: #{inspect(reason)}. Ignoring")
+    end
+
+    run_command(:reboot)
+  end
 
   # Delegated from Nerves.Runtime
   @doc false

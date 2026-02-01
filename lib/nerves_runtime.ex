@@ -23,12 +23,21 @@ defmodule Nerves.Runtime do
   @doc """
   Reboot the device and gracefully shutdown the Erlang VM.
 
+  This is normally called without arguments, but if a string is passed, then it
+  will be sent to Linux as reboot parameters. For example, on the Raspberry Pi,
+  passing `"0 tryboot"` will reboot to the `tryboot` configuration. You won't
+  need to do this on the Raspberry Pi since the Nerves system's `fwup`
+  configuration handles setting the `tryboot` parameter on updates. See the
+  Raspberry Pi documentation for more information. No other officially
+  supported Nerves devices use reboot parameters.
+
   This calls `:init.stop/0` internally. If `:init.stop/0` takes longer than the
   `erlinit.config`'s `--graceful-powerdown` setting (likely 10 seconds) then
   the system will be hard rebooted.
   """
   @spec reboot() :: no_return()
-  defdelegate reboot(), to: Power
+  @spec reboot(String.t()) :: no_return()
+  defdelegate reboot(args \\ ""), to: Power
 
   @doc """
   Power off the device.
