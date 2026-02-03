@@ -1,3 +1,8 @@
+<!--
+  SPDX-FileCopyrightText: 2017 Frank Hunleth
+  SPDX-License-Identifier: CC-BY-4.0
+-->
+
 # nerves_runtime
 
 [![Hex version](https://img.shields.io/hexpm/v/nerves_runtime.svg "Hex version")](https://hex.pm/packages/nerves_runtime)

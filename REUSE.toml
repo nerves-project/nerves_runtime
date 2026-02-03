@@ -1,29 +1,16 @@
+# SPDX-FileCopyrightText: None
+# SPDX-License-Identifier: CC0-1.0
 version = 1
 
 [[annotations]]
 path = [
- ".circleci/config.yml",
- ".credo.exs",
- ".formatter.exs",
- ".github/CODEOWNERS",
- ".github/dependabot.yml",
- ".gitignore",
- "CHANGELOG.md",
- "mix.exs",
  "mix.lock",
  "NOTICE",
- "REUSE.toml",
  "test/fixture/proc_self_mountinfo/*"
 ]
 precedence = "aggregate"
 SPDX-FileCopyrightText = "None"
 SPDX-License-Identifier = "CC0-1.0"
-
-[[annotations]]
-path = ["README.md"]
-precedence = "aggregate"
-SPDX-FileCopyrightText = "2017 Frank Hunleth"
-SPDX-License-Identifier = "CC-BY-4.0"
 
 # Generated files
 [[annotations]]
