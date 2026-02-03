@@ -64,7 +64,7 @@ defmodule Nerves.Runtime.MixProject do
       {:dialyxir, "~> 1.1", only: :dev, runtime: false},
       {:credo, "~> 1.5", only: :dev, runtime: false},
       {:credo_binary_patterns, "~> 0.2.2", only: :dev, runtime: false},
-      {:mimic, "~> 1.7", only: [:dev, :test]}
+      {:mimic, "~> 2.3", only: [:dev, :test]}
     ]
   end
 
