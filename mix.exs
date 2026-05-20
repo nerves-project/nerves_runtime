@@ -12,6 +12,7 @@ defmodule Nerves.Runtime.MixProject do
       version: @version,
       elixir: "~> 1.13",
       start_permanent: Mix.env() == :prod,
+      consolidate_protocols: Mix.env() != :dev,
       description: description(),
       package: package(),
       docs: docs(),
@@ -59,6 +60,7 @@ defmodule Nerves.Runtime.MixProject do
 
   defp deps do
     [
+      {:igniter, "~> 0.8", optional: true, runtime: false},
       {:uboot_env, "~> 1.0 or ~> 0.3.0"},
       {:nerves_logging, "~> 0.2.0"},
       {:nerves_uevent, "~> 0.1.0"},
@@ -107,7 +109,8 @@ defmodule Nerves.Runtime.MixProject do
 
   defp dialyzer() do
     [
-      flags: [:missing_return, :extra_return, :unmatched_returns, :error_handling, :underspecs]
+      flags: [:missing_return, :extra_return, :unmatched_returns, :error_handling, :underspecs],
+      plt_add_apps: [:igniter, :mix]
     ]
   end
 end
