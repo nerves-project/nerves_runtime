@@ -199,7 +199,7 @@ This is a major update to `nerves_runtime` that removes SystemRegistry.
 SystemRegistry has been disabled by default for years, but it could be
 re-enabled if device insertion and removal events were needed. That
 functionality has been moved to
-[`nerves_uevent`](https://hexdocs.pm/nerves_uevent/readme.html) and updated to
+[`nerves_uevent`](https://nerves-uevent.hexdocs.pm/readme.html) and updated to
 use the `property_table` library used by VintageNet.
 
 Elixir 1.11 is the minimum supported Elixir version now.
@@ -220,7 +220,7 @@ To upgrade from prior versions of `nerves_runtime`:
 
 * Changes
   * Kernel logging and syslog monitoring has been moved to
-    [`nerves_logging`](https://hexdocs.pm/nerves_logging/readme.html). The
+    [`nerves_logging`](https://nerves-logging.hexdocs.pm/readme.html). The
     functionality is the same as before, but it's now possible to use without
     `nerves_runtime`.
   * Added convenience routines for getting status from

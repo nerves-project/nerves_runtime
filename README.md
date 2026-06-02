@@ -6,7 +6,7 @@
 # nerves_runtime
 
 [![Hex version](https://img.shields.io/hexpm/v/nerves_runtime.svg "Hex version")](https://hex.pm/packages/nerves_runtime)
-[![API docs](https://img.shields.io/hexpm/v/nerves_runtime.svg?label=hexdocs "API docs")](https://hexdocs.pm/nerves_runtime/Nerves.Runtime.html)
+[![API docs](https://img.shields.io/hexpm/v/nerves_runtime.svg?label=hexdocs "API docs")](https://nerves-runtime.hexdocs.pm/Nerves.Runtime.html)
 [![CircleCI](https://dl.circleci.com/status-badge/img/gh/nerves-project/nerves_runtime/tree/main.svg?style=svg)](https://dl.circleci.com/status-badge/redirect/gh/nerves-project/nerves_runtime/tree/main)
 [![REUSE status](https://api.reuse.software/badge/github.com/nerves-project/nerves_runtime)](https://api.reuse.software/info/github.com/nerves-project/nerves_runtime)
 
@@ -25,7 +25,7 @@ Here are its features:
 * Linux log integration with Elixir. See [`nerves_logging`](https://github.com/nerves-project/nerves_logging)
 
 The following sections describe the features in more detail. For more
-information, see the [hex docs](https://hexdocs.pm/nerves_runtime).
+information, see the [hex docs](https://nerves-runtime.hexdocs.pm).
 
 ## System Initialization
 
