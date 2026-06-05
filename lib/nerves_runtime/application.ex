@@ -14,8 +14,6 @@ defmodule Nerves.Runtime.Application do
   alias Nerves.Runtime.KV
   alias Nerves.Runtime.StartupGuard
 
-  require Logger
-
   @impl Application
   def start(_type, _args) do
     load_services()
@@ -38,6 +36,9 @@ defmodule Nerves.Runtime.Application do
     defp target_children(_), do: []
     defp load_services(), do: :ok
   else
+    # credo:disable-for-next-line Credo.Check.Readability.StrictModuleLayout
+    require Logger
+
     defp target_children(nil) do
       [
         NervesLogging.KmsgTailer,

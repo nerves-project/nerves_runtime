@@ -9,10 +9,11 @@ defaults: &defaults
     LC_ALL: C.UTF-8
 
 latest: &latest
-  pattern: "^1.19.*-erlang-28.*$"
+  pattern: "^1.20.*-erlang-29.*$"
 
 tags: &tags
   [
+    1.20.0-erlang-29.0.1-alpine-3.23.4,
     1.19.5-erlang-28.3-alpine-3.22.2,
     1.18.4-erlang-28.0.1-alpine-3.21.3,
     1.17.3-erlang-27.3.4.1-alpine-3.21.3,
