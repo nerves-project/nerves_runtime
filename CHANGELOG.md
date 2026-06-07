@@ -5,6 +5,14 @@
 
 # Changelog
 
+## v0.13.13 - 2026-06-07
+
+* Changes
+  * Support passing reboot parameters. This requires kernel support. The only
+    official Nerves device with support is the Raspberry Pi which uses it to
+    trigger the "tryboot" feature.
+  * Fix Elixir 1.20 warning
+
 ## v0.13.12 - 2026-01-30
 
 * Changes
