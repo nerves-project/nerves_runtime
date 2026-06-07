@@ -17,7 +17,6 @@ defmodule Nerves.Runtime.MixProject do
       docs: docs(),
       dialyzer: dialyzer(),
       deps: deps(),
-      preferred_cli_env: %{docs: :docs, "hex.build": :docs, "hex.publish": :docs},
       aliases: [test: &run_test/1]
     ]
   end
