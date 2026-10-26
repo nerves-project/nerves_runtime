@@ -332,6 +332,7 @@ Key             | Default                             | Description
 `:fwup_env`     | `%{}`                               | Additional environment variables to pass to `fwup`
 `:fwup_extra_options` | []                            | Additional command line options to pass to `fwup` (e.g., `["--unsafe"]`)
 `:fwup_path`    | `"fwup"`                            | Path to the `fwup` binary for querying or modifying firmware status
+`:fwup_timeout` | `1000`                              | Milliseconds to wait for `fwup` to run an `ops.fw` task. Increase this on devices where `fwup` starts slowly, such as those booting from slow storage. Keep it below 5000, since `Nerves.Runtime.KV` runs the `status` task while answering calls that wait at most that long.
 `:haveged_args` | []                                  | Additional arguments for `haveged` if Nerves.Runtime starts it (rare)
 `:init_module`  | `Nerves.Runtime.Init`               | Override data partition initialization. Set to `nil` to disable
 `:kv_backend`   | `Nerves.Runtime.KVBackend.UBootEnv` | The backing store for firmware slot and other low level key-value pairs. This is almost always a U-Boot environment block for Nerves

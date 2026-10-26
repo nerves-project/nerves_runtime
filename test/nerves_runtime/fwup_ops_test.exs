@@ -107,6 +107,32 @@ defmodule NervesRuntime.FwupOpsTest do
     end
   end
 
+  describe "fwup_timeout" do
+    setup context do
+      slow_fwup = Path.expand("test/fixture/slow-fwup")
+      [fwup_options: Keyword.put(context.fwup_options, :fwup_path, slow_fwup)]
+    end
+
+    test "exits when fwup takes longer", context do
+      opts = Keyword.put(context.fwup_options, :fwup_timeout, 100)
+      assert {:timeout, _} = catch_exit(FwupOps.validate(opts))
+    end
+
+    test "succeeds when fwup finishes in time", context do
+      opts = Keyword.put(context.fwup_options, :fwup_timeout, 5000)
+      assert :ok = FwupOps.validate(opts)
+      assert read_output(context) == "validate"
+    end
+
+    test "uses the application environment", context do
+      Application.put_env(:nerves_runtime, :fwup_timeout, 5000)
+      on_exit(fn -> Application.delete_env(:nerves_runtime, :fwup_timeout) end)
+
+      assert :ok = FwupOps.validate(context.fwup_options)
+      assert read_output(context) == "validate"
+    end
+  end
+
   describe "fwup_extra_opts" do
     @describetag ops_fw: "ops-execute-unsafe.fw"
     test "execute fails without unsafe", context do
