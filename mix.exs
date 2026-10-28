@@ -41,6 +41,7 @@ defmodule Nerves.Runtime.MixProject do
         devpath: "/dev/rootdisk0",
         fwup_env: %{},
         fwup_path: "fwup",
+        fwup_timeout: 1000,
         kv_backend: kv_backend(Mix.target()),
         ops_fw_path: "/usr/share/fwup/ops.fw"
       ],
