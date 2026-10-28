@@ -2,8 +2,9 @@ NervesRuntime is open-source software licensed under the Apache License,
 Version 2.0.
 
 Copyright holders include Frank Hunleth, Greg Mefford, Justin Schneck, Connor
-Rigby, Eric Rauer, Michał Kalbarczyk, Jon Carstens, Troels Brødsgaard, Alex
-McLain, Masatoshi Nishiguchi and Eric Oestrich.
+Rigby, Eric Rauer, Kyle A Anderson, Michał Kalbarczyk, Jon Carstens, Troels
+Brødsgaard, Alex McLain, Masatoshi Nishiguchi, SmartRent, Eric Oestrich, Josh
+Kalderimis, Lars Wikman, Liv Cella and James Harton.
 
-Authoritative REUSE-compliant copyright and license metadata available at
+Authoritative REUSE-compliant copyright and license metadata is available at
 https://hex.pm/packages/nerves_runtime.

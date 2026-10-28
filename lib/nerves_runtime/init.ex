@@ -5,6 +5,7 @@
 # SPDX-FileCopyrightText: 2018 Michał Kalbarczyk
 # SPDX-FileCopyrightText: 2019 Connor Rigby
 # SPDX-FileCopyrightText: 2020 Jon Carstens
+# SPDX-FileCopyrightText: 2025 Lars Wikman
 # SPDX-FileCopyrightText: 2025 Liv Cella
 #
 # SPDX-License-Identifier: Apache-2.0

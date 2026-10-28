@@ -1,4 +1,6 @@
 # SPDX-FileCopyrightText: 2023 Frank Hunleth
+# SPDX-FileCopyrightText: 2025 Lars Wikman
+# SPDX-FileCopyrightText: 2026 James Harton
 #
 # SPDX-License-Identifier: Apache-2.0
 defmodule NervesRuntime.FwupOpsTest do

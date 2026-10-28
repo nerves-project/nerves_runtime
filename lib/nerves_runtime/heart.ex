@@ -1,5 +1,6 @@
 # SPDX-FileCopyrightText: 2022 Frank Hunleth
 # SPDX-FileCopyrightText: 2022 Jon Carstens
+# SPDX-FileCopyrightText: 2022 SmartRent
 #
 # SPDX-License-Identifier: Apache-2.0
 defmodule Nerves.Runtime.Heart do

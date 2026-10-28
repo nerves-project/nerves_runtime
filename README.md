@@ -1,5 +1,12 @@
 <!--
   SPDX-FileCopyrightText: 2017 Frank Hunleth
+  SPDX-FileCopyrightText: 2017 Greg Mefford
+  SPDX-FileCopyrightText: 2017 Justin Schneck
+  SPDX-FileCopyrightText: 2018 Connor Rigby
+  SPDX-FileCopyrightText: 2018 Kyle A Anderson
+  SPDX-FileCopyrightText: 2019 Jon Carstens
+  SPDX-FileCopyrightText: 2025 Lars Wikman
+  SPDX-FileCopyrightText: 2026 James Harton
   SPDX-License-Identifier: CC-BY-4.0
 -->
 
