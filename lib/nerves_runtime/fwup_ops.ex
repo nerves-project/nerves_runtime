@@ -29,8 +29,7 @@ defmodule Nerves.Runtime.FwupOps do
   * `:fwup_env` - Additional environment variables to pass to `fwup`
   * `:fwup_extra_options` - Additional command line options to pass to `fwup` (e.g., `["--unsafe"]`)
   * `:fwup_path` - The path to the `fwup` utility
-  * `:fwup_timeout` - Milliseconds to wait for `fwup` to finish (defaults to
-    the `:fwup_timeout` application environment value or `1000`)
+  * `:fwup_timeout` - Milliseconds to wait for `fwup` to finish (defaults to `1000`)
   * `:ops_fw_path` - The path to the `ops.fw` file (defaults to `"/usr/share/fwup/ops.fw"`)
   * `:reboot` - Call `Nerves.Runtime.reboot/0` after running (defaults to
    `true` on destructive operations)
@@ -158,7 +157,14 @@ defmodule Nerves.Runtime.FwupOps do
   @impl GenServer
   def init(init_args) do
     specified_options =
-      Keyword.take(init_args, [:devpath, :fwup_env, :fwup_extra_options, :fwup_path, :ops_fw_path])
+      Keyword.take(init_args, [
+        :devpath,
+        :fwup_env,
+        :fwup_extra_options,
+        :fwup_path,
+        :fwup_timeout,
+        :ops_fw_path
+      ])
 
     {:ok, specified_options}
   end
@@ -170,10 +176,7 @@ defmodule Nerves.Runtime.FwupOps do
   end
 
   defp call_run_fwup(task, options) do
-    timeout =
-      Keyword.get_lazy(options, :fwup_timeout, fn ->
-        Application.get_env(:nerves_runtime, :fwup_timeout, @default_fwup_timeout)
-      end)
+    timeout = options[:fwup_timeout] || @default_fwup_timeout
 
     GenServer.call(__MODULE__, {:run_fwup, task, options}, timeout)
   catch
