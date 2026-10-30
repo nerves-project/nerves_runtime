@@ -161,6 +161,7 @@ defmodule Nerves.Runtime.KV do
           backend_opts: keyword(),
           contents: string_map(),
           active: String.t(),
+          fwup_options: FwupOps.options(),
           invalid?: boolean()
         }
 
@@ -169,6 +170,8 @@ defmodule Nerves.Runtime.KV do
 
   Options:
   * `:kv_backend` - a KV backend of the form `{module, options}` or just `module`
+  * `:fwup_timeout` - milliseconds to wait for the `ops.fw` status task that
+    determines the active slot (see `Nerves.Runtime.FwupOps`)
   """
   @spec start_link(keyword()) :: GenServer.on_start()
   def start_link(opts) do
@@ -258,6 +261,7 @@ defmodule Nerves.Runtime.KV do
       backend_opts: backend_opts,
       contents: %{},
       active: "a",
+      fwup_options: Keyword.take(init_opts, [:fwup_timeout]),
       invalid?: true
     }
 
@@ -348,7 +352,12 @@ defmodule Nerves.Runtime.KV do
   defp refresh(s) do
     {:ok, contents} = s.backend.load(s.backend_opts)
 
-    %{s | contents: contents, active: refresh_active_slot(contents), invalid?: false}
+    %{
+      s
+      | contents: contents,
+        active: refresh_active_slot(contents, s.fwup_options),
+        invalid?: false
+    }
   rescue
     error ->
       Logger.error(
@@ -363,8 +372,8 @@ defmodule Nerves.Runtime.KV do
       }
   end
 
-  defp refresh_active_slot(contents) do
-    case FwupOps.status() do
+  defp refresh_active_slot(contents, fwup_options) do
+    case FwupOps.status(fwup_options) do
       {:ok, %{active: active}} -> active
       {:error, _reason} -> contents["nerves_fw_active"] || "a"
     end

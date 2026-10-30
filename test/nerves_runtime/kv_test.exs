@@ -150,6 +150,33 @@ defmodule Nerves.Runtime.KVTest do
     assert KV.get_all() == %{}
   end
 
+  describe "active slot from fwup" do
+    # The ops.fw status task reports "a"; the KV contents say "b". fwup takes
+    # 1.5 s, longer than FwupOps' 1 s default.
+    setup do
+      devpath = Path.expand("tmp/kv_fwup/disk.img")
+      File.mkdir_p!(Path.dirname(devpath))
+
+      start_supervised!(
+        {Nerves.Runtime.FwupOps,
+         devpath: devpath,
+         fwup_path: Path.expand("test/fixture/slow-fwup"),
+         fwup_env: %{"STATUS" => "a", "SLOW_FWUP_DELAY" => "1.5"},
+         ops_fw_path: Path.expand("test/fixture/ops-status.fw")}
+      )
+
+      :ok
+    end
+
+    @tag kv_options: [
+           kv_backend: {Nerves.Runtime.KVBackend.InMemory, contents: @kv},
+           fwup_timeout: 5000
+         ]
+    test "uses the configured fwup timeout" do
+      assert KV.get_active("nerves_fw_version") == "0.1.0"
+    end
+  end
+
   @tag dont_start: true
   test "application stopped" do
     assert KV.get("nerves_serial_number") == nil
