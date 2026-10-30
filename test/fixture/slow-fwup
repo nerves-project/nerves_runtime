@@ -5,5 +5,5 @@
 #
 # Stand in for fwup on a device where it's slow to start
 
-sleep 0.5
+sleep "${SLOW_FWUP_DELAY:-0.5}"
 exec fwup "$@"
