@@ -63,6 +63,7 @@ defmodule Nerves.Runtime.MixProject do
       {:uboot_env, "~> 1.0 or ~> 0.3.0"},
       {:nerves_logging, "~> 0.2.0"},
       {:nerves_uevent, "~> 0.1.0"},
+      {:igniter, "~> 0.6", optional: true, runtime: false},
       {:ex_doc, "~> 0.22", only: :docs, runtime: false},
       {:dialyxir, "~> 1.1", only: :dev, runtime: false},
       {:credo, "~> 1.5", only: :dev, runtime: false},
@@ -108,7 +109,8 @@ defmodule Nerves.Runtime.MixProject do
 
   defp dialyzer() do
     [
-      flags: [:missing_return, :extra_return, :unmatched_returns, :error_handling, :underspecs]
+      flags: [:missing_return, :extra_return, :unmatched_returns, :error_handling, :underspecs],
+      plt_add_apps: [:igniter, :sourceror, :rewrite, :mix]
     ]
   end
 end
