@@ -35,6 +35,45 @@ Here are its features:
 The following sections describe the features in more detail. For more
 information, see the [hex docs](https://nerves-runtime.hexdocs.pm).
 
+## Installation
+
+`nerves_runtime` is included in all projects created by `mix nerves.new`. To add
+it to another project, add it to your `mix.exs` dependencies:
+
+```elixir
+{:nerves_runtime, "~> 0.13"}
+```
+
+### Igniter
+
+If your project uses [Igniter](https://igniter.hexdocs.pm), `nerves_runtime` can
+be added and configured by running:
+
+```sh
+mix igniter.install nerves_runtime
+```
+
+The installer does the following:
+
+* Configures the in-memory KV backend in `config/host.exs` so that
+  `Nerves.Runtime` can be used when running on your computer. See [Using
+  nerves_runtime in tests](#using-nerves_runtime-in-tests). If the project
+  doesn't have a `config/host.exs`, it prints the configuration to add.
+* Enables `Nerves.Runtime.StartupGuard` in `config/target.exs`. See [Assisted
+  firmware validation and automatic
+  revert](#assisted-firmware-validation-and-automatic-revert). If the project
+  doesn't have a `config/target.exs`, it prints the configuration to add.
+* Makes sure `:nerves_runtime` starts early on the device. If the project has a
+  `config :nerves, application_sort: [init: [...]]` list or uses `shoehorn`,
+  `:nerves_runtime` is added to that list. See [System
+  Initialization](#system-initialization).
+
+Existing configuration is not overwritten.
+
+Options:
+
+* `--no-startup-guard` - don't enable `Nerves.Runtime.StartupGuard`
+
 ## System Initialization
 
 `nerves_runtime` provides an OTP application (`nerves_runtime`) that can

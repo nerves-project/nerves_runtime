@@ -68,7 +68,17 @@ defmodule Nerves.Runtime.MixProject do
       {:credo, "~> 1.5", only: :dev, runtime: false},
       {:credo_binary_patterns, "~> 0.2.2", only: :dev, runtime: false},
       {:mimic, "~> 2.3", only: [:dev, :test]}
-    ]
+    ] ++ igniter_deps()
+  end
+
+  # Igniter requires Elixir 1.15 or later. Without it, the installer tasks
+  # only print that Igniter is needed.
+  defp igniter_deps() do
+    if Version.match?(System.version(), ">= 1.15.0") do
+      [{:igniter, "~> 0.6", optional: true, runtime: false}]
+    else
+      []
+    end
   end
 
   defp docs do
@@ -108,7 +118,8 @@ defmodule Nerves.Runtime.MixProject do
 
   defp dialyzer() do
     [
-      flags: [:missing_return, :extra_return, :unmatched_returns, :error_handling, :underspecs]
+      flags: [:missing_return, :extra_return, :unmatched_returns, :error_handling, :underspecs],
+      plt_add_apps: [:igniter, :sourceror, :rewrite, :mix]
     ]
   end
 end
